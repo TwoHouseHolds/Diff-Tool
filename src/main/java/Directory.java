@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class Directory {
 
-    private List<File> files = new ArrayList<>();
+    private final List<File> files = new ArrayList<>();
     private final Path path;
 
     /**
@@ -52,6 +52,7 @@ public class Directory {
      * Get the path of the directory
      * @return Path of the directory
      * @see java.nio.file.Path
+     * @noinspection unused
      */
     public Path getPath() {
         return path;

@@ -1,4 +1,3 @@
-import javax.sound.sampled.Line;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,12 +30,8 @@ public class FileUtils {
     public List<File> getFiles(String path) {
         Path p = Path.of(path);
         Directory dir = new Directory(p);
-        List<File> files =  dir.getFiles();
-        if(files == null) {
-            return null;
-        }
 
-        return files;
+        return dir.getFiles();
     }
 
     /**
@@ -48,15 +43,17 @@ public class FileUtils {
      * @see BinaryHeuristics
      */
     public boolean isBinary(File file, boolean extensive) {
-        return BinaryHeuristics.isBinary(file, extensive);
+        return Boolean.TRUE.equals(BinaryHeuristics.isBinary(file, extensive));
     }
 
+    /** @noinspection unused*/
     public List<String> readFile(File file) {
         List<String> lines = new ArrayList<>();
         try {
             lines = Files.readAllLines(Paths.get(file.toURI()));
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("File-Read has failed");
+            System.out.println(e.getMessage());
         }
         return lines;
     }
@@ -85,7 +82,7 @@ public class FileUtils {
         try {
             HuntMcIlroy hm = new HuntMcIlroy(fileLeft, fileRight);
             List<HuntMcIlroy.Subsequence> subsequences = hm.getSubsequences();
-            List<HuntMcIlroy.StringPair> stringPairs = new ArrayList<>();
+            List<HuntMcIlroy.StringPair> stringPairs;
             stringPairs = hm.getStringpairs(subsequences);
             return new huntIllroyResult(subsequences, stringPairs);
         } catch (Exception e) {
@@ -117,8 +114,8 @@ public class FileUtils {
         List<String> leftLines = new ArrayList<>();
         List<String> rightLines = new ArrayList<>();
 
-        boolean leftBinary = false;
-        boolean rightBinary = false;
+        boolean leftBinary;
+        boolean rightBinary;
 
         if(leftFile.equals(rightFile)) {
             leftBinary = isBinary(leftFile, true);

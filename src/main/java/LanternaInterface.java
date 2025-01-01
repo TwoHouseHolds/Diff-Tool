@@ -1,10 +1,13 @@
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
-import com.googlecode.lanterna.graphics.SimpleTheme;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.DirectoryDialogBuilder;
-import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
+import com.googlecode.lanterna.gui2.menu.Menu;
+import com.googlecode.lanterna.gui2.menu.MenuBar;
+import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
@@ -12,9 +15,7 @@ import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -32,7 +33,6 @@ import java.util.function.Consumer;
  */
 public class LanternaInterface {
 
-    private int selectedLabelIndex = 0;
     private BasicWindow window;
     private WindowBasedTextGUI textGUI;
     private final FileUtils fileUtils = new FileUtils();
@@ -46,14 +46,15 @@ public class LanternaInterface {
      * @see com.googlecode.lanterna.terminal.DefaultTerminalFactory
      * @see com.googlecode.lanterna.gui2.MultiWindowTextGUI
      */
-    public void start() {
+     void start() {
         DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
-        Screen screen = null;
+        Screen screen;
         try {
             terminalFactory.setInitialTerminalSize(new TerminalSize(200, 100));
             screen = terminalFactory.createScreen();
             screen.startScreen();
             textGUI = new MultiWindowTextGUI(screen, new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLUE));
+
             window = new BasicWindow();
             window.setHints(Set.of(Window.Hint.FIT_TERMINAL_WINDOW, Window.Hint.CENTERED));
 
@@ -62,7 +63,8 @@ public class LanternaInterface {
             textGUI.addWindowAndWait(window);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Initalization of Lanterna Interface has failed. Please try again and check the Error message");
+            System.out.println(e.getMessage());
             System.exit(1);
         }
 
@@ -79,38 +81,50 @@ public class LanternaInterface {
         List<Panel> panels = new ArrayList<>();
         List<String> output = new ArrayList<>();
 
+        boolean isFirst = true;
+
         for (String label : labels) {
             Panel panel = new Panel(new LinearLayout(Direction.VERTICAL));
+            if(isFirst) {
+                addMenu(panel);
+                panel.addComponent(new EmptySpace(new TerminalSize(0, 2)));
+            }
+            if(!isFirst) panel.addComponent(new EmptySpace(new TerminalSize(0, 3)));
             panel.addComponent(new Label(label).addStyle(SGR.BOLD));
             TextBox textBox = new TextBox(new TerminalSize(30, 1));
-            panel.addComponent(new Label("Enter a Path:"));
+            panel.addComponent(new Label("Gebe einen Pfad ein:"));
             panel.addComponent(textBox);
             panels.add(panel);
+            isFirst = false;
         }
 
         Button confirmButton = new Button("Confirm", () -> {
             output.clear();
             for (Panel panel : panels) {
-                TextBox textBox = (TextBox) panel.getChildren().toArray()[2];
-                output.add(textBox.getText());
+                Optional<Object> optBox = Arrays.stream(panel.getChildren().toArray()).filter(TextBox.class::isInstance).findFirst();
+
+                if(optBox.isPresent()) {
+                    TextBox textBox = (TextBox) optBox.get();
+                    output.add(textBox.getText());
+                }
             }
             consumer.accept(output);
         });
 
         for(Panel panel : panels) {
-            panel.addComponent(new Label("Or select a directory:"));
-            panel.addComponent(new Button("Select", new Runnable() {
-                @Override
-                public void run() {
-                    File input = new DirectoryDialogBuilder()
-                            .setTitle("Select directory")
-                            .setDescription("Choose a directory")
-                            .setActionLabel("Select")
-                            .build()
-                            .showDialog(textGUI);
+            panel.addComponent(new Label("Oder wähle ein Verzeichnis aus:"));
+            panel.addComponent(new Button("Select", () -> {
+                File input = new DirectoryDialogBuilder()
+                        .setTitle("Wähle das Verzeichnis")
+                        .setDescription("Wähle ein Verzeichnis")
+                        .setActionLabel("Select")
+                        .build()
+                        .showDialog(textGUI);
 
-                    if (input != null) {
-                        TextBox textBox = (TextBox) panel.getChildren().toArray()[2];
+                if (input != null) {
+                    Optional<Object> optBox = Arrays.stream(panel.getChildren().toArray()).filter(TextBox.class::isInstance).findFirst();
+                    if(optBox.isPresent()) {
+                        TextBox textBox = (TextBox) optBox.get();
                         textBox.setText(input.getAbsolutePath());
                     }
                 }
@@ -125,7 +139,6 @@ public class LanternaInterface {
             outterPanel.addComponent(panel);
             outterPanel.addComponent(new EmptySpace(new TerminalSize(2, 0)));
         }
-
 
         window.setComponent(outterPanel);
     }
@@ -153,7 +166,7 @@ public class LanternaInterface {
                     .filter(p -> p.getChildren().toArray()[1] instanceof TextBox)
                     .map(p -> (TextBox) p.getChildren().toArray()[1])
                     .findFirst()
-                    .ifPresent(t -> t.setText("Directory does not exist or is empty"));
+                    .ifPresent(t -> t.setText("Verzeichnis existiert nicht oder ist leer"));
             return;
         }
 
@@ -165,7 +178,7 @@ public class LanternaInterface {
                     .map(p -> (TextBox) p.getChildren().toArray()[1])
                     .skip(1)
                     .findFirst()
-                    .ifPresent(t -> t.setText("Directory does not exist or is empty"));
+                    .ifPresent(t -> t.setText("Verzeichnis existiert nicht oder ist leer"));
             return;
         }
 
@@ -183,7 +196,7 @@ public class LanternaInterface {
      * @see java.io.File
      * @see java.io.File
      */
-    public void showFilesAsDirectory(List<File> leftFiles, List<File> rightFiles) {
+    private void showFilesAsDirectory(List<File> leftFiles, List<File> rightFiles) {
         Panel outterPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
 
         Panel leftPanel = new Panel(new LinearLayout(Direction.VERTICAL));
@@ -205,9 +218,7 @@ public class LanternaInterface {
             } else {
                 fileName += " (in L)";
             }
-            leftListBox.addItem(fileName, () -> {
-                handleFileSelect(leftFiles, rightFiles, file);
-            });
+            leftListBox.addItem(fileName, () -> handleFileSelect(leftFiles, rightFiles, file));
         }
 
         for (File file : rightFiles) {
@@ -218,9 +229,7 @@ public class LanternaInterface {
             } else {
                 fileName += " (in R)";
             }
-            rightListBox.addItem(fileName, () -> {
-                handleFileSelect(leftFiles, rightFiles, file);
-            });
+            rightListBox.addItem(fileName, () -> handleFileSelect(leftFiles, rightFiles, file));
         }
 
         leftPanel.addComponent(leftListBox);
@@ -249,7 +258,7 @@ public class LanternaInterface {
     private void handleFileSelect(List<File> leftFiles, List<File> rightFiles, File file) {
         boolean inLeft = false;
         for (File leftFile : leftFiles) {
-            if (leftFile.getName().equals(file.getName())) {
+            if (leftFile.equals(file)) {
                 inLeft = true;
                 break;
             }
@@ -276,20 +285,22 @@ public class LanternaInterface {
             return;
         }
 
-        File leftFile = inLeft ? file : leftFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().get();
-        File rightFile = inLeft ? rightFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().get() : file;
+        Optional<File> optFileLeft = leftFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst();
+        Optional<File> optFileRight = rightFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst();
+        File leftFile = inLeft ? file : optFileLeft.orElseGet(this::generateStandardFile);
+        File rightFile = inLeft ? optFileRight.orElseGet(this::generateStandardFile) : file;
 
         showFileContents(leftFile, rightFile);
     }
 
-    public void showFileContents(File leftFile, File rightFile) {
+    private void showFileContents(File leftFile, File rightFile) {
         Panel outterPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
 
         Panel leftPanel = new Panel(new LinearLayout(Direction.VERTICAL));
         Panel rightPanel = new Panel(new LinearLayout(Direction.VERTICAL));
 
-        leftPanel.addComponent(new Label("First File:").addStyle(SGR.BOLD));
-        rightPanel.addComponent(new Label("Second File").addStyle(SGR.BOLD));
+        leftPanel.addComponent(new Label("Linke Datei " + leftFile.getName() + " :").addStyle(SGR.BOLD));
+        rightPanel.addComponent(new Label("Rechte Datei " + rightFile.getName() + " :").addStyle(SGR.BOLD));
 
         FileUtils.LineResult result = fileUtils.compareFiles(leftFile, rightFile);
 
@@ -338,14 +349,42 @@ public class LanternaInterface {
     private void resetWindow(WindowListenerAdapter listener) {
         window.setComponent(null);
         window.removeWindowListener(listener);
-        selectedLabelIndex = 0;
     }
 
-    public void tryScreenUpdate() {
+    /** @noinspection unused*/
+    private void tryScreenUpdate() {
         try {
             textGUI.updateScreen();
         } catch (IOException e) {
             System.out.println("Error updating screen");
         }
+    }
+
+    private File generateStandardFile() {
+        return new File("placeholderNA");
+    }
+
+    private void addMenu(Panel panel) {
+        MenuBar menuBar = new MenuBar();
+
+        Menu helpMenu = new Menu("Hilfe");
+        menuBar.add(helpMenu);
+        helpMenu.add(new MenuItem("Guide", () -> MessageDialog.showMessageDialog(textGUI, "Hilfe",
+                """
+                        - Wählen Sie die Verzeichnisse aus, die Sie vergleichen möchten.
+                        - Die Anwendung zeigt die Unterschiede zwischen den Verzeichnissen an.
+                        - Verwenden Sie das Menü, um Hilfe anzuzeigen oder die Anwendung zu beenden.""", MessageDialogButton.OK)));
+
+        helpMenu.add(new MenuItem("Über uns", () -> MessageDialog.showMessageDialog(textGUI, "Über uns", """
+                Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.
+                Beteiligte: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf
+                """, MessageDialogButton.OK)));
+
+        Menu exitMenu = new Menu("Beenden");
+        menuBar.add(exitMenu);
+        exitMenu.add(new MenuItem("Beende Programm", () -> System.exit(3)));
+        panel.addComponent(menuBar);
+
+
     }
 }
