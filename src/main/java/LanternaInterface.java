@@ -399,7 +399,7 @@ public class LanternaInterface {
     /**
      * Adds the menu with help and exit options to the panel
      * @param panel Panel to add the menu to
-     * @see com.googlecode.lanterna.gui2.Menu
+     * @see com.googlecode.lanterna.gui2.menu.MenuBar
      */
     private void addMenu(Panel panel) {
         MenuBar menuBar = new MenuBar();
