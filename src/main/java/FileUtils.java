@@ -133,10 +133,6 @@ public class FileUtils {
             return new LineResult(leftLines, rightLines);
         }
 
-        for(HuntMcIlroy.Subsequence sub : result.subsequences) {
-            System.out.println(sub);
-        }
-
         for (HuntMcIlroy.StringPair pair : result.stringPairs()) {
 
             if(pair.leftText() == null) {
