@@ -9,6 +9,11 @@
     <dependencies>
         <!-- https://mvnrepository.com/artifact/com.googlecode.lanterna/lanterna -->
         <dependency>
+            <groupId>com.googlecode.lanterna</groupId>
+            <artifactId>lanterna</artifactId>
+            <version>3.1.1</version>
+        </dependency>
+        <dependency>
             <groupId>gnu.getopt</groupId>
             <artifactId>java-getopt</artifactId>
             <version>1.0.13</version>
@@ -23,7 +28,6 @@
                     <source>16</source>
                     <target>16</target>
                 </configuration>
-                GAMING
             </plugin>
         </plugins>
     </build>
