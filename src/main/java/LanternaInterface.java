@@ -66,6 +66,7 @@ public class LanternaInterface {
         } catch (Exception e) {
             System.out.println("Initalization of Lanterna Interface has failed. Please try again and check the Error message");
             System.out.println(e.getMessage());
+            System.out.println(Arrays.toString(e.getStackTrace()));
             System.exit(1);
         }
 
