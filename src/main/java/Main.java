@@ -7,8 +7,7 @@ public class Main {
         System.setProperty("jdk.console", "java.base");
         Getopt options = new Getopt("JayWinDiff", args, "wW");
         boolean withGui = false;
-
-        boolean withoutGui = false;
+        boolean withoutGui = true;
         switch(options.getopt()) {
             case 'w':
                 if ( withoutGui ) {
@@ -33,7 +32,8 @@ public class Main {
             withGui = !withoutGui;
         }
         if ( withGui ) {
-            /* Swing gibts später meine Freunde
+            /*
+            Swing gibts später meine Freunde
             EventQueue.invokeLater(() -> {
                 JayWinDiff jwd = new JayWinDiff();
                 jwd.setVisible(true);

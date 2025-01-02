@@ -133,7 +133,14 @@ public class FileUtils {
             return new LineResult(leftLines, rightLines);
         }
 
+        for(HuntMcIlroy.Subsequence sub : result.subsequences) {
+            System.out.println(sub);
+        }
+
         for (HuntMcIlroy.StringPair pair : result.stringPairs()) {
+
+            System.out.println(pair);
+
             if(pair.leftText() == null) {
                 leftLines.add(lineNumber + ": -");
                 rightLines.add(lineNumber + ": + " + pair.rightText());
