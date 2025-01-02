@@ -126,8 +126,6 @@ public class FileUtils {
         }
 
         int lineNumber = 0;
-        System.out.println("Left Binary: " + leftBinary);
-        System.out.println("Right Binary: " + rightBinary);
 
         if(result == null) {
             leftLines.add(leftBinary ? "Cannot compare binary files yet" : "Cannot compare this filetype yet");

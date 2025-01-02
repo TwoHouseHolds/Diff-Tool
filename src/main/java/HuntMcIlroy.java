@@ -89,9 +89,7 @@ public class HuntMcIlroy {
                 j--;
             }
         }
-        for(var v: data) {
-            System.out.println(Arrays.toString(v));
-        }
+
         return result;
     }
 

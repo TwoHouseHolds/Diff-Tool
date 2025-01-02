@@ -255,6 +255,16 @@ public class LanternaInterface {
         }
     }
 
+    /**
+     * Show the contents of a file
+     * If the file is in both directories, show the contents of both files with differences highlighted
+     * If the file is only in one directory, show the contents of that file
+     * If the user presses the escape key, return to the file list
+     * @param leftFiles  List of files in the first directory
+     * @param rightFiles List of files in the second directory
+     * @param file       File to show
+     * @see java.io.File
+     */
     private void handleFileSelect(List<File> leftFiles, List<File> rightFiles, File file) {
         boolean inLeft = false;
         for (File leftFile : leftFiles) {
@@ -293,6 +303,14 @@ public class LanternaInterface {
         showFileContents(leftFile, rightFile);
     }
 
+    /**
+     * Show the contents of 2 files
+     * The contents of the files are shown side by side with differences highlighted
+     * If the user presses the escape key, return to the file list
+     * @param leftFile  File to show on the left
+     * @param rightFile File to show on the right
+     * @see java.io.File
+     */
     private void showFileContents(File leftFile, File rightFile) {
         Panel outterPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
 
@@ -346,12 +364,21 @@ public class LanternaInterface {
         });
     }
 
+    /**
+     * Reset the window
+     * @param listener Listener to remove
+     * @see com.googlecode.lanterna.gui2.WindowListenerAdapter
+     */
     private void resetWindow(WindowListenerAdapter listener) {
         window.setComponent(null);
         window.removeWindowListener(listener);
     }
 
-    /** @noinspection unused*/
+    /**
+     * Update the screen
+     * @see com.googlecode.lanterna.gui2.MultiWindowTextGUI
+     * @noinspection unused
+     * */
     private void tryScreenUpdate() {
         try {
             textGUI.updateScreen();
@@ -360,10 +387,20 @@ public class LanternaInterface {
         }
     }
 
+    /**
+     * Generate a standard file
+     * @see java.io.File
+     * @return empty file
+     */
     private File generateStandardFile() {
         return new File("placeholderNA");
     }
 
+    /**
+     * Adds the menu with help and exit options to the panel
+     * @param panel Panel to add the menu to
+     * @see com.googlecode.lanterna.gui2.Menu
+     */
     private void addMenu(Panel panel) {
         MenuBar menuBar = new MenuBar();
 
