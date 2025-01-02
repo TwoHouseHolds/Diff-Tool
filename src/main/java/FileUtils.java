@@ -102,6 +102,7 @@ public class FileUtils {
      * Compare two files line by line
      * Lines come pre-modified with a line-number
      * They also come pre-modified with a + or - to represent if the line is present in the left or right file
+     * If the files are the same, the lines will be present in both List<String> objects
      * @param leftFile First file to compare
      * @param rightFile Second file to compare
      * @return Result of the comparison as a LineResult object
