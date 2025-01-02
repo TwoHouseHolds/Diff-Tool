@@ -41,6 +41,8 @@ public class Main {
             */
         }
 
+
+
         LanternaInterface lanternaInterface = new LanternaInterface();
         lanternaInterface.start();
 
