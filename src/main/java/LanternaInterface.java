@@ -216,16 +216,7 @@ public class LanternaInterface {
             boolean inBoth = rightFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
             File rightFile = inBoth ? rightFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
             if (inBoth) {
-                boolean identical = false;
-                try {
-                    identical = Files.mismatch(file.toPath(), rightFile.toPath()) == -1;
-                } catch(IOException ignored) {
-                }
-                if(!identical) {
-                    fileName += " (in L&R nicht identisch)";
-                } else {
-                    fileName += " (in L&R identisch)";
-                }
+                fileName = getFormattedFileName(file, fileName, rightFile);
             } else {
                 fileName += " (in L)";
             }
@@ -237,16 +228,7 @@ public class LanternaInterface {
             boolean inBoth = leftFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
             File leftFile = inBoth ? leftFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
             if (inBoth) {
-                boolean identical = false;
-                try {
-                    identical = Files.mismatch(file.toPath(), leftFile.toPath()) == -1;
-                } catch(IOException ignored) {
-                }
-                if(!identical) {
-                    fileName += " (in L&R nicht identisch)";
-                } else {
-                    fileName += " (in L&R identisch)";
-                }
+                fileName = getFormattedFileName(file, fileName, leftFile);
             } else {
                 fileName += " (in R)";
             }
@@ -274,6 +256,20 @@ public class LanternaInterface {
         if (!labels.isEmpty()) {
             labels.get(0).setBackgroundColor(TextColor.ANSI.RED);
         }
+    }
+
+    private String getFormattedFileName(File file, String fileName, File rightFile) {
+        boolean identical = false;
+        try {
+            identical = Files.mismatch(file.toPath(), rightFile.toPath()) == -1;
+        } catch(IOException ignored) {
+        }
+        if(!identical) {
+            fileName += " (in L&R nicht identisch)";
+        } else {
+            fileName += " (in L&R identisch)";
+        }
+        return fileName;
     }
 
     /**
@@ -372,6 +368,7 @@ public class LanternaInterface {
      * Generate a standard file
      * @see java.io.File
      * @return empty file
+     * @noinspection unused
      */
     private File generateStandardFile() {
         return new File("placeholderNA");

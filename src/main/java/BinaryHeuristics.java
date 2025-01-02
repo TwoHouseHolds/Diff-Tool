@@ -13,7 +13,7 @@ public class BinaryHeuristics {
      */
     public static Boolean isBinary(File file, boolean extensive) {
         try(FileInputStream fis = new FileInputStream(file)){
-            long length = extensive ? file.length() : Math.min(file.length()/10, 2048576);
+            long length = extensive ? file.length() : Math.min(file.length()/10, 1048576);
             long binaryChars = 0;
             long nonUtf8Chars = 0;
             long nonIsoChars = 0;
