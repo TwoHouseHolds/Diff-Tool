@@ -139,8 +139,6 @@ public class FileUtils {
 
         for (HuntMcIlroy.StringPair pair : result.stringPairs()) {
 
-            System.out.println(pair);
-
             if(pair.leftText() == null) {
                 leftLines.add(lineNumber + ": -");
                 rightLines.add(lineNumber + ": + " + pair.rightText());
