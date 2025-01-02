@@ -134,6 +134,7 @@ public class FileUtils {
         }
 
         for (HuntMcIlroy.StringPair pair : result.stringPairs()) {
+
             if(pair.leftText() == null) {
                 leftLines.add(lineNumber + ": -");
                 rightLines.add(lineNumber + ": + " + pair.rightText());

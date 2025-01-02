@@ -397,7 +397,7 @@ public class LanternaInterface {
     }
 
     /**
-     * Adds the menu with help and exit options to the panel
+     * Adds a menu with help and exit options to the panel
      * @param panel Panel to add the menu to
      * @see com.googlecode.lanterna.gui2.menu.MenuBar
      */
@@ -412,7 +412,8 @@ public class LanternaInterface {
                         - Die Anwendung zeigt die Unterschiede zwischen den Verzeichnissen an.
                         - Verwenden Sie das Menü, um Hilfe anzuzeigen oder die Anwendung zu beenden.""", MessageDialogButton.OK)));
 
-        helpMenu.add(new MenuItem("Über uns", () -> MessageDialog.showMessageDialog(textGUI, "Über uns", """
+        helpMenu.add(new MenuItem("Über uns", () -> MessageDialog.showMessageDialog(textGUI, "Über uns",
+                """
                 Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.
                 Beteiligte: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf
                 """, MessageDialogButton.OK)));
@@ -421,7 +422,5 @@ public class LanternaInterface {
         menuBar.add(exitMenu);
         exitMenu.add(new MenuItem("Beende Programm", () -> System.exit(3)));
         panel.addComponent(menuBar);
-
-
     }
 }

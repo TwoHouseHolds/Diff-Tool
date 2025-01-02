@@ -50,7 +50,6 @@ public class HuntMcIlroy {
      *                    @see java.io.IOException
      */
     public HuntMcIlroy(File fileLeft, File fileRight) throws IOException {
-
         linesLeft = Files.readAllLines(Path.of(fileLeft.toURI()));
         linesRight = Files.readAllLines(Path.of(fileRight.toURI()));
     }

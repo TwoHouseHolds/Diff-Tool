@@ -16,7 +16,7 @@ public class Directory {
     private final Path path;
 
     /**
-     * Create a new directory
+     * "Create" a new directory
      * @param path Path of the directory
      * @see java.nio.file.Path
      */
