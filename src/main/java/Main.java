@@ -4,10 +4,9 @@ import java.awt.*;
 
 public class Main {
     public static void main(String[] args) {
-        System.setProperty("jdk.console", "java.base");
         Getopt options = new Getopt("JayWinDiff", args, "wW");
         boolean withGui = false;
-        boolean withoutGui = true;
+        boolean withoutGui = false;
         switch(options.getopt()) {
             case 'w':
                 if ( withoutGui ) {
@@ -39,12 +38,10 @@ public class Main {
                 jwd.setVisible(true);
             });
             */
+        } else {
+            LanternaInterface lanternaInterface = new LanternaInterface();
+            lanternaInterface.start();
         }
-
-
-
-        LanternaInterface lanternaInterface = new LanternaInterface();
-        lanternaInterface.start();
 
     }
 }
