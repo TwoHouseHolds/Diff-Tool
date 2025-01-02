@@ -15,6 +15,7 @@ import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -212,24 +213,44 @@ public class LanternaInterface {
 
         for (File file : leftFiles) {
             String fileName = file.getName();
-            boolean inBoth = rightFiles.contains(file);
+            boolean inBoth = rightFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
+            File rightFile = inBoth ? rightFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
             if (inBoth) {
-                fileName += " (in L&R)";
+                boolean identical = false;
+                try {
+                    identical = Files.mismatch(file.toPath(), rightFile.toPath()) == -1;
+                } catch(IOException ignored) {
+                }
+                if(!identical) {
+                    fileName += " (in L&R nicht identisch)";
+                } else {
+                    fileName += " (in L&R identisch)";
+                }
             } else {
                 fileName += " (in L)";
             }
-            leftListBox.addItem(fileName, () -> handleFileSelect(leftFiles, rightFiles, file));
+            leftListBox.addItem(fileName, () -> showFileContents(file, rightFile, Side.LEFT));
         }
 
         for (File file : rightFiles) {
             String fileName = file.getName();
-            boolean inBoth = leftFiles.contains(file);
+            boolean inBoth = leftFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
+            File leftFile = inBoth ? leftFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
             if (inBoth) {
-                fileName += " (in L&R)";
+                boolean identical = false;
+                try {
+                    identical = Files.mismatch(file.toPath(), leftFile.toPath()) == -1;
+                } catch(IOException ignored) {
+                }
+                if(!identical) {
+                    fileName += " (in L&R nicht identisch)";
+                } else {
+                    fileName += " (in L&R identisch)";
+                }
             } else {
                 fileName += " (in R)";
             }
-            rightListBox.addItem(fileName, () -> handleFileSelect(leftFiles, rightFiles, file));
+            rightListBox.addItem(fileName, () -> showFileContents(file, leftFile, Side.RIGHT));
         }
 
         leftPanel.addComponent(leftListBox);
@@ -256,54 +277,6 @@ public class LanternaInterface {
     }
 
     /**
-     * Show the contents of a file
-     * If the file is in both directories, show the contents of both files with differences highlighted
-     * If the file is only in one directory, show the contents of that file
-     * If the user presses the escape key, return to the file list
-     * @param leftFiles  List of files in the first directory
-     * @param rightFiles List of files in the second directory
-     * @param file       File to show
-     * @see java.io.File
-     */
-    private void handleFileSelect(List<File> leftFiles, List<File> rightFiles, File file) {
-        boolean inLeft = false;
-        for (File leftFile : leftFiles) {
-            if (leftFile.equals(file)) {
-                inLeft = true;
-                break;
-            }
-        }
-        boolean inBoth = false;
-        if (inLeft) {
-            for (File rightFile : rightFiles) {
-                if (rightFile.getName().equals(file.getName())) {
-                    inBoth = true;
-                    break;
-                }
-            }
-        } else {
-            for (File leftFile : leftFiles) {
-                if (leftFile.getName().equals(file.getName())) {
-                    inBoth = true;
-                    break;
-                }
-            }
-        }
-
-        if (!inBoth) {
-            showFileContents(file, file);
-            return;
-        }
-
-        Optional<File> optFileLeft = leftFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst();
-        Optional<File> optFileRight = rightFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst();
-        File leftFile = inLeft ? file : optFileLeft.orElseGet(this::generateStandardFile);
-        File rightFile = inLeft ? optFileRight.orElseGet(this::generateStandardFile) : file;
-
-        showFileContents(leftFile, rightFile);
-    }
-
-    /**
      * Show the contents of 2 files
      * The contents of the files are shown side by side with differences highlighted
      * If the user presses the escape key, return to the file list
@@ -311,19 +284,27 @@ public class LanternaInterface {
      * @param rightFile File to show on the right
      * @see java.io.File
      */
-    private void showFileContents(File leftFile, File rightFile) {
+    private void showFileContents(File leftFile, File rightFile, Side selectedSide) {
         Panel outterPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
 
         Panel leftPanel = new Panel(new LinearLayout(Direction.VERTICAL));
         Panel rightPanel = new Panel(new LinearLayout(Direction.VERTICAL));
 
-        leftPanel.addComponent(new Label("Linke Datei " + leftFile.getName() + " :").addStyle(SGR.BOLD));
-        rightPanel.addComponent(new Label("Rechte Datei " + rightFile.getName() + " :").addStyle(SGR.BOLD));
+        leftPanel.addComponent(new Label("Ausgewählte Datei " + leftFile.getName() + " :").addStyle(SGR.BOLD));
+        rightPanel.addComponent(new Label("Datei in anderem Verzeichnis " + rightFile.getName() + " :").addStyle(SGR.BOLD));
 
         FileUtils.LineResult result = fileUtils.compareFiles(leftFile, rightFile);
 
         List<String> leftLines = result.left();
         List<String> rightLines = result.right();
+
+        if(leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
+            rightLines.clear();
+        }
+
+        if(leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
+            leftLines.clear();
+        }
 
         ColoredTextBox leftTextBox = new ColoredTextBox(new TerminalSize(100, 100));
         ColoredTextBox rightTextBox = new ColoredTextBox(new TerminalSize(100, 100));
