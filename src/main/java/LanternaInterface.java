@@ -183,11 +183,23 @@ public class LanternaInterface {
 
         if (leftDir == null || leftDir.isEmpty()) {
             leftTextBox.setText("Verzeichnis existiert nicht oder ist leer");
+
+            if (rightDir == null || rightDir.isEmpty()) {
+                rightTextBox.setText("Verzeichnis existiert nicht oder ist leer");
+                return;
+            }
+
             return;
         }
 
         if (rightDir == null || rightDir.isEmpty()) {
             rightTextBox.setText("Verzeichnis existiert nicht oder ist leer");
+
+            if(leftDir == null || leftDir.isEmpty()) {
+                leftTextBox.setText("Verzeichnis existiert nicht oder ist leer");
+                return;
+            }
+
             return;
         }
 
