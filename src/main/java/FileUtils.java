@@ -140,14 +140,14 @@ public class FileUtils {
 
         for (HuntMcIlroy.StringPair pair : result.stringPairs()) {
             if(pair.leftText() == null) {
-                leftLines.add(lineNumber + ": -");
+                leftLines.add(lineNumber + ": - ");
                 rightLines.add(lineNumber + ": + " + pair.rightText());
                 lineNumber++;
                 continue;
             }
             if(pair.rightText() == null) {
                 leftLines.add(lineNumber + ": + " + pair.leftText());
-                rightLines.add(lineNumber + ": -");
+                rightLines.add(lineNumber + ": - ");
                 lineNumber++;
                 continue;
             }
@@ -177,10 +177,9 @@ public class FileUtils {
                 leftLines.add(lineNumber + ": ! " + pair.leftText());
                 rightLines.add(lineNumber + ": ! " + pair.rightText());
                 lineNumber++;
-                continue;
             }
-            leftLines.add(lineNumber + ": " + pair.leftText());
-            rightLines.add(lineNumber  + ": " + pair.rightText());
+            leftLines.add(lineNumber + ":   " + pair.leftText());
+            rightLines.add(lineNumber  + ":   " + pair.rightText());
             lineNumber++;
         }
 

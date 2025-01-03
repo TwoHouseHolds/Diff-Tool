@@ -30,7 +30,8 @@ public class Main {
             withoutGui = GraphicsEnvironment.isHeadless();
             withGui = !withoutGui;
         }
-        if ( withGui ) {
+
+        if (withGui) {
             /*
             Swing gibts später meine Freunde
             EventQueue.invokeLater(() -> {
