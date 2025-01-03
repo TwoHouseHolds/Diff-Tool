@@ -156,11 +156,11 @@ public class FileUtils {
                 String[] rightText = pair.rightText().split("");
                 int longest = Math.max(leftText.length, rightText.length);
                 Side longerSide = leftText.length > rightText.length ? Side.LEFT : Side.RIGHT;
-
+                String[] longer = leftText.length > rightText.length ? leftText : rightText;
 
                 for(int i = 0; i < longest; i++) {
                     if(i >= leftText.length || i >= rightText.length || !leftText[i].equals(rightText[i])) {
-                        specificLineChanges.add(new SpecificLineChange(lineNumber + 1, i + String.valueOf(lineNumber).length() + 4, i >= leftText.length ? rightText[i].charAt(0) : leftText[i].charAt(0), longerSide));
+                        specificLineChanges.add(new SpecificLineChange(lineNumber + 1, i + String.valueOf(lineNumber).length() + 4, longer[i].charAt(0), longerSide));
                     }
                 }
 
