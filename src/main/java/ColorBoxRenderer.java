@@ -1,5 +1,8 @@
+import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
+
+import java.util.regex.Pattern;
 
 /**
  * A custom renderer for {@link TextBox} that colorizes the text based on the characters in it
@@ -15,14 +18,20 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
     public void drawComponent(TextGUIGraphics graphics, TextBox textBox) {
         super.drawComponent(graphics, textBox);
 
+        ColoredTextBox coloredTextBox = (ColoredTextBox) textBox;
+
         String boxText = textBox.getText();
         String[] lines = boxText.split("\n");
+
+        int xScrollOffset = getViewTopLeft().getColumn();
 
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
 
             int index = line.indexOf("+");
-            while (index >= 0 && index < String.valueOf(index).length() + 4) {
+            index = index - xScrollOffset;
+
+            while (index >= 0 && index + xScrollOffset < String.valueOf(index).length() + 4) {
                 graphics.setBackgroundColor(TextColor.ANSI.GREEN);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
                 graphics.putString(index, i, "+");
@@ -34,7 +43,10 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
             }
 
             index = line.indexOf("-");
-            while (index >= 0 && index < String.valueOf(index).length() + 4) {
+            index = index - xScrollOffset;
+
+            while (index >= 0 && index + xScrollOffset < String.valueOf(index).length() + 4) {
+                //Check if - is outside of view due to scrolling
                 graphics.setBackgroundColor(TextColor.ANSI.RED);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
                 graphics.putString(index, i, "-");
@@ -43,6 +55,39 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
 
                 index = line.indexOf("-", index + line.length());
+            }
+
+            index = line.indexOf("!");
+            index = index - xScrollOffset;
+
+            while (index >= 0 && index + xScrollOffset < String.valueOf(index).length() + 4) {
+                graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
+                graphics.setForegroundColor(TextColor.ANSI.BLACK);
+                graphics.putString(index, i, "!");
+
+                graphics.setBackgroundColor(TextColor.ANSI.BLUE);
+                graphics.setForegroundColor(TextColor.ANSI.WHITE);
+
+                index = line.indexOf("!", index + line.length());
+            }
+
+            for(FileUtils.SpecificLineChange c : coloredTextBox.getSpecificLineChanges()) {
+
+                System.out.println(c);
+
+                if(coloredTextBox.getSide() != c.longerSide()) {
+                    continue;
+                }
+
+                index = c.index() - xScrollOffset;
+
+                if(c.lineNumber() == i) {
+                    graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
+                    graphics.setForegroundColor(TextColor.ANSI.BLACK);
+                    graphics.putString(index, i, String.valueOf(c.character()));
+                    graphics.setBackgroundColor(TextColor.ANSI.BLUE);
+                    graphics.setForegroundColor(TextColor.ANSI.WHITE);
+                }
             }
 
         }

@@ -95,7 +95,10 @@ public class FileUtils {
      * Has a List<String> left and a List<String right to represent the lines of the files
      * @see java.util.List
      */
-    public record LineResult(List<String> left, List<String> right) {
+    public record LineResult(List<String> left, List<String> right, List<SpecificLineChange> specificLineChanges) {
+    }
+
+    public record SpecificLineChange(int lineNumber, int index, char character, Side longerSide) {
     }
 
     /**
@@ -114,6 +117,7 @@ public class FileUtils {
         huntIllroyResult result = this.huntCompare(leftFile, rightFile);
         List<String> leftLines = new ArrayList<>();
         List<String> rightLines = new ArrayList<>();
+        List<SpecificLineChange> specificLineChanges = new ArrayList<>();
 
         boolean leftBinary;
         boolean rightBinary;
@@ -126,16 +130,15 @@ public class FileUtils {
             rightBinary = isBinary(rightFile, true);
         }
 
-        int lineNumber = 0;
+        int lineNumber = 1;
 
         if(result == null) {
             leftLines.add(leftBinary ? "Cannot compare binary files yet" : "Cannot compare this filetype yet");
             rightLines.add(rightBinary ? "Cannot compare binary files yet" : "Cannot compare this filetype yet");
-            return new LineResult(leftLines, rightLines);
+            return new LineResult(leftLines, rightLines, null);
         }
 
         for (HuntMcIlroy.StringPair pair : result.stringPairs()) {
-
             if(pair.leftText() == null) {
                 leftLines.add(lineNumber + ": -");
                 rightLines.add(lineNumber + ": + " + pair.rightText());
@@ -149,8 +152,30 @@ public class FileUtils {
                 continue;
             }
             if(!pair.leftText().equals(pair.rightText())) {
-                leftLines.add(lineNumber + ": + " + pair.leftText());
-                rightLines.add(lineNumber + ": + " + pair.rightText());
+                String[] leftText = pair.leftText().split("");
+                String[] rightText = pair.rightText().split("");
+                int longest = Math.max(leftText.length, rightText.length);
+                Side longerSide = leftText.length > rightText.length ? Side.LEFT : Side.RIGHT;
+                String[] longer = leftText.length > rightText.length ? leftText : rightText;
+
+                int length = 0;
+
+                for(int i = 0; i < longest; i++) {
+                    try {
+                        if (i - length >= (longerSide == Side.LEFT ? rightText.length : leftText.length)) {
+                            specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longer[i].charAt(0), longerSide));
+                            length++;
+                        } else if (longerSide == Side.LEFT && !leftText[i + length].equals(rightText[i]) || longerSide == Side.RIGHT && !rightText[i + length].equals(leftText[i])) {
+                            specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longer[i].charAt(0), longerSide));
+                            length++;
+                        }
+                    } catch (ArrayIndexOutOfBoundsException ignored) {
+
+                    }
+                }
+
+                leftLines.add(lineNumber + ": ! " + pair.leftText());
+                rightLines.add(lineNumber + ": ! " + pair.rightText());
                 lineNumber++;
                 continue;
             }
@@ -159,7 +184,7 @@ public class FileUtils {
             lineNumber++;
         }
 
-        return new LineResult(leftLines, rightLines);
+        return new LineResult(leftLines, rightLines, specificLineChanges);
 
     }
 }
