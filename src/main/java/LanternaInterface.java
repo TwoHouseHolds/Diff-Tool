@@ -68,6 +68,7 @@ public class LanternaInterface {
             System.out.println("Initialization of Lanterna Interface has failed. Please try again and check the Error message");
             System.out.println(e.getMessage());
             System.out.println(Arrays.toString(e.getStackTrace()));
+            e.printStackTrace();
             System.exit(1);
         }
 
@@ -229,8 +230,6 @@ public class LanternaInterface {
         ActionListBox leftListBox = new ActionListBox();
         ActionListBox rightListBox = new ActionListBox();
 
-        List<Label> labels = new ArrayList<>();
-
         for (File file : leftFiles) {
             String fileName = file.getName();
             boolean inBoth = rightFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
@@ -266,16 +265,11 @@ public class LanternaInterface {
             @Override
             public void onInput(Window window, KeyStroke keyStroke, AtomicBoolean atomicBoolean) {
                 if (keyStroke.getKeyType() == KeyType.Escape) {
-                    labels.clear();
                     resetWindow(this);
                     getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
                 }
             }
         });
-
-        if (!labels.isEmpty()) {
-            labels.get(0).setBackgroundColor(TextColor.ANSI.RED);
-        }
     }
 
     private String getFormattedFileName(File file, String fileName, File rightFile) {
@@ -322,8 +316,8 @@ public class LanternaInterface {
             leftLines.clear();
         }
 
-        ColoredTextBox leftTextBox = new ColoredTextBox(new TerminalSize(100, 100));
-        ColoredTextBox rightTextBox = new ColoredTextBox(new TerminalSize(100, 100));
+        ColoredTextBox leftTextBox = new ColoredTextBox(new TerminalSize(100, 100), Side.LEFT);
+        ColoredTextBox rightTextBox = new ColoredTextBox(new TerminalSize(100, 100), Side.RIGHT);
 
         for (String line : leftLines) {
             leftTextBox.addLine(line);
@@ -333,8 +327,13 @@ public class LanternaInterface {
             rightTextBox.addLine(line);
         }
 
+        leftTextBox.setSpecificLineChanges(result.specificLineChanges());
+        rightTextBox.setSpecificLineChanges(result.specificLineChanges());
+
         leftTextBox.setReadOnly(true);
         rightTextBox.setReadOnly(true);
+
+
 
         leftPanel.addComponent(leftTextBox);
         rightPanel.addComponent(rightTextBox);
