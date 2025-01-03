@@ -130,7 +130,7 @@ public class FileUtils {
             rightBinary = isBinary(rightFile, true);
         }
 
-        int lineNumber = 0;
+        int lineNumber = 1;
 
         if(result == null) {
             leftLines.add(leftBinary ? "Cannot compare binary files yet" : "Cannot compare this filetype yet");
@@ -158,9 +158,19 @@ public class FileUtils {
                 Side longerSide = leftText.length > rightText.length ? Side.LEFT : Side.RIGHT;
                 String[] longer = leftText.length > rightText.length ? leftText : rightText;
 
+                int length = 0;
+
                 for(int i = 0; i < longest; i++) {
-                    if(i >= leftText.length || i >= rightText.length || !leftText[i].equals(rightText[i])) {
-                        specificLineChanges.add(new SpecificLineChange(lineNumber + 1, i + String.valueOf(lineNumber).length() + 4, longer[i].charAt(0), longerSide));
+                    try {
+                        if (i - length >= (longerSide == Side.LEFT ? rightText.length : leftText.length)) {
+                            specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longer[i].charAt(0), longerSide));
+                            length++;
+                        } else if (longerSide == Side.LEFT && !leftText[i + length].equals(rightText[i]) || longerSide == Side.RIGHT && !rightText[i + length].equals(leftText[i])) {
+                            specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longer[i].charAt(0), longerSide));
+                            length++;
+                        }
+                    } catch (ArrayIndexOutOfBoundsException ignored) {
+
                     }
                 }
 
