@@ -4,7 +4,6 @@ import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 
 import java.io.IOException;
-import java.security.Key;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -83,23 +82,7 @@ public class TicTacToeMinigame {
     private void refreshBoard() {
         panel.removeAllComponents();
         for(int i = 0; i < 3; i++) {
-            StringBuilder row = new StringBuilder();
-            for(int j = 0; j < 3; j++) {
-                if(board[i][j] == -1) {
-                    if(selectedX == i && selectedY == j) {
-                        row.append("*");
-                    } else {
-                        row.append(" ");
-                    }
-                } else if(board[i][j] == 0) {
-                    row.append("O");
-                } else {
-                    row.append("X");
-                }
-                if(j < 2) {
-                    row.append("|");
-                }
-            }
+            final StringBuilder row = getCurrentBoard(i);
             panel.addComponent(new Label(row.toString()));
             if(i < 2) {
                 panel.addComponent(new Label("-----"));
@@ -112,8 +95,30 @@ public class TicTacToeMinigame {
         try {
             textGUI.updateScreen();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error updating screen");
+            System.out.println(e.getMessage());
         }
+    }
+
+    private StringBuilder getCurrentBoard(int i) {
+        StringBuilder row = new StringBuilder();
+        for(int j = 0; j < 3; j++) {
+            if(board[i][j] == -1) {
+                if(selectedX == i && selectedY == j) {
+                    row.append("*");
+                } else {
+                    row.append(" ");
+                }
+            } else if(board[i][j] == 0) {
+                row.append("O");
+            } else {
+                row.append("X");
+            }
+            if(j < 2) {
+                row.append("|");
+            }
+        }
+        return row;
     }
 
     private void setBoard(int x, int y, int player) {
@@ -146,7 +151,6 @@ public class TicTacToeMinigame {
         if(board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != -1) {
             MessageDialog.showMessageDialog(textGUI, "Game Over", "Player " + (board[0][2] == 0 ? "O" : "X") + " wins!");
             resetGame();
-            return;
         }
     }
 }
