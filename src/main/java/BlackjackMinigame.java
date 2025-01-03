@@ -16,6 +16,11 @@ public class BlackjackMinigame {
     List<Integer> dealerHand = new ArrayList<>();
     Panel panel;
 
+    /**
+     * Funny Blackjack minigame :)
+     * Just a simple text based badly implemented Blackjack game
+     * @param textGUI TextGUI to add the window to
+     */
     public BlackjackMinigame(WindowBasedTextGUI textGUI) {
         this.random = new Random();
         window = new BasicWindow("Blackjack Minigame");
@@ -23,7 +28,6 @@ public class BlackjackMinigame {
         panel = new Panel(new LinearLayout(Direction.VERTICAL));
 
         window.addWindowListener(new WindowListenerAdapter() {
-            //exit the game when escape is pressed
             @Override
             public void onInput(Window window, KeyStroke keyStroke, AtomicBoolean atomicBoolean) {
                 if (keyStroke.getKeyType() == KeyType.Escape) {
