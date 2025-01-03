@@ -1,4 +1,3 @@
-import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.TextBox;
 
@@ -12,7 +11,7 @@ import java.util.List;
  * @see TextBox
  */
 public class ColoredTextBox extends TextBox {
-    private Side side;
+    private final Side side;
     private List<FileUtils.SpecificLineChange> specificLineChanges = new ArrayList<>();
     public ColoredTextBox(TerminalSize initialSize, Side side) {
         super(initialSize, Style.MULTI_LINE);
