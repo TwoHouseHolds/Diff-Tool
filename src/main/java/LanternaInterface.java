@@ -189,7 +189,6 @@ public class LanternaInterface {
                 rightTextBox.setText("Verzeichnis existiert nicht oder ist leer");
                 return;
             }
-
             return;
         }
 
@@ -200,7 +199,6 @@ public class LanternaInterface {
                 leftTextBox.setText("Verzeichnis existiert nicht oder ist leer");
                 return;
             }
-
             return;
         }
 
@@ -332,8 +330,6 @@ public class LanternaInterface {
 
         leftTextBox.setReadOnly(true);
         rightTextBox.setReadOnly(true);
-
-
 
         leftPanel.addComponent(leftTextBox);
         rightPanel.addComponent(rightTextBox);
