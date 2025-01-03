@@ -50,6 +50,7 @@ public class LanternaInterface {
      void start() {
         DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
         Screen screen;
+         terminalFactory.setPreferTerminalEmulator(true);
         try {
             terminalFactory.setInitialTerminalSize(new TerminalSize(200, 100));
             screen = terminalFactory.createScreen();
@@ -64,8 +65,9 @@ public class LanternaInterface {
             textGUI.addWindowAndWait(window);
 
         } catch (Exception e) {
-            System.out.println("Initalization of Lanterna Interface has failed. Please try again and check the Error message");
+            System.out.println("Initialization of Lanterna Interface has failed. Please try again and check the Error message");
             System.out.println(e.getMessage());
+            System.out.println(Arrays.toString(e.getStackTrace()));
             System.exit(1);
         }
 
@@ -160,26 +162,44 @@ public class LanternaInterface {
         leftDir = fileUtils.getFiles(output[0]);
         rightDir = fileUtils.getFiles(output[1]);
 
+        TextBox leftTextBox = ((Panel) window.getComponent()).getChildren().stream()
+                .filter(Panel.class::isInstance)
+                .map(c -> (Panel) c)
+                .flatMap(p -> p.getChildren().stream())
+                .filter(TextBox.class::isInstance)
+                .map(c -> (TextBox) c)
+                .findFirst()
+                .orElseThrow();
+
+        TextBox rightTextBox = ((Panel) window.getComponent()).getChildren().stream()
+                .filter(Panel.class::isInstance)
+                .map(c -> (Panel) c)
+                .flatMap(p -> p.getChildren().stream())
+                .filter(TextBox.class::isInstance)
+                .map(c -> (TextBox) c)
+                .skip(1)
+                .findFirst()
+                .orElseThrow();
+
         if (leftDir == null || leftDir.isEmpty()) {
-            ((Panel) window.getComponent()).getChildren().stream()
-                    .filter(c -> c instanceof Panel)
-                    .map(c -> (Panel) c)
-                    .filter(p -> p.getChildren().toArray()[1] instanceof TextBox)
-                    .map(p -> (TextBox) p.getChildren().toArray()[1])
-                    .findFirst()
-                    .ifPresent(t -> t.setText("Verzeichnis existiert nicht oder ist leer"));
+            leftTextBox.setText("Verzeichnis existiert nicht oder ist leer");
+
+            if (rightDir == null || rightDir.isEmpty()) {
+                rightTextBox.setText("Verzeichnis existiert nicht oder ist leer");
+                return;
+            }
+
             return;
         }
 
         if (rightDir == null || rightDir.isEmpty()) {
-            ((Panel) window.getComponent()).getChildren().stream()
-                    .filter(c -> c instanceof Panel)
-                    .map(c -> (Panel) c)
-                    .filter(p -> p.getChildren().toArray()[1] instanceof TextBox)
-                    .map(p -> (TextBox) p.getChildren().toArray()[1])
-                    .skip(1)
-                    .findFirst()
-                    .ifPresent(t -> t.setText("Verzeichnis existiert nicht oder ist leer"));
+            rightTextBox.setText("Verzeichnis existiert nicht oder ist leer");
+
+            if(leftDir == null || leftDir.isEmpty()) {
+                leftTextBox.setText("Verzeichnis existiert nicht oder ist leer");
+                return;
+            }
+
             return;
         }
 
@@ -395,6 +415,10 @@ public class LanternaInterface {
                 Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.
                 Beteiligte: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf
                 """, MessageDialogButton.OK)));
+
+        helpMenu.add(new MenuItem("Blackjack", () -> new BlackjackMinigame(textGUI)));
+
+        helpMenu.add(new MenuItem("TicTacToe", () -> new TicTacToeMinigame(textGUI)));
 
         Menu exitMenu = new Menu("Beenden");
         menuBar.add(exitMenu);
