@@ -91,6 +91,11 @@ public class HuntMcIlroy {
         return result;
     }
 
+    /**
+     * Get the strings from the two files
+     * @param inputs List of Subsequences
+     * @return List of StringPairs
+     */
     public List<StringPair> getStringpairs(List<Subsequence> inputs) {
         List<StringPair> result = new ArrayList<>();
         List<Subsequence> copy = new ArrayList<>();
