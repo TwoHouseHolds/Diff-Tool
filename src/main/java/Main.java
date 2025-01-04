@@ -32,13 +32,10 @@ public class Main {
         }
 
         if (withGui) {
-            /*
-            Swing gibts später meine Freunde
             EventQueue.invokeLater(() -> {
                 SwingInterface swingInterface = new SwingInterface();
                 swingInterface.start();
             });
-            */
         } else {
             LanternaInterface lanternaInterface = new LanternaInterface();
             lanternaInterface.start();
