@@ -1,8 +1,10 @@
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.graphics.SimpleTheme;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.DirectoryDialogBuilder;
+import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.gui2.menu.Menu;
@@ -68,7 +70,6 @@ public class LanternaInterface {
             System.out.println("Initialization of Lanterna Interface has failed. Please try again and check the Error message");
             System.out.println(e.getMessage());
             System.out.println(Arrays.toString(e.getStackTrace()));
-            e.printStackTrace();
             System.exit(1);
         }
 
@@ -217,6 +218,12 @@ public class LanternaInterface {
      * @see java.io.File
      */
     private void showFilesAsDirectory(List<File> leftFiles, List<File> rightFiles) {
+
+        if((leftFiles == null || rightFiles == null) || (leftFiles.isEmpty() && rightFiles.isEmpty())) {
+            getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
+            return;
+        }
+
         Panel outterPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
 
         Panel leftPanel = new Panel(new LinearLayout(Direction.VERTICAL));
@@ -402,8 +409,21 @@ public class LanternaInterface {
         helpMenu.add(new MenuItem("Guide", () -> MessageDialog.showMessageDialog(textGUI, "Hilfe",
                 """
                         - Wählen Sie die Verzeichnisse aus, die Sie vergleichen möchten.
-                        - Die Anwendung zeigt die Unterschiede zwischen den Verzeichnissen an.
-                        - Verwenden Sie das Menü, um Hilfe anzuzeigen oder die Anwendung zu beenden.""", MessageDialogButton.OK)));
+                        - Die Anwendung zeigt die Unterschiede zwischen 2 Verzeichnissen an.
+                          Zusätzlich können Sie die Unterschiede zwischen 2 Dateien anzeigen lassen.
+                          Hierführ wählen Sie die Dateien aus, die Sie vergleichen möchten, indem
+                          Sie den Pfad in der TextBox eingeben oder das Verzeichnis mit dem Button "Select" auswählen.
+                          Danach auf "Confirm" klicken.
+                        - Jederzeit können Sie mit der Escape-Taste zum vorherigen Menü zurückkehren.
+                        - Um diese Anleitung erneut anzuzeigen, wählen Sie im Menü "Hilfe" -> "Guide".
+                        - Um Informationen über die Entwickler zu erhalten, wählen Sie im Menü "Hilfe" -> "Über uns".
+                        - Um ein Blackjack-Minispiel zu starten, wählen Sie im Menü "Hilfe" -> "Blackjack".
+                        - Um ein TicTacToe-Minispiel zu starten, wählen Sie im Menü "Hilfe" -> "TicTacToe".
+                        - Um 2 Dateien manuell zu vergleichen, wählen Sie im Menü "Datei" -> "Manueller Vergleich von 2 Dateien".
+                        - Um die Differenz von 2 Dateien zu speichern, wählen Sie im Menü "Datei" -> "Differenz von 2 Dateien speichern".
+                        - Um eine Datei zu bearbeiten, wählen Sie im Menü "Datei" -> "Datei editieren".
+                        - Um das Programm zu beenden, wählen Sie im Menü "Beenden" -> "Beende Programm".
+                        """, MessageDialogButton.OK)));
 
         helpMenu.add(new MenuItem("Über uns", () -> MessageDialog.showMessageDialog(textGUI, "Über uns",
                 """
@@ -414,6 +434,111 @@ public class LanternaInterface {
         helpMenu.add(new MenuItem("Blackjack", () -> new BlackjackMinigame(textGUI)));
 
         helpMenu.add(new MenuItem("TicTacToe", () -> new TicTacToeMinigame(textGUI)));
+
+        Menu fileMenu = new Menu("Datei");
+        menuBar.add(fileMenu);
+        fileMenu.add(new MenuItem("Manueller Vergleich von 2 Dateien", () -> {
+            File file1 = new FileDialogBuilder()
+                    .setTitle("Wähle die 1 Datei")
+                    .setDescription("Wähle eine Datei")
+                    .setActionLabel("Select")
+                    .build()
+                    .showDialog(textGUI);
+
+            File file2 = new FileDialogBuilder()
+                    .setTitle("Wähle die 2 Datei")
+                    .setDescription("Wähle eine Datei")
+                    .setActionLabel("Select")
+                    .build()
+                    .showDialog(textGUI);
+
+            if (file1 != null && file2 != null) {
+                leftDir.clear();
+                rightDir.clear();
+                showFileContents(file1, file2, Side.LEFT);
+            }
+        }));
+
+        fileMenu.add(new MenuItem("Differenz von 2 Dateien speichern", () -> {
+            File file1 = new FileDialogBuilder()
+                    .setTitle("Wähle die 1 Datei")
+                    .setDescription("Wähle eine Datei")
+                    .setActionLabel("Select")
+                    .build()
+                    .showDialog(textGUI);
+
+            File file2 = new FileDialogBuilder()
+                    .setTitle("Wähle die 2 Datei")
+                    .setDescription("Wähle eine Datei")
+                    .setActionLabel("Select")
+                    .build()
+                    .showDialog(textGUI);
+
+            if (file1 != null && file2 != null) {
+                FileUtils.LineResult result = fileUtils.compareFiles(file1, file2);
+
+                File file =  new FileDialogBuilder()
+                        .setTitle("Speichere die Differenz")
+                        .setDescription("Wähle einen Speicherort")
+                        .setActionLabel("Speichern")
+                        .build()
+                        .showDialog(textGUI);
+
+                if(file != null) {
+                    if(file.exists()) {
+                        MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei existiert bereits", MessageDialogButton.OK);
+                        return;
+                    }
+                    try {
+                        Files.write(file.toPath(), result.left());
+                        Files.write(file.toPath(), result.right());
+                        MessageDialog.showMessageDialog(textGUI, "Erfolg", "Die Datei wurde erfolgreich gespeichert", MessageDialogButton.OK);
+                    } catch (IOException e) {
+                        MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
+                    }
+                }
+            }
+        }));
+
+        fileMenu.add(new MenuItem("Datei editieren", () -> {
+            File file = new FileDialogBuilder()
+                    .setTitle("Wähle die Datei die bearbeitet werden soll")
+                    .setDescription("Wähle eine Datei")
+                    .setActionLabel("Select")
+                    .build()
+                    .showDialog(textGUI);
+
+            if (file != null) {
+                try {
+                    List<String> lines = Files.readAllLines(file.toPath());
+                    StringBuilder content = new StringBuilder();
+                    for (String line : lines) {
+                        content.append(line).append("\n");
+                    }
+                    TextBox textBox = new TextBox(new TerminalSize(100, 40));
+                    textBox.setText(content.toString());
+                    textBox.setTheme(new SimpleTheme(TextColor.ANSI.BLACK, TextColor.ANSI.WHITE));
+                    Panel editPanel = new Panel(new LinearLayout(Direction.VERTICAL));
+                    editPanel.addComponent(new Label("Bearbeite die Datei: " + file.getName()).addStyle(SGR.BOLD));
+                    editPanel.addComponent(textBox);
+                    editPanel.addComponent(new Button("Speichern", () -> {
+                        try {
+                            Files.write(file.toPath(), textBox.getText().getBytes());
+                            MessageDialog.showMessageDialog(textGUI, "Erfolg", "Die Datei wurde erfolgreich gespeichert", MessageDialogButton.OK);
+                            getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
+                        } catch (IOException e) {
+                            MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
+                            getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
+                        }
+                    }));
+                    editPanel.addComponent(new Button("Abbrechen", () -> getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories)));
+                    window.setComponent(editPanel);
+                } catch (IOException e) {
+                    MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gelesen werden oder existiert nicht", MessageDialogButton.OK);
+                    getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
+                }
+            }
+        }));
 
         Menu exitMenu = new Menu("Beenden");
         menuBar.add(exitMenu);

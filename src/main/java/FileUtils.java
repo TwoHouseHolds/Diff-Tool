@@ -154,29 +154,24 @@ public class FileUtils {
             if(!pair.leftText().equals(pair.rightText())) {
                 String[] leftText = pair.leftText().split("");
                 String[] rightText = pair.rightText().split("");
-                int longest = Math.max(leftText.length, rightText.length);
                 Side longerSide = leftText.length > rightText.length ? Side.LEFT : Side.RIGHT;
                 String[] longer = leftText.length > rightText.length ? leftText : rightText;
 
-                int length = 0;
+                String longerString = longerSide == Side.LEFT ? pair.leftText() : pair.rightText();
+                String shorterString = longerSide == Side.LEFT ? pair.rightText() : pair.leftText();
 
-                for(int i = 0; i < longest; i++) {
-                    try {
-                        if (i - length >= (longerSide == Side.LEFT ? rightText.length : leftText.length)) {
-                            specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longer[i].charAt(0), longerSide));
-                            length++;
-                        } else if (longerSide == Side.LEFT && !leftText[i + length].equals(rightText[i]) || longerSide == Side.RIGHT && !rightText[i + length].equals(leftText[i])) {
-                            specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longer[i].charAt(0), longerSide));
-                            length++;
-                        }
-                    } catch (ArrayIndexOutOfBoundsException ignored) {
+                String diffString = compareString(longerString, shorterString);
 
+                for(int i = 0; i < diffString.length(); i++) {
+                    if(diffString.charAt(i) == '!') {
+                        specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longer[i].charAt(0), longerSide));
                     }
                 }
 
                 leftLines.add(lineNumber + ": ! " + pair.leftText());
                 rightLines.add(lineNumber + ": ! " + pair.rightText());
                 lineNumber++;
+                continue;
             }
             leftLines.add(lineNumber + ":   " + pair.leftText());
             rightLines.add(lineNumber  + ":   " + pair.rightText());
@@ -185,5 +180,91 @@ public class FileUtils {
 
         return new LineResult(leftLines, rightLines, specificLineChanges);
 
+    }
+
+    /**
+     * Compare two strings and return a string with differences marked with '!' and matches marked with 'O'
+     * Using the Longest Common Subsequence algorithm / Hunt-McIlroy algorithm
+     * @param s1 First string to compare
+     * @param s2 Second string to compare
+     */
+    public String compareString(String s1, String s2) {
+        int[][] lcs = buildLcs(s1, s2);
+        List<Integer> diff = buildDiff(s1, s2, lcs);
+        return diffString(s1, diff);
+    }
+
+    /**
+     * Build a string with differences marked with '!' and matches marked with 'O'
+     * Using the Longest Common Subsequence algorithm / Hunt-McIlroy algorithm
+     * @param s1 First string to compare
+     * @param matches List of matching indices
+     */
+    private String diffString(String s1, List<Integer> matches) {
+        StringBuilder sb = new StringBuilder(s1.length());
+
+        int matchPos = 0;
+        for (int i = 0; i < s1.length(); i++) {
+            if (matchPos < matches.size() && matches.get(matchPos) == i) {
+                sb.append('O');
+                matchPos++;
+            } else {
+                sb.append('!');
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Build a list of indices of matching characters between two strings
+     * @param s1 First string to compare
+     * @param s2 Second string to compare
+     * @param c Longest Common Subsequence matrix
+     */
+    private List<Integer> buildDiff(String s1, String s2, int[][] c) {
+        int i = s1.length();
+        int j = s2.length();
+
+        List<Integer> matchedIndices = new ArrayList<>();
+
+        while (i > 0 && j > 0) {
+            if (s1.charAt(i-1) == s2.charAt(j-1)) {
+                matchedIndices.add(i-1);
+                i--;
+                j--;
+            } else {
+                if (c[i-1][j] > c[i][j-1]) {
+                    i--;
+                } else {
+                    j--;
+                }
+            }
+        }
+
+        java.util.Collections.reverse(matchedIndices);
+        return matchedIndices;
+    }
+
+    /**
+     * Build the Longest Common Subsequence matrix for two strings
+     * @param s1 First string to compare
+     * @param s2 Second string to compare
+     * @return Longest Common Subsequence matrix
+     */
+    private int[][] buildLcs(String s1, String s2) {
+        int m = s1.length();
+        int n = s2.length();
+        int[][] c = new int[m+1][n+1];
+
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (s1.charAt(i-1) == s2.charAt(j-1)) {
+                    c[i][j] = c[i-1][j-1] + 1;
+                } else {
+                    c[i][j] = Math.max(c[i-1][j], c[i][j-1]);
+                }
+            }
+        }
+        return c;
     }
 }

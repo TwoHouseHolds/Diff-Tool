@@ -1,8 +1,5 @@
-import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
-
-import java.util.regex.Pattern;
 
 /**
  * A custom renderer for {@link TextBox} that colorizes the text based on the characters in it
@@ -77,8 +74,6 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
             }
 
             for(FileUtils.SpecificLineChange c : coloredTextBox.getSpecificLineChanges()) {
-
-                System.out.println(c);
 
                 if(coloredTextBox.getSide() != c.longerSide()) {
                     continue;
