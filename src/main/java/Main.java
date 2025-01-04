@@ -9,6 +9,7 @@ public class Main {
         boolean withoutGui = false;
         switch(options.getopt()) {
             case 'w':
+                //noinspection ConstantValue
                 if ( withoutGui ) {
                     System.err.println("JayWinDiff: Options -w and -W are mutually exclusive.");
                 }
@@ -18,6 +19,7 @@ public class Main {
                 withGui = true;
                 break;
             case 'W':
+                //noinspection ConstantValue
                 if ( withGui ) {
                     System.err.println("JayWinDiff: Options -w and -W are mutually exclusive.");
                 }
