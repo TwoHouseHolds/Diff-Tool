@@ -35,8 +35,8 @@ public class Main {
             /*
             Swing gibts später meine Freunde
             EventQueue.invokeLater(() -> {
-                JayWinDiff jwd = new JayWinDiff();
-                jwd.setVisible(true);
+                SwingInterface swingInterface = new SwingInterface();
+                swingInterface.start();
             });
             */
         } else {
