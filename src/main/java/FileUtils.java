@@ -160,9 +160,7 @@ public class FileUtils {
                 String longerString = longerSide == Side.LEFT ? pair.leftText() : pair.rightText();
                 String shorterString = longerSide == Side.LEFT ? pair.rightText() : pair.leftText();
 
-                int[][] lcs = lcsLengthTable(longerString, shorterString);
-                List<int[]> alignment = buildAlignment(longerString, shorterString, lcs);
-                String diffString = diffString(longerString, alignment);
+                String diffString = compareString(longerString, shorterString);
 
                 for(int i = 0; i < diffString.length(); i++) {
                     if(diffString.charAt(i) == '!') {
@@ -184,12 +182,30 @@ public class FileUtils {
 
     }
 
-    private static String diffString(String s1, List<int[]> matches) {
+    /**
+     * Compare two strings and return a string with differences marked with '!' and matches marked with 'O'
+     * Using the Longest Common Subsequence algorithm / Hunt-McIlroy algorithm
+     * @param s1 First string to compare
+     * @param s2 Second string to compare
+     */
+    public String compareString(String s1, String s2) {
+        int[][] lcs = buildLcs(s1, s2);
+        List<Integer> diff = buildDiff(s1, s2, lcs);
+        return diffString(s1, diff);
+    }
+
+    /**
+     * Build a string with differences marked with '!' and matches marked with 'O'
+     * Using the Longest Common Subsequence algorithm / Hunt-McIlroy algorithm
+     * @param s1 First string to compare
+     * @param matches List of matching indices
+     */
+    private String diffString(String s1, List<Integer> matches) {
         StringBuilder sb = new StringBuilder(s1.length());
 
         int matchPos = 0;
         for (int i = 0; i < s1.length(); i++) {
-            if (matchPos < matches.size() && matches.get(matchPos)[0] == i) {
+            if (matchPos < matches.size() && matches.get(matchPos) == i) {
                 sb.append('O');
                 matchPos++;
             } else {
@@ -199,15 +215,21 @@ public class FileUtils {
         return sb.toString();
     }
 
-    private static List<int[]> buildAlignment(String s1, String s2, int[][] c) {
+    /**
+     * Build a list of indices of matching characters between two strings
+     * @param s1 First string to compare
+     * @param s2 Second string to compare
+     * @param c Longest Common Subsequence matrix
+     */
+    private List<Integer> buildDiff(String s1, String s2, int[][] c) {
         int i = s1.length();
         int j = s2.length();
 
-        List<int[]> matchedIndices = new ArrayList<>();
+        List<Integer> matchedIndices = new ArrayList<>();
 
         while (i > 0 && j > 0) {
             if (s1.charAt(i-1) == s2.charAt(j-1)) {
-                matchedIndices.add(new int[] {i-1, j-1});
+                matchedIndices.add(i-1);
                 i--;
                 j--;
             } else {
@@ -223,7 +245,13 @@ public class FileUtils {
         return matchedIndices;
     }
 
-    private static int[][] lcsLengthTable(String s1, String s2) {
+    /**
+     * Build the Longest Common Subsequence matrix for two strings
+     * @param s1 First string to compare
+     * @param s2 Second string to compare
+     * @return Longest Common Subsequence matrix
+     */
+    private int[][] buildLcs(String s1, String s2) {
         int m = s1.length();
         int n = s2.length();
         int[][] c = new int[m+1][n+1];
