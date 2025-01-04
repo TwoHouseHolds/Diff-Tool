@@ -38,3 +38,4 @@ build/
 out/artifacts/SWP1_Final_Project_jar/SWP1_Final_Project.jar
 /out/
 /test/
+/test/pom.xml
