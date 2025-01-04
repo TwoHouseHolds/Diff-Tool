@@ -411,7 +411,7 @@ public class LanternaInterface {
                         - Wählen Sie die Verzeichnisse aus, die Sie vergleichen möchten.
                         - Die Anwendung zeigt die Unterschiede zwischen 2 Verzeichnissen an.
                           Zusätzlich können Sie die Unterschiede zwischen 2 Dateien anzeigen lassen.
-                          Hierführ wählen Sie die Dateien aus, die Sie vergleichen möchten, indem
+                          Hierfür wählen Sie die Dateien aus, die Sie vergleichen möchten, indem
                           Sie den Pfad in der TextBox eingeben oder das Verzeichnis mit dem Button "Select" auswählen.
                           Danach auf "Confirm" klicken.
                         - Jederzeit können Sie mit der Escape-Taste zum vorherigen Menü zurückkehren.
