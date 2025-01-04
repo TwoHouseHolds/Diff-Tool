@@ -441,7 +441,7 @@ public class LanternaInterface {
 
         fileMenu.add(new MenuItem("Differenz von 2 Dateien speichern - Rohtext", this::compAndSaveText));
 
-        fileMenu.add(new MenuItem("\"Differenz von 2 Dateien speichern - HTML", this::compAndSaveHtml));
+        fileMenu.add(new MenuItem("Differenz von 2 Dateien speichern - HTML", this::compAndSaveHtml));
 
         fileMenu.add(new MenuItem("Datei editieren", this::editFile));
 
@@ -618,11 +618,11 @@ public class LanternaInterface {
                         String rightLine = escapeHtml(result.right().get(i));
                         int lineIndex = i + 1;
                         if (leftLine.contains("!") && leftLine.indexOf("!") < String.valueOf(lineIndex).length() + 4) {
-                            html.append("<tr><td class=\"yellow\">").append(leftLine.substring(1)).append("</td><td class=\"yellow\">").append(rightLine.substring(1)).append("</td></tr>");
+                            html.append("<tr><td class=\"yellow\">").append(leftLine).append("</td><td class=\"yellow\">").append(rightLine).append("</td></tr>");
                         } else if (leftLine.contains("+") && leftLine.indexOf("+") < String.valueOf(lineIndex).length() + 4) {
-                            html.append("<tr><td class=\"green\">").append(leftLine.substring(1)).append("</td><td class=\"green\">").append(rightLine.substring(1)).append("</td></tr>");
+                            html.append("<tr><td class=\"green\">").append(leftLine).append("</td><td class=\"green\">").append(rightLine).append("</td></tr>");
                         } else if (leftLine.contains("-") && leftLine.indexOf("-") < String.valueOf(lineIndex).length() + 4) {
-                            html.append("<tr><td class=\"red\">").append(leftLine.substring(1)).append("</td><td class=\"red\">").append(rightLine.substring(1)).append("</td></tr>");
+                            html.append("<tr><td class=\"red\">").append(leftLine).append("</td><td class=\"red\">").append(rightLine).append("</td></tr>");
                         } else {
                             html.append("<tr><td>").append(leftLine).append("</td><td>").append(rightLine).append("</td></tr>");
                         }
