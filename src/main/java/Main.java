@@ -32,6 +32,9 @@ public class Main {
         }
 
         if (withGui) {
+
+
+                EventQueue.invokeLater(SwingInterface::createAndShowGUI);
             /*
             Swing gibts später meine Freunde
             EventQueue.invokeLater(() -> {
