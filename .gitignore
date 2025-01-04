@@ -38,5 +38,4 @@ build/
 ### Mac OS ###
 .DS_Store
 out/artifacts/SWP1_Final_Project_jar/SWP1_Final_Project.jar
-out/artifacts/SWP1_Final_Project_jar/SWP1_Final_Project.jar
-/out
+/out/
