@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
 public class SwingInterface {
 
@@ -8,23 +9,20 @@ public class SwingInterface {
     }
 
     private void createAndShowGUI() {
-        JFrame frame = new JFrame("Swing Interface");
+        JFrame frame = new JFrame("Swing Oberfläche");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 600);
 
-        // Create the left and right panels
-        DirectorySelectionPanel leftPanel = new DirectorySelectionPanel("First Directory:");
-        DirectorySelectionPanel rightPanel = new DirectorySelectionPanel("Second Directory:");
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = (int) (screenSize.width * 0.5);
+        int height = (int) (screenSize.height * 0.5);
+        frame.setSize(width, height);
 
-        // Create a JSplitPane to hold the left and right panels
+        DirectorySelectionPanel leftPanel = new DirectorySelectionPanel("Erstes Verzeichnis:");
+        DirectorySelectionPanel rightPanel = new DirectorySelectionPanel("Zweites Verzeichnis:");
+
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
-        splitPane.setDividerLocation(400);
         splitPane.setResizeWeight(0.5);
-
-        // Add the split pane to the frame
         frame.getContentPane().add(splitPane, BorderLayout.CENTER);
-
-        // Add menu to the frame
         addMenu(frame);
 
         frame.setVisible(true);
@@ -33,23 +31,38 @@ public class SwingInterface {
     private static class DirectorySelectionPanel extends JPanel {
         public DirectorySelectionPanel(String label1Text) {
             super();
-            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            // TODO GridBagLayout
+            setLayout(new GridLayout(0, 1));
             add(new JLabel(label1Text));
-            add(new JLabel("Geben Sie einen Pfad an:"));
-            JTextArea textArea = new JTextArea();
-            textArea.setEditable(false);
-            add(new JScrollPane(textArea));
+            add(new JLabel("Bitte geben Sie ein Verzeichnis an:"));
+
+            JTextField textfield = new JTextField();
+            textfield.setEditable(true);
+            textfield.setPreferredSize(new Dimension(300, getPreferredSize().height));
+            add(textfield);
+
+
+            /*JFileChooser jfc = new JFileChooser();
+            jfc.setCurrentDirectory(new File("."));
+            jfc.setDialogTitle("Bitte wählen Sie ein Verzeichnis aus");
+            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            // TODO Button to open dialog
+            int result = jfc.showOpenDialog(this);
+            if(result == JFileChooser.APPROVE_OPTION){
+                File resultDir = jfc.getCurrentDirectory();
+                String resultPath = resultDir.getAbsolutePath();
+                --resultPath in FileUtils
+
+            }*/
         }
-    }
+      }
 
-
+    //TODO translate to german and correct the information in menu
     private void addMenu(JFrame frame) {
         JMenuBar menuBar = new JMenuBar();
-
         JMenu helpMenu = new JMenu("Help");
 
-        MenuItem guideItem = new MenuItem("Guide",
-                "- Select the directories you want to compare.\n" +
+        MenuItem guideItem = new MenuItem("Guide", "- Select the directories you want to compare.\n" +
                         "- The application will show the differences between the directories.\n" +
                         "- Use the menu to view help or exit the application.", frame, "Help");
         MenuItem aboutItem = new MenuItem("About Us",
@@ -59,13 +72,12 @@ public class SwingInterface {
         helpMenu.add(aboutItem);
         menuBar.add(helpMenu);
 
-        JMenu exitMenu = new JMenu("Exit");
-        JMenuItem exitItem = new JMenuItem("Exit Program");
+        JMenu exitMenu = new JMenu("Beenden");
+        JMenuItem exitItem = new JMenuItem("Programm beenden");
         exitItem.addActionListener(e -> System.exit(0));
         exitMenu.add(exitItem);
 
         menuBar.add(exitMenu);
-
         frame.setJMenuBar(menuBar);
     }
 
