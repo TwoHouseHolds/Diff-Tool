@@ -62,7 +62,7 @@ public class LanternaInterface {
             window = new BasicWindow();
             window.setHints(Set.of(Window.Hint.FIT_TERMINAL_WINDOW, Window.Hint.CENTERED));
 
-            getInput(List.of("First Directory", "Second Directory"), this::compareDirectories);
+            getInput(List.of("Erstes Verzeichnis", "Zweites Verzeichnis"), this::compareDirectories);
 
             textGUI.addWindowAndWait(window);
 
