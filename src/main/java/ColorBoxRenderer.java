@@ -25,14 +25,14 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
 
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            int ypos = i - yScrollOffset;
+            int yPos = i - yScrollOffset;
             int index = line.indexOf("+");
             index = index - xScrollOffset;
 
             while (index >= 0 && index + xScrollOffset < String.valueOf(index).length() + 4) {
                 graphics.setBackgroundColor(TextColor.ANSI.GREEN);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                graphics.putString(index, ypos, "+");
+                graphics.putString(index, yPos, "+");
 
                 graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
@@ -47,7 +47,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                 //Check if - is outside of view due to scrolling
                 graphics.setBackgroundColor(TextColor.ANSI.RED);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                graphics.putString(index, ypos, "-");
+                graphics.putString(index, yPos, "-");
 
                 graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
@@ -61,7 +61,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
             while (index >= 0 && index + xScrollOffset < String.valueOf(index).length() + 4) {
                 graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                graphics.putString(index, ypos, "!");
+                graphics.putString(index, yPos, "!");
 
                 graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
@@ -84,7 +84,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                 if(c.lineNumber() == i) {
                     graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
                     graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                    graphics.putString(index, ypos, String.valueOf(c.character()));
+                    graphics.putString(index, yPos, String.valueOf(c.character()));
                     graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                     graphics.setForegroundColor(TextColor.ANSI.WHITE);
                 }

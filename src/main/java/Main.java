@@ -28,6 +28,7 @@ public class Main {
             default:
                 break;
         }
+
         if (!(withGui || withoutGui)) {
             withoutGui = GraphicsEnvironment.isHeadless();
             withGui = !withoutGui;
