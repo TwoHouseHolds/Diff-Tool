@@ -1,90 +1,237 @@
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SwingInterface {
 
+    private static final Dimension defaultTextFieldDimension = new Dimension(300, 25);
+    private static final FileUtils fileUtils = new FileUtils();
+    private final JFrame frame = new JFrame("Swing Oberfläche");
+    private final Menu menu = new Menu(frame);
+    private final Level1UI level1UI = new Level1UI();
+    private Level2UI level2UI;
+    private Level3UI level3UI = new Level3UI();
+
     public void start() {
-        SwingUtilities.invokeLater(this::createAndShowGUI);
+        SwingUtilities.invokeLater(() -> {
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            int width = (int) (screenSize.width * 0.5);
+            int height = (int) (screenSize.height * 0.5);
+            frame.setSize(width, height);
+
+            frame.setJMenuBar(menu);
+            frame.add(level1UI);
+
+            frame.setVisible(true);
+        });
     }
-
-    private void createAndShowGUI() {
-        JFrame frame = new JFrame("Swing Oberfläche");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int width = (int) (screenSize.width * 0.5);
-        int height = (int) (screenSize.height * 0.5);
-        frame.setSize(width, height);
-
-        DirectorySelectionPanel leftPanel = new DirectorySelectionPanel("Erstes Verzeichnis:");
-        DirectorySelectionPanel rightPanel = new DirectorySelectionPanel("Zweites Verzeichnis:");
-
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
-        splitPane.setResizeWeight(0.5);
-        frame.getContentPane().add(splitPane, BorderLayout.CENTER);
-        addMenu(frame);
-
-        frame.setVisible(true);
-    }
-
-    private static class DirectorySelectionPanel extends JPanel {
-        public DirectorySelectionPanel(String label1Text) {
-            super();
-            // TODO GridBagLayout
-            setLayout(new GridLayout(0, 1));
-            add(new JLabel(label1Text));
-            add(new JLabel("Bitte geben Sie ein Verzeichnis an:"));
-
-            JTextField textfield = new JTextField();
-            textfield.setEditable(true);
-            textfield.setPreferredSize(new Dimension(300, getPreferredSize().height));
-            add(textfield);
-
-
-            /*JFileChooser jfc = new JFileChooser();
-            jfc.setCurrentDirectory(new File("."));
-            jfc.setDialogTitle("Bitte wählen Sie ein Verzeichnis aus");
-            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            // TODO Button to open dialog
-            int result = jfc.showOpenDialog(this);
-            if(result == JFileChooser.APPROVE_OPTION){
-                File resultDir = jfc.getCurrentDirectory();
-                String resultPath = resultDir.getAbsolutePath();
-                --resultPath in FileUtils
-
-            }*/
-        }
-      }
 
     //TODO translate to german and correct the information in menu
-    private void addMenu(JFrame frame) {
-        JMenuBar menuBar = new JMenuBar();
-        JMenu helpMenu = new JMenu("Help");
+    private final class Menu extends JMenuBar {
+        public Menu(JFrame frame) {
+            JMenu helpMenu = new JMenu("Help");
+            MenuItem guideItem = new MenuItem("Guide", """
+                    - Select the directories you want to compare.
+                    - The application will show the differences between the directories.
+                    - Use the menu to view help or exit the application.""", frame, "Help");
+            MenuItem aboutItem = new MenuItem("About Us",
+                    "Developed as part of the Software Project 1 course at Hochschule für Technik Stuttgart.\n" +
+                            "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "About Us");
+            helpMenu.add(guideItem);
+            helpMenu.add(aboutItem);
+            add(helpMenu);
 
-        MenuItem guideItem = new MenuItem("Guide", "- Select the directories you want to compare.\n" +
-                        "- The application will show the differences between the directories.\n" +
-                        "- Use the menu to view help or exit the application.", frame, "Help");
-        MenuItem aboutItem = new MenuItem("About Us",
-                "Developed as part of the Software Project 1 course at Hochschule für Technik Stuttgart.\n" +
-                "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "About Us");
-        helpMenu.add(guideItem);
-        helpMenu.add(aboutItem);
-        menuBar.add(helpMenu);
+            JMenu exitMenu = new JMenu("Beenden");
+            JMenuItem exitItem = new JMenuItem("Programm beenden");
+            exitItem.addActionListener(e -> System.exit(0));
+            exitMenu.add(exitItem);
+            add(exitMenu);
+        }
 
-        JMenu exitMenu = new JMenu("Beenden");
-        JMenuItem exitItem = new JMenuItem("Programm beenden");
-        exitItem.addActionListener(e -> System.exit(0));
-        exitMenu.add(exitItem);
-
-        menuBar.add(exitMenu);
-        frame.setJMenuBar(menuBar);
+        private static class MenuItem extends JMenuItem {
+            public MenuItem(String name, String content, JFrame frame, String popUpTitle) {
+                super(name);
+                addActionListener(e -> JOptionPane.showMessageDialog(frame, content, popUpTitle, JOptionPane.INFORMATION_MESSAGE));
+            }
+        }
     }
 
-    private static class MenuItem extends JMenuItem {
-        public MenuItem(String name, String content, JFrame frame, String popUpTitle) {
-            super(name);
-            addActionListener(e -> JOptionPane.showMessageDialog(frame, content, popUpTitle, JOptionPane.INFORMATION_MESSAGE));
+    private final class Level1UI extends JPanel {
+        private final GridBagConstraints gbc = new GridBagConstraints();
+        private final DirectorySelectionPanel leftPanel = new DirectorySelectionPanel("Erstes Verzeichnis:");
+        private final DirectorySelectionPanel rightPanel = new DirectorySelectionPanel("Zweites Verzeichnis:");
+
+        Level1UI() {
+            super(new GridBagLayout());
+            gbc.fill = GridBagConstraints.BOTH;
+            gbc.insets = new Insets(1, 1, 1, 1);
+
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
+            splitPane.setResizeWeight(0.5);
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.weighty = 1;
+            gbc.weightx = 1;
+            add(splitPane, gbc);
+
+            addLowerMenu();
         }
+
+        private void addLowerMenu() {
+            JPanel bottomPanel = new JPanel(new FlowLayout());
+
+            JButton cancelButton = new JButton("Abbrechen");
+            cancelButton.addActionListener(click -> {
+                leftPanel.clearInput();
+                rightPanel.clearInput();
+            });
+            bottomPanel.add(cancelButton);
+
+            JButton okButton = new JButton("Bestätigen");
+            okButton.addActionListener(click -> {
+                String pathLeft = leftPanel.getDirectory();
+                String pathRight = rightPanel.getDirectory();
+                if (!new File(pathLeft).exists()) {
+                    JOptionPane.showMessageDialog(this, "'" + pathLeft + "' (links) ist kein valider Pfad!", "Fehler", JOptionPane.ERROR_MESSAGE);
+                } else if (!new File(pathRight).exists()) {
+                    JOptionPane.showMessageDialog(this, "'" + pathRight + "' (rechts) ist kein valider Pfad!", "Fehler", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    List<File> leftFiles = fileUtils.getFiles(pathLeft);
+                    List<File> rightFiles = fileUtils.getFiles(pathRight);
+                    setVisible(false);
+                    level2UI = new Level2UI(leftFiles, rightFiles);
+                    frame.add(level2UI);
+                }
+            });
+            bottomPanel.add(okButton);
+
+            gbc.gridy = 1;
+            gbc.weighty = 0;
+            add(bottomPanel, gbc);
+        }
+
+        private static class DirectorySelectionPanel extends JPanel {
+            JTextField textField = new JTextField();
+
+            public DirectorySelectionPanel(String label1Text) {
+                super();
+                setLayout(new GridBagLayout());
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+                gbc.insets = new Insets(1, 1, 1, 1);
+
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                gbc.weighty = 0;
+                add(new JLabel(label1Text), gbc);
+
+                gbc.gridx = 0;
+                gbc.gridy = 1;
+                gbc.weighty = 0;
+                add(new JLabel("Bitte geben Sie ein Verzeichnis an:"), gbc);
+
+                textField.setEditable(true);
+                // TODO WHY TF does it need both?
+                textField.setPreferredSize(defaultTextFieldDimension);
+                textField.setMinimumSize(defaultTextFieldDimension);
+
+                gbc.gridx = 0;
+                gbc.gridy = 2;
+                gbc.weighty = 0;
+                add(textField, gbc);
+
+                JButton directoryButton = getJButton();
+                gbc.gridx = 1;
+                gbc.gridy = 2;
+                gbc.weighty = 0;
+                add(directoryButton, gbc);
+            }
+
+            private JButton getJButton() {
+                JButton directoryButton = new JButton("\uD83D\uDCC1");
+                directoryButton.addActionListener(click -> {
+                    JFileChooser jfc = new JFileChooser();
+                    jfc.setCurrentDirectory(new File("."));
+                    jfc.setDialogTitle("Bitte wählen Sie ein Verzeichnis aus");
+                    jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                    int result = jfc.showOpenDialog(this);
+                    if (result == JFileChooser.APPROVE_OPTION) {
+                        File resultDir = jfc.getSelectedFile();
+                        String resultPath = resultDir.getAbsolutePath();
+                        textField.setText(resultPath);
+                    }
+                });
+                return directoryButton;
+            }
+
+            public String getDirectory() {
+                return textField.getText();
+            }
+
+            public void clearInput() {
+                textField.setText("");
+            }
+        }
+    }
+
+    private final class Level2UI extends JPanel {
+        private final GridBagConstraints gbc = new GridBagConstraints();
+
+        public Level2UI(List<File> leftFiles, List<File> rightFiles) {
+            super(new GridBagLayout());
+            gbc.fill = GridBagConstraints.BOTH;
+            gbc.insets = new Insets(1, 1, 1, 1);
+
+            JList<String> leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, "L"));
+            leftList.addListSelectionListener(select -> {
+                if (select.getValueIsAdjusting()) {
+                    System.out.println(leftFiles.get(leftList.getSelectedIndex()));
+                }
+            });
+
+            JList<String> rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, "R"));
+            rightList.addListSelectionListener(select -> {
+                if (select.getValueIsAdjusting()) {
+                    System.out.println(leftFiles.get(leftList.getSelectedIndex()));
+                }
+            });
+
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftList, rightList);
+            splitPane.setResizeWeight(0.5);
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.weighty = 1;
+            gbc.weightx = 1;
+            add(splitPane, gbc);
+        }
+
+        // variable names for left side, method can still be used for right side
+        private static String[] getFormatFileNames(List<File> leftFiles, List<File> rightFiles, String sideInformation) {
+            List<String> result = new ArrayList<>();
+            for (File leftFile : leftFiles) {
+                String leftFileName = leftFile.getName();
+                boolean inBoth = rightFiles.stream().anyMatch(f -> f.getName().equals(leftFile.getName()));
+                File otherFile = inBoth ? rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow() : null;
+                if (inBoth) {
+                    try {
+                        boolean identical = Files.mismatch(leftFile.toPath(), otherFile.toPath()) == -1;
+                        if (identical) result.add(leftFileName + " (in L&R identisch)");
+                        else result.add(leftFileName + " (in L&R verschieden)");
+                    } catch (IOException ignored) {
+                    }
+                } else {
+                    result.add(leftFileName + String.format(" (in %s)", sideInformation));
+                }
+            }
+            return result.toArray(new String[0]);
+        }
+    }
+
+    private final class Level3UI extends JPanel {
     }
 }
