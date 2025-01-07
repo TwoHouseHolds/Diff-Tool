@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,16 +10,19 @@ import java.util.List;
 
 public class SwingInterface {
 
+    //TODO LVUI doesnt resize correctly after going back
+
     private static final Dimension defaultTextFieldDimension = new Dimension(300, 25);
     private static final FileUtils fileUtils = new FileUtils();
     private final JFrame frame = new JFrame("Swing Oberfläche");
     private final Menu menu = new Menu(frame);
     private final Level1UI level1UI = new Level1UI();
-    private Level2UI level2UI;
-    private Level3UI level3UI = new Level3UI();
+    private Level2UI level2UI = null;
+    private Level3UI level3UI = null;
 
     public void start() {
         SwingUtilities.invokeLater(() -> {
+            initializeEscFocus();
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             int width = (int) (screenSize.width * 0.5);
@@ -34,6 +39,34 @@ public class SwingInterface {
     //TODO translate to german and correct the information in menu
     private final class Menu extends JMenuBar {
         public Menu(JFrame frame) {
+            JButton backButton = new JButton("⬅");
+            backButton.addActionListener(e -> {
+                //noinspection StatementWithEmptyBody
+                if (level1UI.isVisible()) {
+                } else if (level2UI.isVisible()) {
+                    level2UI.setVisible(false);
+                    level1UI.setVisible(true);
+                } else if (level3UI.isVisible()) {
+                    level3UI.setVisible(false);
+                    level2UI.setVisible(true);
+                }
+            });
+            add(backButton);
+
+            JButton forewardButton = new JButton("➡");
+            forewardButton.addActionListener(e -> {
+                //noinspection StatementWithEmptyBody
+                if (level3UI != null && level3UI.isVisible()) {
+                } else if (level2UI != null && level2UI.isVisible() && level3UI != null) {
+                    level2UI.setVisible(false);
+                    level3UI.setVisible(true);
+                } else if (level1UI.isVisible() && level2UI != null) {
+                    level1UI.setVisible(false);
+                    level2UI.setVisible(true);
+                }
+            });
+            add(forewardButton);
+
             JMenu helpMenu = new JMenu("Help");
             MenuItem guideItem = new MenuItem("Guide", """
                     - Select the directories you want to compare.
@@ -51,7 +84,11 @@ public class SwingInterface {
             exitItem.addActionListener(e -> System.exit(0));
             exitMenu.add(exitItem);
             add(exitMenu);
+
+
         }
+
+
 
         private static class MenuItem extends JMenuItem {
             public MenuItem(String name, String content, JFrame frame, String popUpTitle) {
@@ -59,6 +96,8 @@ public class SwingInterface {
                 addActionListener(e -> JOptionPane.showMessageDialog(frame, content, popUpTitle, JOptionPane.INFORMATION_MESSAGE));
             }
         }
+
+
     }
 
     private final class Level1UI extends JPanel {
@@ -136,9 +175,7 @@ public class SwingInterface {
                 add(new JLabel("Bitte geben Sie ein Verzeichnis an:"), gbc);
 
                 textField.setEditable(true);
-                // TODO WHY TF does it need both?
                 textField.setPreferredSize(defaultTextFieldDimension);
-                textField.setMinimumSize(defaultTextFieldDimension);
 
                 gbc.gridx = 0;
                 gbc.gridy = 2;
@@ -184,20 +221,43 @@ public class SwingInterface {
 
         public Level2UI(List<File> leftFiles, List<File> rightFiles) {
             super(new GridBagLayout());
+            setFocusable(false);
+            if (leftFiles == null || rightFiles == null) {
+                JOptionPane.showMessageDialog(frame, (leftFiles == null ? "Linkes" : "Rechtes") + " Verzeichnis ist leer!", "Fehler", JOptionPane.ERROR_MESSAGE);
+                level1UI.setVisible(true);
+                return;
+            }
+
             gbc.fill = GridBagConstraints.BOTH;
             gbc.insets = new Insets(1, 1, 1, 1);
 
             JList<String> leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, "L"));
             leftList.addListSelectionListener(select -> {
                 if (select.getValueIsAdjusting()) {
-                    System.out.println(leftFiles.get(leftList.getSelectedIndex()));
+                    File leftFile = leftFiles.get(leftList.getSelectedIndex());
+
+                    //TODO Check if the stream can find a File else then open the File only on the left
+                    File rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow();
+                    FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
+                    level3UI = new Level3UI(lr.left(), lr.right());
+                    frame.add(level3UI);
+                    level2UI.setVisible(false);
+                    level3UI.setVisible(true);
                 }
             });
 
             JList<String> rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, "R"));
             rightList.addListSelectionListener(select -> {
                 if (select.getValueIsAdjusting()) {
-                    System.out.println(leftFiles.get(leftList.getSelectedIndex()));
+                    File rightFile = rightFiles.get(rightList.getSelectedIndex());
+
+                    //TODO Check if the stream can find a File else then open the File only on the right
+                    File leftFile = leftFiles.stream().filter(f -> f.getName().equals(rightFile.getName())).findFirst().orElseThrow();
+                    FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
+                    level3UI = new Level3UI(lr.left(), lr.right());
+                    frame.add(level3UI);
+                    level2UI.setVisible(false);
+                    level3UI.setVisible(true);
                 }
             });
 
@@ -233,5 +293,54 @@ public class SwingInterface {
     }
 
     private final class Level3UI extends JPanel {
+        private final GridBagConstraints gbc = new GridBagConstraints();
+
+        public Level3UI(List<String> leftLines, List<String> rightLines) {
+            super(new GridBagLayout());
+            setFocusable(false);
+
+            JTextArea leftTextArea = new JTextArea();
+            leftTextArea.setEditable(false);
+            leftLines.forEach(s -> leftTextArea.append(s + "\n"));
+            JScrollPane leftJSP = new JScrollPane(leftTextArea);
+
+            JTextArea rightTextArea = new JTextArea();
+            rightTextArea.setEditable(false);
+            rightLines.forEach(s -> rightTextArea.append(s + "\n"));
+            JScrollPane rightJSP = new JScrollPane(rightTextArea);
+
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftJSP, rightJSP);
+            splitPane.setResizeWeight(0.5);
+            gbc.fill = GridBagConstraints.BOTH;
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.weighty = 1;
+            gbc.weightx = 1;
+            add(splitPane, gbc);
+
+        }
+    }
+
+    private void initializeEscFocus() {
+        level1UI.setFocusable(false);
+        menu.setFocusable(false);
+        frame.setFocusable(true);
+        frame.requestFocusInWindow();
+        frame.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    //noinspection StatementWithEmptyBody
+                    if (level1UI.isVisible()) {
+                    } else if (level2UI.isVisible()) {
+                        level2UI.setVisible(false);
+                        level1UI.setVisible(true);
+                    } else if (level3UI.isVisible()) {
+                        level3UI.setVisible(false);
+                        level2UI.setVisible(true);
+                    }
+                }
+            }
+        });
     }
 }
