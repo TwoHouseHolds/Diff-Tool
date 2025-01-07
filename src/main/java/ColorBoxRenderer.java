@@ -29,7 +29,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
             int index = line.indexOf("+");
             index = index - xScrollOffset;
 
-            while (index >= 0 && index + xScrollOffset < String.valueOf(index).length() + 4) {
+            while (index >= 0 && index + xScrollOffset < String.valueOf(i).length() + 4) {
                 graphics.setBackgroundColor(TextColor.ANSI.GREEN);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
                 graphics.putString(index, yPos, "+");
@@ -43,7 +43,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
             index = line.indexOf("-");
             index = index - xScrollOffset;
 
-            while (index >= 0 && index + xScrollOffset < String.valueOf(index).length() + 4) {
+            while (index >= 0 && index + xScrollOffset < String.valueOf(i).length() + 4) {
                 //Check if - is outside of view due to scrolling
                 graphics.setBackgroundColor(TextColor.ANSI.RED);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
@@ -58,7 +58,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
             index = line.indexOf("!");
             index = index - xScrollOffset;
 
-            while (index >= 0 && index + xScrollOffset < String.valueOf(index).length() + 4) {
+            while (index >= 0 && index + xScrollOffset < String.valueOf(i).length() + 4) {
                 graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
                 graphics.putString(index, yPos, "!");
