@@ -121,7 +121,8 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
 
         } else {
             //Check which tile is affected
-            int x = e.getX() / 200;
+            int x;
+            x = e.getX() / 200;
             int y = e.getY() / 200;
 
             //Check if Tile is already occupied
