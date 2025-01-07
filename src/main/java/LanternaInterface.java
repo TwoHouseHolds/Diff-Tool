@@ -433,7 +433,7 @@ public class LanternaInterface {
 
         helpMenu.add(new MenuItem("Blackjack", () -> new BlackjackMinigame(textGUI)));
 
-        helpMenu.add(new MenuItem("TicTacToe", () -> new TicTacToeMinigame(textGUI)));
+        helpMenu.add(new MenuItem("TicTacToe", () -> new LanternaTicTacToeMinigame(textGUI)));
 
         Menu fileMenu = new Menu("Datei");
         menuBar.add(fileMenu);
