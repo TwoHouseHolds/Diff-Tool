@@ -411,11 +411,12 @@ public class LanternaInterface {
                         - Jederzeit können Sie mit der Escape-Taste zum vorherigen Menü zurückkehren.
                         - Um diese Anleitung erneut anzuzeigen, wählen Sie im Menü "Hilfe" -> "Guide".
                         - Um Informationen über die Entwickler zu erhalten, wählen Sie im Menü "Hilfe" -> "Über uns".
-                        - Um ein Blackjack-Minispiel zu starten, wählen Sie im Menü "Hilfe" -> "Blackjack".
-                        - Um ein TicTacToe-Minispiel zu starten, wählen Sie im Menü "Hilfe" -> "TicTacToe".
                         - Um 2 Dateien manuell zu vergleichen, wählen Sie im Menü "Datei" -> "Manueller Vergleich von 2 Dateien".
                         - Um die Differenz von 2 Dateien zu speichern, wählen Sie im Menü "Datei" -> "Differenz von 2 Dateien speichern".
                         - Um eine Datei zu bearbeiten, wählen Sie im Menü "Datei" -> "Datei editieren".
+                        - Um ein Blackjack-Minispiel zu starten, wählen Sie im Menü "Zusätzliches" -> "Blackjack".
+                        - Um ein TicTacToe-Minispiel zu starten, wählen Sie im Menü "Zusätzliches" -> "TicTacToe".
+                        - Um ein TicTacToe-Minispiel in einer GUI-Umgebung zu starten (nicht im Headless-Modus), wählen Sie im Menü "Zusätzliches" -> "GUI-TicTacToe".
                         - Um das Programm zu beenden, wählen Sie im Menü "Beenden" -> "Beende Programm".
                         """, MessageDialogButton.OK)));
 
