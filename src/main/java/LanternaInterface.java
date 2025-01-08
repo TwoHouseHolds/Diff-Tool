@@ -3,6 +3,10 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.SimpleTheme;
 import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.Button;
+import com.googlecode.lanterna.gui2.Label;
+import com.googlecode.lanterna.gui2.Panel;
+import com.googlecode.lanterna.gui2.Window;
 import com.googlecode.lanterna.gui2.dialogs.DirectoryDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
@@ -15,10 +19,13 @@ import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -41,6 +48,7 @@ public class LanternaInterface {
     private final FileUtils fileUtils = new FileUtils();
     private List<File> leftDir = new ArrayList<>();
     private List<File> rightDir = new ArrayList<>();
+    private Screen screen;
 
     /**
      * Start the Lanterna interface
@@ -51,7 +59,6 @@ public class LanternaInterface {
      */
      void start() {
         DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
-        Screen screen;
          terminalFactory.setPreferTerminalEmulator(true);
         try {
             terminalFactory.setInitialTerminalSize(new TerminalSize(200, 100));
@@ -184,20 +191,19 @@ public class LanternaInterface {
                 .orElseThrow();
 
         if (leftDir == null) {
-            leftTextBox.setText("Verzeichnis existiert nicht oder ist leer");
-
+            MessageDialog.showMessageDialog(textGUI, "Fehler", "Linkes Verzeichnis existiert nicht oder ist leer", MessageDialogButton.OK);
             if (rightDir == null) {
-                rightTextBox.setText("Verzeichnis existiert nicht oder ist leer");
+                MessageDialog.showMessageDialog(textGUI, "Fehler", "Rechtes Verzeichnis existiert nicht oder ist leer", MessageDialogButton.OK);
                 return;
             }
             return;
         }
 
         if (rightDir == null) {
-            rightTextBox.setText("Verzeichnis existiert nicht oder ist leer");
+            MessageDialog.showMessageDialog(textGUI, "Fehler", "Rechtes Verzeichnis existiert nicht oder ist leer", MessageDialogButton.OK);
 
             if(leftDir == null) {
-                leftTextBox.setText("Verzeichnis existiert nicht oder ist leer");
+                MessageDialog.showMessageDialog(textGUI, "Fehler", "Linkes Verzeichnis existiert nicht oder ist leer", MessageDialogButton.OK);
                 return;
             }
             return;
@@ -235,28 +241,28 @@ public class LanternaInterface {
         ActionListBox leftListBox = new ActionListBox();
         ActionListBox rightListBox = new ActionListBox();
 
-        for (File file : leftFiles) {
-            String fileName = file.getName();
-            boolean inBoth = rightFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
-            File rightFile = inBoth ? rightFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
+        for (File leftFile : leftFiles) {
+            String fileName = leftFile.getName();
+            boolean inBoth = rightFiles.stream().anyMatch(f -> f.getName().equals(leftFile.getName()));
+            File rightFile = inBoth ? rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow() : leftFile;
             if (inBoth) {
-                fileName = getFormattedFileName(file, fileName, rightFile);
+                fileName = getFormattedFileName(leftFile, fileName, rightFile);
             } else {
                 fileName += " (in L)";
             }
-            leftListBox.addItem(fileName, () -> showFileContents(file, rightFile, Side.LEFT));
+            leftListBox.addItem(fileName, () -> showFileContents(leftFile, rightFile, Side.LEFT));
         }
 
-        for (File file : rightFiles) {
-            String fileName = file.getName();
-            boolean inBoth = leftFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
-            File leftFile = inBoth ? leftFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
+        for (File rightFile : rightFiles) {
+            String fileName = rightFile.getName();
+            boolean inBoth = leftFiles.stream().anyMatch(f -> f.getName().equals(rightFile.getName()));
+            File leftFile = inBoth ? leftFiles.stream().filter(f -> f.getName().equals(rightFile.getName())).findFirst().orElseThrow() : rightFile;
             if (inBoth) {
-                fileName = getFormattedFileName(file, fileName, leftFile);
+                fileName = getFormattedFileName(rightFile, fileName, leftFile);
             } else {
                 fileName += " (in R)";
             }
-            rightListBox.addItem(fileName, () -> showFileContents(file, leftFile, Side.RIGHT));
+            rightListBox.addItem(fileName, () -> showFileContents(rightFile, leftFile, Side.RIGHT));
         }
 
         leftPanel.addComponent(leftListBox);
@@ -277,10 +283,10 @@ public class LanternaInterface {
         });
     }
 
-    private String getFormattedFileName(File file, String fileName, File rightFile) {
+    private String getFormattedFileName(File leftFile, String fileName, File rightFile) {
         boolean identical = false;
         try {
-            identical = Files.mismatch(file.toPath(), rightFile.toPath()) == -1;
+            identical = Files.mismatch(leftFile.toPath(), rightFile.toPath()) == -1;
         } catch(IOException ignored) {
         }
         if(!identical) {
@@ -431,9 +437,20 @@ public class LanternaInterface {
                 Beteiligte: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf
                 """, MessageDialogButton.OK)));
 
-        helpMenu.add(new MenuItem("Blackjack", () -> new BlackjackMinigame(textGUI)));
-
-        helpMenu.add(new MenuItem("TicTacToe", () -> new LanternaTicTacToeMinigame(textGUI)));
+        helpMenu.add(new MenuItem("GUI", () -> {
+            if(GraphicsEnvironment.isHeadless()) {
+                MessageDialog.showMessageDialog(textGUI, "Fehler", "Das Programm kann nicht in einer GUI-Umgebung ausgeführt werden.\nDas System läuft im Headless Modus", MessageDialogButton.OK);
+                return;
+            }
+            window.close();
+            try {
+                screen.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            SwingInterface swingInterface = new SwingInterface();
+            swingInterface.start();
+        }));
 
         Menu fileMenu = new Menu("Datei");
         menuBar.add(fileMenu);
@@ -444,6 +461,26 @@ public class LanternaInterface {
         fileMenu.add(new MenuItem("Differenz von 2 Dateien speichern - HTML", this::compAndSaveHtml));
 
         fileMenu.add(new MenuItem("Datei editieren", this::editFile));
+
+        Menu additionalMenu = new Menu("Zusätzliches");
+        menuBar.add(additionalMenu);
+
+        additionalMenu.add(new MenuItem("Blackjack", () -> new BlackjackMinigame(textGUI)));
+
+        additionalMenu.add(new MenuItem("TicTacToe", () -> new LanternaTicTacToeMinigame(textGUI)));
+
+        additionalMenu.add(new MenuItem("GUI-TicTacToe", () -> {
+            if(GraphicsEnvironment.isHeadless()) {
+                MessageDialog.showMessageDialog(textGUI, "Fehler", "Das Spiel kann nicht in einer GUI-Umgebung ausgeführt werden.\nDas System läuft im Headless Modus", MessageDialogButton.OK);
+                return;
+            }
+            SwingTicTacToeMinigame swingTicTacToeMinigame = new SwingTicTacToeMinigame();
+            JFrame frame = new JFrame("GUI - TicTacToe");
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            frame.add(swingTicTacToeMinigame);
+            frame.pack();
+            frame.setVisible(true);
+        }));
 
         Menu exitMenu = new Menu("Beenden");
         menuBar.add(exitMenu);
