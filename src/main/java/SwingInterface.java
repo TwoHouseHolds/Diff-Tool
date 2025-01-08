@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -75,8 +76,21 @@ public class SwingInterface {
             MenuItem aboutItem = new MenuItem("About Us",
                     "Developed as part of the Software Project 1 course at Hochschule für Technik Stuttgart.\n" +
                             "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "About Us");
+
+            //TODO herausfinden warum lanterna nicht richtig funzt
+            JMenuItem switchItem = new JMenuItem("In CUI wechseln");
+            switchItem.addActionListener(e ->{
+                frame.dispose();
+                SwingUtilities.invokeLater(() ->{
+                    LanternaInterface lanternaInterface = new LanternaInterface();
+                    lanternaInterface.start();
+                    lanternaInterface.tryScreenUpdate();
+                });
+            });
+
             helpMenu.add(guideItem);
             helpMenu.add(aboutItem);
+            helpMenu.add(switchItem);
             add(helpMenu);
 
             JMenu exitMenu = new JMenu("Beenden");
