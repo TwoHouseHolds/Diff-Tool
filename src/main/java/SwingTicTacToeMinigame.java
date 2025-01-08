@@ -1,10 +1,12 @@
 import javax.swing.*;
 import javax.swing.event.MouseInputListener;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 
-public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener {
+public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener, KeyListener {
 
     //Board
     public int[][] gameState = new int[3][3];
@@ -20,7 +22,7 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
         this.requestFocusInWindow();
         this.setSize(600, 600);
         this.setPreferredSize(new Dimension(600, 600));
-
+        this.addKeyListener(this);
         this.addMouseListener(this);
 
         //Add AI Button
@@ -121,7 +123,8 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
 
         } else {
             //Check which tile is affected
-            int x = e.getX() / 200;
+            int x;
+            x = e.getX() / 200;
             int y = e.getY() / 200;
 
             //Check if Tile is already occupied
@@ -266,6 +269,26 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
 
     @Override
     public void mouseMoved(MouseEvent e) {
+
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            Window window = SwingUtilities.getWindowAncestor(this);
+            if (window != null) {
+                window.dispose();
+            }
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
 
     }
 }
