@@ -365,7 +365,7 @@ public class LanternaInterface {
      * @see com.googlecode.lanterna.gui2.MultiWindowTextGUI
      * @noinspection unused
      * */
-    private void tryScreenUpdate() {
+    public void tryScreenUpdate() {
         try {
             textGUI.updateScreen();
         } catch (IOException e) {
