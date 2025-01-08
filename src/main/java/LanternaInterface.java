@@ -17,7 +17,14 @@ import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
+import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.terminal.ansi.CygwinTerminal;
+import com.googlecode.lanterna.terminal.ansi.TelnetTerminal;
+import com.googlecode.lanterna.terminal.swing.AWTTerminal;
+import com.googlecode.lanterna.terminal.swing.AWTTerminalFrame;
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame;
 
 import javax.swing.*;
 import java.awt.*;
@@ -48,7 +55,7 @@ public class LanternaInterface {
     private final FileUtils fileUtils = new FileUtils();
     private List<File> leftDir = new ArrayList<>();
     private List<File> rightDir = new ArrayList<>();
-    private Screen screen;
+    private TerminalScreen screen;
 
     /**
      * Start the Lanterna interface
@@ -58,10 +65,9 @@ public class LanternaInterface {
      * @see com.googlecode.lanterna.gui2.MultiWindowTextGUI
      */
      void start() {
-        DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
-         terminalFactory.setPreferTerminalEmulator(true);
         try {
-            terminalFactory.setInitialTerminalSize(new TerminalSize(200, 100));
+            DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
+            terminalFactory.setPreferTerminalEmulator(true);
             screen = terminalFactory.createScreen();
             screen.startScreen();
             textGUI = new MultiWindowTextGUI(screen, new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLUE));
@@ -77,6 +83,7 @@ public class LanternaInterface {
             System.out.println("Initialization of Lanterna Interface has failed. Please try again and check the Error message");
             System.out.println(e.getMessage());
             System.out.println(Arrays.toString(e.getStackTrace()));
+            e.printStackTrace();
             System.exit(1);
         }
 
