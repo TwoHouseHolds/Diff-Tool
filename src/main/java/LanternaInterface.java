@@ -170,26 +170,7 @@ public class LanternaInterface {
     private void compareDirectories(String... output) {
         leftDir = fileUtils.getFiles(output[0]);
         rightDir = fileUtils.getFiles(output[1]);
-
-        TextBox leftTextBox = ((Panel) window.getComponent()).getChildren().stream()
-                .filter(Panel.class::isInstance)
-                .map(c -> (Panel) c)
-                .flatMap(p -> p.getChildren().stream())
-                .filter(TextBox.class::isInstance)
-                .map(c -> (TextBox) c)
-                .findFirst()
-                .orElseThrow();
-
-        TextBox rightTextBox = ((Panel) window.getComponent()).getChildren().stream()
-                .filter(Panel.class::isInstance)
-                .map(c -> (Panel) c)
-                .flatMap(p -> p.getChildren().stream())
-                .filter(TextBox.class::isInstance)
-                .map(c -> (TextBox) c)
-                .skip(1)
-                .findFirst()
-                .orElseThrow();
-
+        
         if (leftDir == null) {
             MessageDialog.showMessageDialog(textGUI, "Fehler", "Linkes Verzeichnis existiert nicht oder ist leer", MessageDialogButton.OK);
             if (rightDir == null) {

@@ -98,6 +98,17 @@ public class FileUtils {
     public record LineResult(List<String> left, List<String> right, List<SpecificLineChange> specificLineChanges) {
     }
 
+    /**
+     * Represents a specific change in a line
+     * The lineNumber is the number of the line that has been changed e.g. 5 for the 5th line
+     * The index is the index of the character that has been changed e.g. 5 for the 5th character
+     * The character is the character that has been changed e.g. 'a' for the character 'a'
+     * The longerSide is the side that has the longer line e.g. Side.LEFT if the left line is longer
+     * @param lineNumber
+     * @param index
+     * @param character
+     * @param longerSide
+     */
     public record SpecificLineChange(int lineNumber, int index, char character, Side longerSide) {
     }
 
@@ -123,11 +134,11 @@ public class FileUtils {
         boolean rightBinary;
 
         if(leftFile.equals(rightFile)) {
-            leftBinary = isBinary(leftFile, true);
+            leftBinary = isBinary(leftFile, false);
             rightBinary = leftBinary;
         } else {
-            leftBinary = isBinary(leftFile, true);
-            rightBinary = isBinary(rightFile, true);
+            leftBinary = isBinary(leftFile, false);
+            rightBinary = isBinary(rightFile, false);
         }
 
         int lineNumber = 1;
