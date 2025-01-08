@@ -76,7 +76,7 @@ public class SwingInterface {
             MenuItem aboutItem = new MenuItem("About Us",
                     "Developed as part of the Software Project 1 course at Hochschule für Technik Stuttgart.\n" +
                             "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "About Us");
-            
+
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
             switchItem.addActionListener(e ->{
                 frame.dispose();
@@ -84,7 +84,6 @@ public class SwingInterface {
                     LanternaInterface lanternaInterface = new LanternaInterface();
                     lanternaInterface.start();
                     lanternaInterface.tryScreenUpdate();
-                    // Lanterna loop that handles input, etc.
                 }).start();
             });
 
