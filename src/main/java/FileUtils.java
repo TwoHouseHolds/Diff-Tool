@@ -57,7 +57,7 @@ public class FileUtils {
             lines = Files.readAllLines(Paths.get(file.toURI()));
             int lineNumber = 1;
             for(String line : lines) {
-                String prefix = lineNumber + ": ";
+                String prefix = lineNumber + ":   ";
                 line = prefix + line;
                 lines.set(lineNumber - 1, line);
                 lineNumber++;
