@@ -46,11 +46,22 @@ public class FileUtils {
         return Boolean.TRUE.equals(BinaryHeuristics.isBinary(file, extensive));
     }
 
-    /** @noinspection unused*/
+    /**
+     * Read a file and return its lines with line numbers
+     * @param file File to read
+     * @return List of lines in the file
+     * @noinspection unused*/
     public List<String> readFile(File file) {
         List<String> lines = new ArrayList<>();
         try {
             lines = Files.readAllLines(Paths.get(file.toURI()));
+            int lineNumber = 1;
+            for(String line : lines) {
+                String prefix = lineNumber + ": ";
+                line = prefix + line;
+                lines.set(lineNumber - 1, line);
+                lineNumber++;
+            }
         } catch (IOException e) {
             System.out.println("File-Read has failed");
             System.out.println(e.getMessage());
