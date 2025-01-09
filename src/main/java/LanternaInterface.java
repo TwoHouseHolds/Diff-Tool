@@ -16,6 +16,7 @@ import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
+import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 
@@ -32,14 +33,14 @@ import java.util.function.Consumer;
 /**
  * Lanterna interface for comparing two directories
  *
- * @see com.googlecode.lanterna.gui2.BasicWindow
- * @see com.googlecode.lanterna.gui2.Button
- * @see com.googlecode.lanterna.gui2.EmptySpace
- * @see com.googlecode.lanterna.gui2.Label
- * @see com.googlecode.lanterna.gui2.MultiWindowTextGUI
- * @see com.googlecode.lanterna.gui2.Panel
- * @see com.googlecode.lanterna.gui2.TextBox
- * @see com.googlecode.lanterna.gui2.Window
+ * @see BasicWindow
+ * @see Button
+ * @see EmptySpace
+ * @see Label
+ * @see MultiWindowTextGUI
+ * @see Panel
+ * @see TextBox
+ * @see Window
  */
 public class LanternaInterface {
 
@@ -53,9 +54,9 @@ public class LanternaInterface {
     /**
      * Start the Lanterna interface
      *
-     * @see com.googlecode.lanterna.screen.Screen
-     * @see com.googlecode.lanterna.terminal.DefaultTerminalFactory
-     * @see com.googlecode.lanterna.gui2.MultiWindowTextGUI
+     * @see Screen
+     * @see DefaultTerminalFactory
+     * @see MultiWindowTextGUI
      */
      void start() {
         try {
@@ -199,8 +200,8 @@ public class LanternaInterface {
      *
      * @param leftFiles  List of files in the first directory
      * @param rightFiles List of files in the second directory
-     * @see java.io.File
-     * @see java.io.File
+     * @see File
+     * @see File
      */
     private void showFilesAsDirectory(List<File> leftFiles, List<File> rightFiles) {
 
@@ -285,7 +286,7 @@ public class LanternaInterface {
      * If the user presses the escape key, return to the file list
      * @param leftFile  File to show on the left
      * @param rightFile File to show on the right
-     * @see java.io.File
+     * @see File
      */
     private void showFileContents(File leftFile, File rightFile, Side selectedSide) {
         Panel menuPanel = new Panel(new LinearLayout(Direction.VERTICAL));
@@ -297,17 +298,27 @@ public class LanternaInterface {
         leftPanel.addComponent(new Label("Ausgewählte Datei " + leftFile.getName() + " :").addStyle(SGR.BOLD));
         rightPanel.addComponent(new Label("Datei in anderem Verzeichnis " + rightFile.getName() + " :").addStyle(SGR.BOLD));
 
-        FileUtils.LineResult result = fileUtils.compareFiles(leftFile, rightFile);
-
-        List<String> leftLines = result.left();
-        List<String> rightLines = result.right();
+        List<String> leftLines = new ArrayList<>();
+        List<String> rightLines = new ArrayList<>();
+        List<FileUtils.SpecificLineChange> lineChanges = new ArrayList<>();
 
         if(leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
-            rightLines.clear();
+            leftLines = fileUtils.readFile(leftFile);
+            rightLines = new ArrayList<>();
         }
 
         if(leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
-            leftLines.clear();
+            rightLines = fileUtils.readFile(rightFile);
+            leftLines = new ArrayList<>();
+        }
+
+        if(!leftFile.equals(rightFile)) {
+            FileUtils.LineResult result = fileUtils.compareFiles(leftFile, rightFile);
+
+            leftLines = result.left();
+            rightLines = result.right();
+
+            lineChanges = result.specificLineChanges();
         }
 
         ColoredTextBox leftTextBox = new ColoredTextBox(new TerminalSize(100, 100), Side.LEFT);
@@ -321,8 +332,10 @@ public class LanternaInterface {
             rightTextBox.addLine(line);
         }
 
-        leftTextBox.setSpecificLineChanges(result.specificLineChanges());
-        rightTextBox.setSpecificLineChanges(result.specificLineChanges());
+        if(!lineChanges.isEmpty()) {
+            leftTextBox.setSpecificLineChanges(lineChanges);
+            rightTextBox.setSpecificLineChanges(lineChanges);
+        }
 
         leftTextBox.setReadOnly(true);
         rightTextBox.setReadOnly(true);
@@ -361,7 +374,7 @@ public class LanternaInterface {
     /**
      * Reset the window
      * @param listener Listener to remove
-     * @see com.googlecode.lanterna.gui2.WindowListenerAdapter
+     * @see WindowListenerAdapter
      */
     private void resetWindow(WindowListenerAdapter listener) {
         window.setComponent(null);
@@ -370,7 +383,7 @@ public class LanternaInterface {
 
     /**
      * Update the screen
-     * @see com.googlecode.lanterna.gui2.MultiWindowTextGUI
+     * @see MultiWindowTextGUI
      * @noinspection unused
      * */
     public void tryScreenUpdate() {
@@ -383,7 +396,7 @@ public class LanternaInterface {
 
     /**
      * Generate a standard file
-     * @see java.io.File
+     * @see File
      * @return empty file
      * @noinspection unused
      */
@@ -394,7 +407,7 @@ public class LanternaInterface {
     /**
      * Adds a menu with help and exit options to the panel
      * @param panel Panel to add the menu to
-     * @see com.googlecode.lanterna.gui2.menu.MenuBar
+     * @see MenuBar
      */
     private void addMenu(Panel panel) {
         MenuBar menuBar = new MenuBar();
@@ -480,10 +493,10 @@ public class LanternaInterface {
 
     /**
      * Let the user manually compare 2 files
-     * @see com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder
-     * @see com.googlecode.lanterna.gui2.dialogs.MessageDialog
-     * @see com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
-     * @see java.io.File
+     * @see FileDialogBuilder
+     * @see MessageDialog
+     * @see MessageDialogButton
+     * @see File
      */
     private void diffFilesManually() {
         File file1 = new FileDialogBuilder()
@@ -509,10 +522,10 @@ public class LanternaInterface {
 
     /**
      * Let the User compare 2 files and save the differences as a text file
-     * @see com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder
-     * @see com.googlecode.lanterna.gui2.dialogs.MessageDialog
-     * @see com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
-     * @see java.io.File
+     * @see FileDialogBuilder
+     * @see MessageDialog
+     * @see MessageDialogButton
+     * @see File
      */
     private void compAndSaveText() {
         File file1 = new FileDialogBuilder()
@@ -557,10 +570,10 @@ public class LanternaInterface {
 
     /**
      * Let the user edit a file
-     * @see com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder
-     * @see com.googlecode.lanterna.gui2.dialogs.MessageDialog
-     * @see com.googlecode.lanterna.gui2.dialogs.MessageDialogButton
-     * @see java.io.File
+     * @see FileDialogBuilder
+     * @see MessageDialog
+     * @see MessageDialogButton
+     * @see File
      */
     private void editFile() {
         File file = new FileDialogBuilder()
