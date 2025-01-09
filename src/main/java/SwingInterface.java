@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class SwingInterface {
 
@@ -249,8 +250,21 @@ public class SwingInterface {
                 if (select.getValueIsAdjusting()) {
                     File leftFile = leftFiles.get(leftList.getSelectedIndex());
 
-                    //TODO Check if the stream can find a File else then open the File only on the left
-                    File rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow();
+                    //TODO: (Fixed) Check if the stream can find a File else then open the File only on the left
+                    //Fixed -> Sie Code unten
+                    File rightFile = null;
+                    try {
+                        rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow();
+                    }catch (NoSuchElementException e){
+                        JOptionPane.showMessageDialog(frame, ("Es existiert keine solche Datei im rechten Verzeichnis"), "Info", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    if(rightFile == null){
+                        //TODO: RightFile später nicht mehr anzeigen oder das Feld frei lassen -> Idee: Boolean oder Enum an LV3UI
+                        rightFile = leftFile;
+                    }
+
+                    // End of Fix
+
                     FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
                     level3UI = new Level3UI(lr.left(), lr.right());
                     frame.add(level3UI);
@@ -264,8 +278,22 @@ public class SwingInterface {
                 if (select.getValueIsAdjusting()) {
                     File rightFile = rightFiles.get(rightList.getSelectedIndex());
 
-                    //TODO Check if the stream can find a File else then open the File only on the right
-                    File leftFile = leftFiles.stream().filter(f -> f.getName().equals(rightFile.getName())).findFirst().orElseThrow();
+                    //TODO: (Fixed) Check if the stream can find a File else then open the File only on the right
+                    //Fixed -> Sie Code unten
+                    File leftFile = null;
+                    try {
+                        leftFile = leftFiles.stream().filter(f -> f.getName().equals(rightFile.getName())).findFirst().orElseThrow();
+                    }catch (NoSuchElementException e){
+                        JOptionPane.showMessageDialog(frame, ("Es existiert keine solche Datei im linken Verzeichnis"), "Info", JOptionPane.INFORMATION_MESSAGE);
+                    }
+
+                    if(leftFile == null){
+                        //TODO: LeftFile später nicht mehr anzeigen oder das Feld frei lassen -> Idee: Boolean oder Enum an LV3UI
+                        leftFile = rightFile;
+                    }
+
+                    // End of Fix
+
                     FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
                     level3UI = new Level3UI(lr.left(), lr.right());
                     frame.add(level3UI);
