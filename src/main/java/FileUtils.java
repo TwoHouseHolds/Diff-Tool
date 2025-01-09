@@ -156,15 +156,18 @@ public class FileUtils {
                 lineNumber++;
                 continue;
             }
+
             if(pair.rightText() == null) {
                 leftLines.add(lineNumber + ": + " + pair.leftText());
                 rightLines.add(lineNumber + ": - ");
                 lineNumber++;
                 continue;
             }
+
             if(!pair.leftText().equals(pair.rightText())) {
                 String[] leftText = pair.leftText().split("");
                 String[] rightText = pair.rightText().split("");
+                //TODO Levenshteindistanz < ~% Zeilenlänge
                 Side longerSide = leftText.length > rightText.length ? Side.LEFT : Side.RIGHT;
                 String[] longer = leftText.length > rightText.length ? leftText : rightText;
 
