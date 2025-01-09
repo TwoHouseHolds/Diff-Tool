@@ -4,8 +4,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the state of the Lanterna CUI as a Singleton class
+ * @see com.googlecode.lanterna.gui2.WindowListenerAdapter
+ * @see java.io.File
+ * @see java.util.ArrayList
+ */
 public class InterfaceState {
-    private String classInfo = "Interface State for the Lanterna CUI";
     private static InterfaceState INSTANCE;
     private LanternaState state;
     private File currentLeftFile;
@@ -27,16 +32,17 @@ public class InterfaceState {
         this.currentListener = currentListener;
     }
 
+    /**
+     * Get the current state of the interface
+     * @see LanternaState
+     * @return The current state of the interface
+     */
     public static InterfaceState getInterfaceState() {
         if(INSTANCE == null) {
             INSTANCE = new InterfaceState(LanternaState.DIRECTORYSELECT, null, null, null, new ArrayList<>(), new ArrayList<>(), null, null);
         }
 
         return INSTANCE;
-    }
-
-    public String getClassInfo() {
-        return classInfo;
     }
 
     public void setState(LanternaState state) {

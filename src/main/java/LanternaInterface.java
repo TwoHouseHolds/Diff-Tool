@@ -715,9 +715,14 @@ public class LanternaInterface {
         return str.replace("<", "&lt;").replace(">", "&gt;");
     }
 
+    /**
+     * Handle the escape key and F1 key backward movement
+     */
     private void handleBackwards() {
         if(interfaceState.getState() == LanternaState.FILECOMPARE) {
-            showFilesAsDirectory(interfaceState.getLeftDir(), interfaceState.getRightDir());
+            if(interfaceState.getLeftDir() != null && interfaceState.getRightDir() != null) {
+                showFilesAsDirectory(interfaceState.getLeftDir(), interfaceState.getRightDir());
+            }
             return;
         }
         if(interfaceState.getState() == LanternaState.FILESELECT) {
@@ -725,6 +730,9 @@ public class LanternaInterface {
         }
     }
 
+    /**
+     * Handle the F2 key forward movement
+     */
     private void handleForwards() {
         if (interfaceState.getState() == LanternaState.DIRECTORYSELECT) {
             if(interfaceState.getCurrentDirectorys() != null) {
