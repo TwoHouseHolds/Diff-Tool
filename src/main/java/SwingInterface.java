@@ -250,8 +250,7 @@ public class SwingInterface {
                 if (select.getValueIsAdjusting()) {
                     File leftFile = leftFiles.get(leftList.getSelectedIndex());
 
-                    //TODO: (Fixed) Check if the stream can find a File else then open the File only on the left
-                    //Fixed -> Sie Code unten
+                    //TODO: Duplicate Code
                     File rightFile = null;
                     try {
                         rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow();
@@ -263,7 +262,6 @@ public class SwingInterface {
                         rightFile = leftFile;
                     }
 
-                    // End of Fix
 
                     FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
                     level3UI = new Level3UI(lr.left(), lr.right());
@@ -278,8 +276,7 @@ public class SwingInterface {
                 if (select.getValueIsAdjusting()) {
                     File rightFile = rightFiles.get(rightList.getSelectedIndex());
 
-                    //TODO: (Fixed) Check if the stream can find a File else then open the File only on the right
-                    //Fixed -> Sie Code unten
+                    //TODO: Duplicate Code
                     File leftFile = null;
                     try {
                         leftFile = leftFiles.stream().filter(f -> f.getName().equals(rightFile.getName())).findFirst().orElseThrow();
@@ -292,7 +289,6 @@ public class SwingInterface {
                         leftFile = rightFile;
                     }
 
-                    // End of Fix
 
                     FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
                     level3UI = new Level3UI(lr.left(), lr.right());
@@ -302,7 +298,12 @@ public class SwingInterface {
                 }
             });
 
-            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftList, rightList);
+            //Fix for ScrollPane in the fileselection window
+            JScrollPane leftScrollPane = new JScrollPane(leftList);
+            JScrollPane rightScrollPane = new JScrollPane(rightList);
+
+
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftScrollPane, rightScrollPane);
             splitPane.setResizeWeight(0.5);
             gbc.gridx = 0;
             gbc.gridy = 0;
