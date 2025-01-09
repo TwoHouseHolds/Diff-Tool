@@ -16,15 +16,8 @@ import com.googlecode.lanterna.gui2.menu.MenuBar;
 import com.googlecode.lanterna.gui2.menu.MenuItem;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
-import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import com.googlecode.lanterna.terminal.Terminal;
-import com.googlecode.lanterna.terminal.ansi.CygwinTerminal;
-import com.googlecode.lanterna.terminal.ansi.TelnetTerminal;
-import com.googlecode.lanterna.terminal.swing.AWTTerminal;
-import com.googlecode.lanterna.terminal.swing.AWTTerminalFrame;
-import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame;
 
 import javax.swing.*;
 import java.awt.*;
@@ -83,10 +76,8 @@ public class LanternaInterface {
             System.out.println("Initialization of Lanterna Interface has failed. Please try again and check the Error message");
             System.out.println(e.getMessage());
             System.out.println(Arrays.toString(e.getStackTrace()));
-            e.printStackTrace();
             System.exit(1);
         }
-
     }
 
     /**
@@ -218,8 +209,8 @@ public class LanternaInterface {
             return;
         }
 
+        Panel menuPanel = new Panel(new LinearLayout(Direction.VERTICAL));
         Panel outterPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
-
         Panel leftPanel = new Panel(new LinearLayout(Direction.VERTICAL));
         Panel rightPanel = new Panel(new LinearLayout(Direction.VERTICAL));
 
@@ -258,7 +249,10 @@ public class LanternaInterface {
         outterPanel.addComponent(leftPanel);
         outterPanel.addComponent(new EmptySpace(new TerminalSize(2, 0)));
         outterPanel.addComponent(rightPanel);
-        window.setComponent(outterPanel);
+        addMenu(menuPanel);
+        menuPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+        menuPanel.addComponent(outterPanel);
+        window.setComponent(menuPanel);
 
         window.addWindowListener(new WindowListenerAdapter() {
             @Override
@@ -294,6 +288,7 @@ public class LanternaInterface {
      * @see java.io.File
      */
     private void showFileContents(File leftFile, File rightFile, Side selectedSide) {
+        Panel menuPanel = new Panel(new LinearLayout(Direction.VERTICAL));
         Panel outterPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
 
         Panel leftPanel = new Panel(new LinearLayout(Direction.VERTICAL));
@@ -344,7 +339,13 @@ public class LanternaInterface {
         verticalScrollBar.setViewSize(100);
         verticalScrollBar.setScrollMaximum(100);
 
-        window.setComponent(outterPanel);
+        outterPanel.addComponent(verticalScrollBar);
+
+        addMenu(menuPanel);
+        menuPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+        menuPanel.addComponent(outterPanel);
+
+        window.setComponent(menuPanel);
 
         window.addWindowListener(new WindowListenerAdapter() {
             @Override
