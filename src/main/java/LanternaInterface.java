@@ -44,12 +44,18 @@ import java.util.function.Consumer;
  */
 public class LanternaInterface {
 
+    private LanternaState state = LanternaState.DIRECTORYSELECT;
     private BasicWindow window;
     private WindowBasedTextGUI textGUI;
     private final FileUtils fileUtils = new FileUtils();
     private List<File> leftDir = new ArrayList<>();
     private List<File> rightDir = new ArrayList<>();
+    private File currentLeftFile;
+    private File currentRightFile;
+    private Side currentSide;
+    private List<String> currentDirectorys;
     private TerminalScreen screen;
+    private WindowListenerAdapter currentListener;
 
     /**
      * Start the Lanterna interface
@@ -77,6 +83,7 @@ public class LanternaInterface {
             System.out.println("Initialization of Lanterna Interface has failed. Please try again and check the Error message");
             System.out.println(e.getMessage());
             System.out.println(Arrays.toString(e.getStackTrace()));
+            e.printStackTrace();
             System.exit(1);
         }
     }
@@ -88,6 +95,8 @@ public class LanternaInterface {
      * @param consumer Consumer for the input
      */
     private void getInput(List<String> labels, Consumer<List<String>> consumer) {
+        if(currentListener != null) resetWindow(currentListener);
+        state = LanternaState.DIRECTORYSELECT;
         Panel outterPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
         List<Panel> panels = new ArrayList<>();
         List<String> output = new ArrayList<>();
@@ -119,6 +128,7 @@ public class LanternaInterface {
                     output.add(textBox.getText());
                 }
             }
+            currentDirectorys = output;
             consumer.accept(output);
         });
 
@@ -152,6 +162,17 @@ public class LanternaInterface {
         }
 
         window.setComponent(outterPanel);
+
+        currentListener = new WindowListenerAdapter() {
+            @Override
+            public void onInput(Window window, KeyStroke keyStroke, AtomicBoolean atomicBoolean) {
+                if (keyStroke.getKeyType() == KeyType.F2) {
+                    handleForwards(this);
+                }
+            }
+        };
+
+        window.addWindowListener(currentListener);
     }
 
     private void compareDirectories(List<String> strings) {
@@ -204,6 +225,10 @@ public class LanternaInterface {
      * @see File
      */
     private void showFilesAsDirectory(List<File> leftFiles, List<File> rightFiles) {
+        if(currentListener != null) resetWindow(currentListener);
+        leftDir = leftFiles;
+        rightDir = rightFiles;
+        state = LanternaState.FILESELECT;
 
         if((leftFiles == null || rightFiles == null) || (leftFiles.isEmpty() && rightFiles.isEmpty())) {
             getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
@@ -255,15 +280,22 @@ public class LanternaInterface {
         menuPanel.addComponent(outterPanel);
         window.setComponent(menuPanel);
 
-        window.addWindowListener(new WindowListenerAdapter() {
+        WindowListenerAdapter listener = new WindowListenerAdapter() {
             @Override
             public void onInput(Window window, KeyStroke keyStroke, AtomicBoolean atomicBoolean) {
-                if (keyStroke.getKeyType() == KeyType.Escape) {
-                    resetWindow(this);
-                    getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
+                if (keyStroke.getKeyType() == KeyType.Escape || keyStroke.getKeyType() == KeyType.F1) {
+                    /*resetWindow(this);
+                    getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);*/
+                    handleBackwards(this);
+                }
+                if(keyStroke.getKeyType() == KeyType.F2) {
+                    handleForwards();
                 }
             }
-        });
+        };
+
+        currentListener = listener;
+        window.addWindowListener(listener);
     }
 
     private String getFormattedFileName(File leftFile, String fileName, File rightFile) {
@@ -289,6 +321,12 @@ public class LanternaInterface {
      * @see File
      */
     private void showFileContents(File leftFile, File rightFile, Side selectedSide) {
+        if(currentListener != null) resetWindow(currentListener);
+        state = LanternaState.FILECOMPARE;
+        currentLeftFile = leftFile;
+        currentRightFile = rightFile;
+        currentSide = selectedSide;
+
         Panel menuPanel = new Panel(new LinearLayout(Direction.VERTICAL));
         Panel outterPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
 
@@ -302,17 +340,17 @@ public class LanternaInterface {
         List<String> rightLines = new ArrayList<>();
         List<FileUtils.SpecificLineChange> lineChanges = new ArrayList<>();
 
-        if(leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
+        if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
             leftLines = fileUtils.readFile(leftFile);
             rightLines = new ArrayList<>();
         }
 
-        if(leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
+        if (leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
             rightLines = fileUtils.readFile(rightFile);
             leftLines = new ArrayList<>();
         }
 
-        if(!leftFile.equals(rightFile)) {
+        if (!leftFile.equals(rightFile)) {
             FileUtils.LineResult result = fileUtils.compareFiles(leftFile, rightFile);
 
             leftLines = result.left();
@@ -332,7 +370,7 @@ public class LanternaInterface {
             rightTextBox.addLine(line);
         }
 
-        if(!lineChanges.isEmpty()) {
+        if (!lineChanges.isEmpty()) {
             leftTextBox.setSpecificLineChanges(lineChanges);
             rightTextBox.setSpecificLineChanges(lineChanges);
         }
@@ -359,16 +397,19 @@ public class LanternaInterface {
         menuPanel.addComponent(outterPanel);
 
         window.setComponent(menuPanel);
-
-        window.addWindowListener(new WindowListenerAdapter() {
+        WindowListenerAdapter listener = new WindowListenerAdapter() {
             @Override
             public void onInput(Window window, KeyStroke keyStroke, AtomicBoolean atomicBoolean) {
-                if (keyStroke.getKeyType() == KeyType.Escape) {
-                    resetWindow(this);
-                    showFilesAsDirectory(leftDir, rightDir);
+                if (keyStroke.getKeyType() == KeyType.Escape || keyStroke.getKeyType() == KeyType.F1) {
+                                        /*resetWindow(this);
+                    showFilesAsDirectory(leftDir, rightDir);*/
+                    handleBackwards(this);
                 }
             }
-        });
+        };
+
+        currentListener = listener;
+        window.addWindowListener(listener);
     }
 
     /**
@@ -451,8 +492,6 @@ public class LanternaInterface {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            SwingInterface swingInterface = new SwingInterface();
-            swingInterface.start();
         }));
 
         Menu fileMenu = new Menu("Datei");
@@ -686,5 +725,44 @@ public class LanternaInterface {
      */
     private String escapeHtml(String str) {
         return str.replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    private void handleBackwards() {
+        if(state == LanternaState.FILECOMPARE) {
+            showFilesAsDirectory(leftDir, rightDir);
+            return;
+        }
+        if(state == LanternaState.FILESELECT) {
+            getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
+            return;
+        }
+    }
+
+    private void handleForwards() {
+        if (state == LanternaState.DIRECTORYSELECT) {
+            if(currentDirectorys != null) {
+                compareDirectories(currentDirectorys);
+                return;
+            }
+            getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
+            return;
+        }
+
+        if (state == LanternaState.FILESELECT) {
+            if (currentLeftFile != null && currentRightFile != null && currentSide != null) {
+                showFileContents(currentLeftFile, currentRightFile, currentSide);
+            }
+            return;
+        }
+    }
+
+    private void handleBackwards(WindowListenerAdapter listener) {
+        resetWindow(listener);
+        handleBackwards();
+    }
+
+    private void handleForwards(WindowListenerAdapter listener) {
+        resetWindow(listener);
+        handleForwards();
     }
 }
