@@ -178,7 +178,7 @@ public class FileUtils {
             if(!pair.leftText().equals(pair.rightText())) {
                 String[] leftText = pair.leftText().split("");
                 String[] rightText = pair.rightText().split("");
-                //TODO Levenshteindistanz < ~% Zeilenlänge
+                //TODO Levenshtein-Distanz < ~% Zeilenlänge
                 Side longerSide = leftText.length > rightText.length ? Side.LEFT : Side.RIGHT;
                 String[] longer = leftText.length > rightText.length ? leftText : rightText;
 
