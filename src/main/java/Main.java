@@ -1,4 +1,6 @@
 import gnu.getopt.Getopt;
+import lanterna.LanternaInterface;
+import swing.SwingInterface;
 
 import java.awt.*;
 

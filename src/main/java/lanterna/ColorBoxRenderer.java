@@ -1,3 +1,7 @@
+package lanterna;
+
+import algorithms.FileUtils.SpecificLineChange;
+
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
 
@@ -73,7 +77,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                 continue;
             }
 
-            for(FileUtils.SpecificLineChange c : coloredTextBox.getSpecificLineChanges()) {
+            for(SpecificLineChange c : coloredTextBox.getSpecificLineChanges()) {
 
                 if(coloredTextBox.getSide() != c.longerSide()) {
                     continue;

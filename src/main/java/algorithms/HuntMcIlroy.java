@@ -1,3 +1,4 @@
+package algorithms;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +42,7 @@ public class HuntMcIlroy {
     }
 
     /**
-     * Create a new HuntMcIlroy object
+     * Create a new algorithms.HuntMcIlroy object
      * @param fileLeft First file to compare
      *                 @see java.io.File
      * @param fileRight Second file to compare
