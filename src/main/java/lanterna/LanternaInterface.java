@@ -1,3 +1,10 @@
+package lanterna;
+
+import algorithms.FileUtils;
+import algorithms.FileUtils.SpecificLineChange;
+import swing.SwingInterface;
+import swing.SwingTicTacToeMinigame;
+
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
@@ -56,7 +63,7 @@ public class LanternaInterface {
      * @see DefaultTerminalFactory
      * @see MultiWindowTextGUI
      */
-     void start() {
+     public void start() {
         try {
             DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
             terminalFactory.setPreferTerminalEmulator(true);
@@ -328,7 +335,7 @@ public class LanternaInterface {
 
         List<String> leftLines = new ArrayList<>();
         List<String> rightLines = new ArrayList<>();
-        List<FileUtils.SpecificLineChange> lineChanges = new ArrayList<>();
+        List<SpecificLineChange> lineChanges = new ArrayList<>();
 
         if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
             leftLines = fileUtils.readFile(leftFile);
@@ -477,6 +484,8 @@ public class LanternaInterface {
             window.close();
             try {
                 screen.close();
+                SwingInterface swingInterface = new SwingInterface();
+                swingInterface.start();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

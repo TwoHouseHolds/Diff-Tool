@@ -1,8 +1,12 @@
+package swing;
+
+import algorithms.FileUtils;
+import lanterna.LanternaInterface;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

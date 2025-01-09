@@ -1,3 +1,6 @@
+package lanterna;
+
+import algorithms.FileUtils;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.TextBox;
 

@@ -1,3 +1,5 @@
+package swing;
+
 import javax.swing.*;
 import javax.swing.event.MouseInputListener;
 import java.awt.*;

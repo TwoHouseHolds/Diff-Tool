@@ -1,3 +1,9 @@
+package algorithms;
+
+import algorithms.BinaryHeuristics;
+import algorithms.Directory;
+import lanterna.Side;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,7 +15,7 @@ import java.util.List;
 public class FileUtils {
 
     /**
-     * Create a new FileUtils object
+     * Create a new algorithms.FileUtils object
      * @see java.io.File
      * @see java.nio.file.Path
      * @see java.util.List
@@ -71,7 +77,7 @@ public class FileUtils {
 
     /**
      * Represents the result of the Hunt-McIlroy algorithm for comparing two files
-     * Has a List<HuntMcIlroy.Subsequence> subsequences and a List<HuntMcIlroy.StringPair> stringPairs
+     * Has a List<algorithms.HuntMcIlroy.Subsequence> subsequences and a List<algorithms.HuntMcIlroy.StringPair> stringPairs
      * @see HuntMcIlroy
      * @see java.util.List
      * @see HuntMcIlroy.Subsequence
@@ -114,7 +120,7 @@ public class FileUtils {
      * The lineNumber is the number of the line that has been changed e.g. 5 for the 5th line
      * The index is the index of the character that has been changed e.g. 5 for the 5th character
      * The character is the character that has been changed e.g. 'a' for the character 'a'
-     * The longerSide is the side that has the longer line e.g. Side.LEFT if the left line is longer
+     * The longerSide is the side that has the longer line e.g. lanterna.Side.LEFT if the left line is longer
      * @param lineNumber
      * @param index
      * @param character

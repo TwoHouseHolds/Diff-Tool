@@ -1,3 +1,5 @@
+package lanterna;
+
 import com.googlecode.lanterna.gui2.WindowListenerAdapter;
 
 import java.io.File;
