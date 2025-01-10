@@ -98,8 +98,6 @@ public class SwingInterface {
             exitItem.addActionListener(e -> System.exit(0));
             exitMenu.add(exitItem);
             add(exitMenu);
-
-
         }
 
 
@@ -245,60 +243,13 @@ public class SwingInterface {
             gbc.insets = new Insets(1, 1, 1, 1);
 
             JList<String> leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, "L"));
-            leftList.addListSelectionListener(select -> {
-                if (!select.getValueIsAdjusting() && leftList.getSelectedIndex() != -1) {
-                    File leftFile = leftFiles.get(leftList.getSelectedIndex());
-                    leftList.clearSelection();
-
-                    //TODO: Duplicate Code
-                    File rightFile = null;
-                    try {
-                        rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow();
-                    } catch (NoSuchElementException e) {
-                        JOptionPane.showMessageDialog(frame, ("Es existiert keine solche Datei im rechten Verzeichnis"), "Info", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                    if (rightFile == null) {
-                        //TODO: RightFile später nicht mehr anzeigen oder das Feld frei lassen -> Idee: Boolean oder Enum an LV3UI
-                        rightFile = leftFile;
-                    }
-
-                    FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
-                    level3UI = new Level3UI(lr.left(), lr.right());
-                    frame.add(level3UI);
-                    changeActivePanelFromTo(level2UI, level3UI);
-                }
-            });
+            applyListSelectionListener(leftList, leftFiles, rightFiles);
 
             JList<String> rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, "R"));
-            rightList.addListSelectionListener(select -> {
-                if (!select.getValueIsAdjusting() && rightList.getSelectedIndex() != -1) {
-                    File rightFile = rightFiles.get(rightList.getSelectedIndex());
-                    rightList.clearSelection();
+            applyListSelectionListener(rightList, rightFiles, leftFiles);
 
-                    //TODO: Duplicate Code
-                    File leftFile = null;
-                    try {
-                        leftFile = leftFiles.stream().filter(f -> f.getName().equals(rightFile.getName())).findFirst().orElseThrow();
-                    } catch (NoSuchElementException e) {
-                        JOptionPane.showMessageDialog(frame, ("Es existiert keine solche Datei im linken Verzeichnis"), "Info", JOptionPane.INFORMATION_MESSAGE);
-                    }
-
-                    if (leftFile == null) {
-                        //TODO: LeftFile später nicht mehr anzeigen oder das Feld frei lassen -> Idee: Boolean oder Enum an LV3UI
-                        leftFile = rightFile;
-                    }
-
-                    FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
-                    level3UI = new Level3UI(lr.left(), lr.right());
-                    frame.add(level3UI);
-                    changeActivePanelFromTo(level2UI, level3UI);
-                }
-            });
-
-            //Fix for ScrollPane in the fileselection window
             JScrollPane leftScrollPane = new JScrollPane(leftList);
             JScrollPane rightScrollPane = new JScrollPane(rightList);
-
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftScrollPane, rightScrollPane);
             splitPane.setResizeWeight(0.5);
@@ -328,6 +279,32 @@ public class SwingInterface {
                 }
             }
             return result.toArray(new String[0]);
+        }
+
+        // variable names for left side, method can still be used for right side
+        private void applyListSelectionListener(JList<String> leftList, List<File> leftFiles, List<File> rightFiles){
+            leftList.addListSelectionListener(select -> {
+                if (!select.getValueIsAdjusting() && leftList.getSelectedIndex() != -1) {
+                    File leftFile = leftFiles.get(leftList.getSelectedIndex());
+                    leftList.clearSelection();
+                    
+                    File rightFile = null;
+                    try {
+                        rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow();
+                    } catch (NoSuchElementException e) {
+                        JOptionPane.showMessageDialog(frame, ("Es existiert keine solche Datei im anderen Verzeichnis"), "Info", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    if (rightFile == null) {
+                        //TODO: RightFile später nicht mehr anzeigen oder das Feld frei lassen -> Idee: Boolean oder Enum an LV3UI
+                        rightFile = leftFile;
+                    }
+
+                    FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
+                    level3UI = new Level3UI(lr.left(), lr.right());
+                    frame.add(level3UI);
+                    changeActivePanelFromTo(level2UI, level3UI);
+                }
+            });
         }
     }
 
