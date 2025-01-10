@@ -21,6 +21,8 @@ public class SwingInterface {
     private static final Dimension defaultTextFieldDimension = new Dimension(300, 25);
     private static final FileUtils fileUtils = new FileUtils();
     private final JFrame frame = new JFrame("Swing Oberfläche");
+    private final JButton backButton = new JButton("⬅");
+    private final JButton forwardButton = new JButton("➡");
     private final Menu menu = new Menu(frame);
     private final Level1UI level1UI = new Level1UI();
     private Level2UI level2UI = null;
@@ -45,33 +47,27 @@ public class SwingInterface {
     //TODO translate to german and correct the information in menu
     private final class Menu extends JMenuBar {
         public Menu(JFrame frame) {
-            JButton backButton = new JButton("⬅");
             backButton.addActionListener(e -> {
                 //noinspection StatementWithEmptyBody
                 if (level1UI.isVisible()) {
                 } else if (level2UI.isVisible()) {
-                    level2UI.setVisible(false);
-                    level1UI.setVisible(true);
+                    changeActivePanelFromTo(level2UI, level1UI);
                 } else if (level3UI.isVisible()) {
-                    level3UI.setVisible(false);
-                    level2UI.setVisible(true);
+                    changeActivePanelFromTo(level3UI, level2UI);
                 }
             });
             add(backButton);
 
-            JButton forewardButton = new JButton("➡");
-            forewardButton.addActionListener(e -> {
+            forwardButton.addActionListener(e -> {
                 //noinspection StatementWithEmptyBody
                 if (level3UI != null && level3UI.isVisible()) {
                 } else if (level2UI != null && level2UI.isVisible() && level3UI != null) {
-                    level2UI.setVisible(false);
-                    level3UI.setVisible(true);
+                    changeActivePanelFromTo(level2UI, level3UI);
                 } else if (level1UI.isVisible() && level2UI != null) {
-                    level1UI.setVisible(false);
-                    level2UI.setVisible(true);
+                    changeActivePanelFromTo(level1UI, level2UI);
                 }
             });
-            add(forewardButton);
+            add(forwardButton);
 
             JMenu helpMenu = new JMenu("Help");
             MenuItem guideItem = new MenuItem("Guide", """
@@ -83,7 +79,7 @@ public class SwingInterface {
                             "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "About Us");
 
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
-            switchItem.addActionListener(e ->{
+            switchItem.addActionListener(e -> {
                 frame.dispose();
                 new Thread(() -> {
                     LanternaInterface lanternaInterface = new LanternaInterface();
@@ -105,7 +101,6 @@ public class SwingInterface {
 
 
         }
-
 
 
         private static class MenuItem extends JMenuItem {
@@ -251,54 +246,52 @@ public class SwingInterface {
 
             JList<String> leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, "L"));
             leftList.addListSelectionListener(select -> {
-                if (select.getValueIsAdjusting()) {
+                if (!select.getValueIsAdjusting() && leftList.getSelectedIndex() != -1) {
                     File leftFile = leftFiles.get(leftList.getSelectedIndex());
+                    leftList.clearSelection();
 
                     //TODO: Duplicate Code
                     File rightFile = null;
                     try {
                         rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow();
-                    }catch (NoSuchElementException e){
+                    } catch (NoSuchElementException e) {
                         JOptionPane.showMessageDialog(frame, ("Es existiert keine solche Datei im rechten Verzeichnis"), "Info", JOptionPane.INFORMATION_MESSAGE);
                     }
-                    if(rightFile == null){
+                    if (rightFile == null) {
                         //TODO: RightFile später nicht mehr anzeigen oder das Feld frei lassen -> Idee: Boolean oder Enum an LV3UI
                         rightFile = leftFile;
                     }
 
-
                     FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
                     level3UI = new Level3UI(lr.left(), lr.right());
                     frame.add(level3UI);
-                    level2UI.setVisible(false);
-                    level3UI.setVisible(true);
+                    changeActivePanelFromTo(level2UI, level3UI);
                 }
             });
 
             JList<String> rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, "R"));
             rightList.addListSelectionListener(select -> {
-                if (select.getValueIsAdjusting()) {
+                if (!select.getValueIsAdjusting() && rightList.getSelectedIndex() != -1) {
                     File rightFile = rightFiles.get(rightList.getSelectedIndex());
+                    rightList.clearSelection();
 
                     //TODO: Duplicate Code
                     File leftFile = null;
                     try {
                         leftFile = leftFiles.stream().filter(f -> f.getName().equals(rightFile.getName())).findFirst().orElseThrow();
-                    }catch (NoSuchElementException e){
+                    } catch (NoSuchElementException e) {
                         JOptionPane.showMessageDialog(frame, ("Es existiert keine solche Datei im linken Verzeichnis"), "Info", JOptionPane.INFORMATION_MESSAGE);
                     }
 
-                    if(leftFile == null){
+                    if (leftFile == null) {
                         //TODO: LeftFile später nicht mehr anzeigen oder das Feld frei lassen -> Idee: Boolean oder Enum an LV3UI
                         leftFile = rightFile;
                     }
 
-
                     FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
                     level3UI = new Level3UI(lr.left(), lr.right());
                     frame.add(level3UI);
-                    level2UI.setVisible(false);
-                    level3UI.setVisible(true);
+                    changeActivePanelFromTo(level2UI, level3UI);
                 }
             });
 
@@ -370,6 +363,8 @@ public class SwingInterface {
     private void initializeEscFocus() {
         level1UI.setFocusable(false);
         menu.setFocusable(false);
+        backButton.setFocusable(false);
+        forwardButton.setFocusable(false);
         frame.setFocusable(true);
         frame.requestFocusInWindow();
         frame.addKeyListener(new KeyAdapter() {
@@ -379,14 +374,20 @@ public class SwingInterface {
                     //noinspection StatementWithEmptyBody
                     if (level1UI.isVisible()) {
                     } else if (level2UI.isVisible()) {
-                        level2UI.setVisible(false);
-                        level1UI.setVisible(true);
+                        changeActivePanelFromTo(level2UI, level1UI);
                     } else if (level3UI.isVisible()) {
-                        level3UI.setVisible(false);
-                        level2UI.setVisible(true);
+                        changeActivePanelFromTo(level3UI, level2UI);
                     }
                 }
             }
         });
+    }
+
+    private void changeActivePanelFromTo(JPanel oldPanel, JPanel newPanel){
+        oldPanel.setVisible(false);
+        newPanel.setVisible(true);
+        /*frame.invalidate();
+        frame.revalidate();
+        frame.repaint();*/
     }
 }
