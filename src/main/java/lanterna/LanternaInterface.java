@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import utils.Side;
+
 /**
  * Lanterna interface for comparing two directories
  *
@@ -66,6 +68,7 @@ public class LanternaInterface {
      public void start() {
         try {
             DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
+            terminalFactory.setInitialTerminalSize(new TerminalSize(150, 40));
             terminalFactory.setPreferTerminalEmulator(true);
             screen = terminalFactory.createScreen();
             screen.startScreen();
@@ -468,6 +471,8 @@ public class LanternaInterface {
                         - Um ein TicTacToe-Minispiel zu starten, wählen Sie im Menü "Zusätzliches" -> "TicTacToe".
                         - Um ein TicTacToe-Minispiel in einer GUI-Umgebung zu starten (nicht im Headless-Modus), wählen Sie im Menü "Zusätzliches" -> "GUI-TicTacToe".
                         - Um das Programm zu beenden, wählen Sie im Menü "Beenden" -> "Beende Programm".
+                        - Mit der F1-Taste können Sie immer zum vorherigen Menü zurückkehren.
+                        - Mit der F2-Taste können Sie immer zum nächsten Menü wechseln, sofern dies möglich ist.
                         """, MessageDialogButton.OK)));
 
         helpMenu.add(new MenuItem("Über uns", () -> MessageDialog.showMessageDialog(textGUI, "Über uns",
@@ -476,7 +481,7 @@ public class LanternaInterface {
                 Beteiligte: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf
                 """, MessageDialogButton.OK)));
 
-        helpMenu.add(new MenuItem("GUI", () -> {
+        helpMenu.add(new MenuItem("In GUI wechseln", () -> {
             if(GraphicsEnvironment.isHeadless()) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Das Programm kann nicht in einer GUI-Umgebung ausgeführt werden.\nDas System läuft im Headless Modus", MessageDialogButton.OK);
                 return;

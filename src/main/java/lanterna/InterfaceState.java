@@ -6,6 +6,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import utils.Side;
+
 /**
  * Represents the state of the Lanterna CUI as a Singleton class
  * @see com.googlecode.lanterna.gui2.WindowListenerAdapter

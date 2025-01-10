@@ -1,8 +1,6 @@
 package algorithms;
 
-import algorithms.BinaryHeuristics;
-import algorithms.Directory;
-import lanterna.Side;
+import utils.Side;
 
 import java.io.File;
 import java.io.IOException;
@@ -120,7 +118,7 @@ public class FileUtils {
      * The lineNumber is the number of the line that has been changed e.g. 5 for the 5th line
      * The index is the index of the character that has been changed e.g. 5 for the 5th character
      * The character is the character that has been changed e.g. 'a' for the character 'a'
-     * The longerSide is the side that has the longer line e.g. lanterna.Side.LEFT if the left line is longer
+     * The longerSide is the side that has the longer line e.g. utils.Side.LEFT if the left line is longer
      * @param lineNumber
      * @param index
      * @param character
