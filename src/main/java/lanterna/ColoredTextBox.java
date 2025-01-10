@@ -7,6 +7,8 @@ import com.googlecode.lanterna.gui2.TextBox;
 import java.util.ArrayList;
 import java.util.List;
 
+import utils.Side;
+
 /**
  * A TextBox that uses a custom renderer to colorize the text based on the characters in it
  * (e.g. '+' will be green, '-' will be red)
