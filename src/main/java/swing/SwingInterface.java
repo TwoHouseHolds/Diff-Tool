@@ -30,7 +30,7 @@ public class SwingInterface {
     private final Level1UI level1UI = new Level1UI();
     private Level2UI level2UI = null;
     private Level3UI level3UI = null;
-    private TicTacToeUI ticTacToeGameUI = null;
+    private SwingTicTacToeMinigame ticTacToeGameUI = null;
 
     public void start() {
         SwingUtilities.invokeLater(() -> {
@@ -50,21 +50,37 @@ public class SwingInterface {
 
     //TODO translate to german and correct the information in menu
     private final class Menu extends JMenuBar {
+        JButton back = new JButton("⬅");
+
         public Menu(JFrame frame) {
-            JButton back = new JButton("⬅");
-            back.addActionListener(e -> {
-                frame.getContentPane().remove(ticTacToeGameUI);
-                ticTacToeGameUI.getParent().setVisible(true);
-                frame.setSize(ticTacToeGameUI.getOldWidth(),ticTacToeGameUI.getOldHeight());
-                back.setVisible(false);
-                frame.setResizable(true);
-                backButton.setVisible(true);
-                forwardButton.setVisible(true);
-
-
-            });
+            this.back.setVisible(false);
             add(back);
-            back.setVisible(false);
+
+            JMenuItem ticTacToe = new JMenuItem("TicTacToe Minispiel");
+            ticTacToe.addActionListener(e -> {
+                ticTacToe.setEnabled(false);
+                JPanel parent = level1UI.isVisible() ? level1UI : level2UI != null && level2UI.isVisible() ? level2UI : level3UI;
+                ticTacToeGameUI = new SwingTicTacToeMinigame();
+                ticTacToeGameUI.setParent(parent);
+                ticTacToeGameUI.setOldSize(frame.getSize());
+                frame.add(ticTacToeGameUI);
+                frame.setResizable(false);
+                frame.setSize(600,670);
+                backButton.setVisible(false);
+                forwardButton.setVisible(false);
+                changeActivePanelFromTo(parent, ticTacToeGameUI);
+                back.setVisible(true);
+                back.addActionListener(b -> {
+                    ticTacToeGameUI.getCustomParent().setVisible(true);
+                    frame.setSize(ticTacToeGameUI.getOldSize());
+                    frame.getContentPane().remove(ticTacToeGameUI);
+                    back.setVisible(false);
+                    frame.setResizable(true);
+                    backButton.setVisible(true);
+                    forwardButton.setVisible(true);
+                    ticTacToe.setEnabled(true);
+                });
+            });
 
             backButton.addActionListener(e -> {
                 //noinspection StatementWithEmptyBody
@@ -121,24 +137,6 @@ public class SwingInterface {
             add(helpMenu);
 
             JMenu zusaetzliches = new JMenu("Zusätzliches");
-            JMenuItem ticTacToe = new JMenuItem("TicTacToe Minispiel");
-            ticTacToe.addActionListener(e -> {
-                JPanel parent;
-                if(level1UI.isVisible()) parent = level1UI;
-                else if (level2UI != null && level2UI.isVisible()) parent = level2UI;
-                else parent = level3UI;
-                ticTacToeGameUI = new TicTacToeUI(parent,frame.getHeight(),frame.getWidth());
-                frame.setResizable(false);
-                changeActivePanelFromTo(parent, ticTacToeGameUI);
-                frame.setSize(600,670);
-                frame.add(ticTacToeGameUI);
-                back.setVisible(true);
-                backButton.setVisible(false);
-                forwardButton.setVisible(false);
-                frame.revalidate();
-                frame.repaint();
-
-            });
             zusaetzliches.add(ticTacToe);
             add(zusaetzliches);
 
@@ -388,33 +386,6 @@ public class SwingInterface {
             add(splitPane, gbc);
 
 
-        }
-    }
-
-    private final  class TicTacToeUI extends  JPanel{
-        private int oldHeight;
-        private int oldWidth;
-        private JPanel parent;
-        TicTacToeUI(JPanel parent,int oldHeight,int oldWidth) {
-            super(new BorderLayout());
-            this.oldWidth = oldWidth;
-            this.oldHeight = oldHeight;
-            this.parent = parent;
-            SwingTicTacToeMinigame swingTicTacToeMinigame = new SwingTicTacToeMinigame();
-            add(swingTicTacToeMinigame, BorderLayout.CENTER);
-        }
-
-        public int getOldHeight() {
-            return oldHeight;
-        }
-
-        public int getOldWidth() {
-            return oldWidth;
-        }
-
-        @Override
-        public JPanel getParent() {
-            return parent;
         }
     }
 

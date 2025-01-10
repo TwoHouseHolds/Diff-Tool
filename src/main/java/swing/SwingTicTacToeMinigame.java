@@ -16,9 +16,12 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
     private int currentPlayer = 2;
     //Boolean if AI is enabled
     private boolean aiEnabled = false;
+    private Dimension oldSize = null;
+    private JPanel parent = null;
 
     public SwingTicTacToeMinigame() {
         super();
+
         this.setBackground(Color.BLACK);
         this.setFocusable(true);
         this.requestFocusInWindow();
@@ -26,8 +29,6 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
         this.setPreferredSize(new Dimension(600, 600));
         this.addKeyListener(this);
         this.addMouseListener(this);
-
-
 
         //Add AI Button
         JCheckBox aiMode = new JCheckBox("AI");
@@ -294,4 +295,21 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
     public void keyReleased(KeyEvent e) {
 
     }
+
+    public Dimension getOldSize() {
+        return this.oldSize;
+    }
+
+    public JPanel getCustomParent() {
+        return parent;
+    }
+
+    public void setOldSize(Dimension oldSize) {
+        this.oldSize = oldSize;
+    }
+
+    public void setParent(JPanel parent) {
+        this.parent = parent;
+    }
+
 }
