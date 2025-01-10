@@ -30,6 +30,7 @@ public class SwingInterface {
     private final Level1UI level1UI = new Level1UI();
     private Level2UI level2UI = null;
     private Level3UI level3UI = null;
+    private SwingTicTacToeMinigame ticTacToeGameUI = null;
 
     public void start() {
         SwingUtilities.invokeLater(() -> {
@@ -49,7 +50,38 @@ public class SwingInterface {
 
     //TODO translate to german and correct the information in menu
     private final class Menu extends JMenuBar {
+        JButton back = new JButton("⬅");
+
         public Menu(JFrame frame) {
+            this.back.setVisible(false);
+            add(back);
+
+            JMenuItem ticTacToe = new JMenuItem("TicTacToe Minispiel");
+            ticTacToe.addActionListener(e -> {
+                ticTacToe.setEnabled(false);
+                JPanel parent = level1UI.isVisible() ? level1UI : level2UI != null && level2UI.isVisible() ? level2UI : level3UI;
+                ticTacToeGameUI = new SwingTicTacToeMinigame();
+                ticTacToeGameUI.setParent(parent);
+                ticTacToeGameUI.setOldSize(frame.getSize());
+                frame.add(ticTacToeGameUI);
+                frame.setResizable(false);
+                frame.setSize(600,670);
+                backButton.setVisible(false);
+                forwardButton.setVisible(false);
+                changeActivePanelFromTo(parent, ticTacToeGameUI);
+                back.setVisible(true);
+                back.addActionListener(b -> {
+                    ticTacToeGameUI.getCustomParent().setVisible(true);
+                    frame.setSize(ticTacToeGameUI.getOldSize());
+                    frame.getContentPane().remove(ticTacToeGameUI);
+                    back.setVisible(false);
+                    frame.setResizable(true);
+                    backButton.setVisible(true);
+                    forwardButton.setVisible(true);
+                    ticTacToe.setEnabled(true);
+                });
+            });
+
             backButton.addActionListener(e -> {
                 //noinspection StatementWithEmptyBody
                 if (level1UI.isVisible()) {
@@ -72,13 +104,21 @@ public class SwingInterface {
             });
             add(forwardButton);
 
-            JMenu helpMenu = new JMenu("Help");
+            JMenu helpMenu = new JMenu("Hilfe");
             MenuItem guideItem = new MenuItem("Guide", """
-                    - Select the directories you want to compare.
-                    - The application will show the differences between the directories.
+                    - Wählen Sie die Verzeichnisse aus, die Sie vergleichen möchten.
+                    - Die Anwendung zeigt die Unterschiede zwischen 2 Verzeichnissen an.
+                      Zusätzlich können Sie die Unterschiede zwischen 2 Dateien anzeigen lassen.
+                      Hierfür wählen Sie die Dateien aus, die Sie vergleichen möchten, indem
+                      Sie den Pfad in der TextBox eingeben oder das Verzeichnis mit dem Button "Select" auswählen.
+                      Danach auf "Confirm" klicken.
+                    - Jederzeit können Sie mit der Escape-Taste zum vorherigen Menü zurückkehren.
+                    - Um diese Anleitung erneut anzuzeigen, wählen Sie im Menü "Hilfe" -> "Guide".
+                    - Um Informationen über die Entwickler zu erhalten, wählen Sie im Menü "Hilfe" -> "Über uns".
+                    - Um das Programm zu beenden, wählen Sie im Menü "Beenden" -> "Beende Programm".
                     - Use the menu to view help or exit the application.""", frame, "Help");
-            MenuItem aboutItem = new MenuItem("About Us",
-                    "Developed as part of the Software Project 1 course at Hochschule für Technik Stuttgart.\n" +
+            MenuItem aboutItem = new MenuItem("Über uns",
+                    "Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.\n" +
                             "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "About Us");
 
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
@@ -95,6 +135,10 @@ public class SwingInterface {
             helpMenu.add(aboutItem);
             helpMenu.add(switchItem);
             add(helpMenu);
+
+            JMenu zusaetzliches = new JMenu("Zusätzliches");
+            zusaetzliches.add(ticTacToe);
+            add(zusaetzliches);
 
             JMenu exitMenu = new JMenu("Beenden");
             JMenuItem exitItem = new JMenuItem("Programm beenden");
@@ -358,9 +402,9 @@ public class SwingInterface {
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
                     //noinspection StatementWithEmptyBody
                     if (level1UI.isVisible()) {
-                    } else if (level2UI.isVisible()) {
+                    } else if (level2UI != null && level2UI.isVisible()) {
                         changeActivePanelFromTo(level2UI, level1UI);
-                    } else if (level3UI.isVisible()) {
+                    } else if (level3UI != null && level3UI.isVisible()) {
                         changeActivePanelFromTo(level3UI, level2UI);
                     }
                 }
