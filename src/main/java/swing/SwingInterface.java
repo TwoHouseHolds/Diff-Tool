@@ -13,6 +13,9 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+
+import utils.Side;
 
 public class SwingInterface {
 
@@ -289,60 +292,13 @@ public class SwingInterface {
             gbc.insets = new Insets(1, 1, 1, 1);
 
             JList<String> leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, "L"));
-            leftList.addListSelectionListener(select -> {
-                if (!select.getValueIsAdjusting() && leftList.getSelectedIndex() != -1) {
-                    File leftFile = leftFiles.get(leftList.getSelectedIndex());
-                    leftList.clearSelection();
-
-                    //TODO: Duplicate Code
-                    File rightFile = null;
-                    try {
-                        rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow();
-                    } catch (NoSuchElementException e) {
-                        JOptionPane.showMessageDialog(frame, ("Es existiert keine solche Datei im rechten Verzeichnis"), "Info", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                    if (rightFile == null) {
-                        //TODO: RightFile später nicht mehr anzeigen oder das Feld frei lassen -> Idee: Boolean oder Enum an LV3UI
-                        rightFile = leftFile;
-                    }
-
-                    FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
-                    level3UI = new Level3UI(lr.left(), lr.right());
-                    frame.add(level3UI);
-                    changeActivePanelFromTo(level2UI, level3UI);
-                }
-            });
+            applyListSelectionListener(leftList, leftFiles, rightFiles, Side.LEFT);
 
             JList<String> rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, "R"));
-            rightList.addListSelectionListener(select -> {
-                if (!select.getValueIsAdjusting() && rightList.getSelectedIndex() != -1) {
-                    File rightFile = rightFiles.get(rightList.getSelectedIndex());
-                    rightList.clearSelection();
+            applyListSelectionListener(rightList, rightFiles, leftFiles, Side.RIGHT);
 
-                    //TODO: Duplicate Code
-                    File leftFile = null;
-                    try {
-                        leftFile = leftFiles.stream().filter(f -> f.getName().equals(rightFile.getName())).findFirst().orElseThrow();
-                    } catch (NoSuchElementException e) {
-                        JOptionPane.showMessageDialog(frame, ("Es existiert keine solche Datei im linken Verzeichnis"), "Info", JOptionPane.INFORMATION_MESSAGE);
-                    }
-
-                    if (leftFile == null) {
-                        //TODO: LeftFile später nicht mehr anzeigen oder das Feld frei lassen -> Idee: Boolean oder Enum an LV3UI
-                        leftFile = rightFile;
-                    }
-
-                    FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
-                    level3UI = new Level3UI(lr.left(), lr.right());
-                    frame.add(level3UI);
-                    changeActivePanelFromTo(level2UI, level3UI);
-                }
-            });
-
-            //Fix for ScrollPane in the fileselection window
             JScrollPane leftScrollPane = new JScrollPane(leftList);
             JScrollPane rightScrollPane = new JScrollPane(rightList);
-
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftScrollPane, rightScrollPane);
             splitPane.setResizeWeight(0.5);
@@ -373,9 +329,38 @@ public class SwingInterface {
             }
             return result.toArray(new String[0]);
         }
+
+        // variable names for left side, method can still be used for right side
+        private void applyListSelectionListener(JList<String> leftList, List<File> leftFiles, List<File> rightFiles, Side sideInformation) {
+            leftList.addListSelectionListener(select -> {
+                if (!select.getValueIsAdjusting() && leftList.getSelectedIndex() != -1) {
+                    File leftFile = leftFiles.get(leftList.getSelectedIndex());
+                    leftList.clearSelection();
+
+                    //Stream findet in den right Files die left File mit gleichem Namen, falls diese vorhanden ist, falls nicht, wird ein leeres Optional zurückgegeben
+                    Optional<File> rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst();
+
+                    if (sideInformation.equals(Side.LEFT)) {
+                        if (rightFile.isEmpty()) level3UI = new Level3UI(fileUtils.readFile(leftFile), null);
+                        else {
+                            FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile.get());
+                            level3UI = new Level3UI(lr.left(), lr.right());
+                        }
+                    } else { // called from right side
+                        if (rightFile.isEmpty()) level3UI = new Level3UI(null, fileUtils.readFile(leftFile));
+                        else {
+                            FileUtils.LineResult lr = fileUtils.compareFiles(rightFile.get(), leftFile);
+                            level3UI = new Level3UI(lr.left(), lr.right());
+                        }
+                    }
+                    frame.add(level3UI);
+                    changeActivePanelFromTo(level2UI, level3UI);
+                }
+            });
+        }
     }
 
-    private final class Level3UI extends JPanel {
+    private static final class Level3UI extends JPanel {
         private final GridBagConstraints gbc = new GridBagConstraints();
 
         public Level3UI(List<String> leftLines, List<String> rightLines) {
@@ -384,12 +369,13 @@ public class SwingInterface {
 
             JTextArea leftTextArea = new JTextArea();
             leftTextArea.setEditable(false);
-            leftLines.forEach(s -> leftTextArea.append(s + "\n"));
-            JScrollPane leftJSP = new JScrollPane(leftTextArea);
-
             JTextArea rightTextArea = new JTextArea();
             rightTextArea.setEditable(false);
-            rightLines.forEach(s -> rightTextArea.append(s + "\n"));
+
+            if (leftLines != null) leftLines.forEach(s -> leftTextArea.append(s + "\n"));
+            if (rightLines != null) rightLines.forEach(s -> rightTextArea.append(s + "\n"));
+
+            JScrollPane leftJSP = new JScrollPane(leftTextArea);
             JScrollPane rightJSP = new JScrollPane(rightTextArea);
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftJSP, rightJSP);
@@ -400,6 +386,7 @@ public class SwingInterface {
             gbc.weighty = 1;
             gbc.weightx = 1;
             add(splitPane, gbc);
+
 
         }
     }
@@ -454,7 +441,7 @@ public class SwingInterface {
         });
     }
 
-    private void changeActivePanelFromTo(JPanel oldPanel, JPanel newPanel){
+    private void changeActivePanelFromTo(JPanel oldPanel, JPanel newPanel) {
         oldPanel.setVisible(false);
         newPanel.setVisible(true);
         /*frame.invalidate();
