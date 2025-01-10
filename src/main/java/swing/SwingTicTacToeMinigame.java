@@ -27,6 +27,8 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
         this.addKeyListener(this);
         this.addMouseListener(this);
 
+
+
         //Add AI Button
         JCheckBox aiMode = new JCheckBox("AI");
         aiMode.setBackground(Color.BLACK);
@@ -79,7 +81,6 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
 
     @Override
     public void mouseClicked(MouseEvent e) {
-
         if(this.aiEnabled) {
             //If Humans Turn
             if(this.currentPlayer == 2) {

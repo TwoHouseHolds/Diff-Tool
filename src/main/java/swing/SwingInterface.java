@@ -27,6 +27,7 @@ public class SwingInterface {
     private final Level1UI level1UI = new Level1UI();
     private Level2UI level2UI = null;
     private Level3UI level3UI = null;
+    private TicTacToeUI ticTacToeGameUI = null;
 
     public void start() {
         SwingUtilities.invokeLater(() -> {
@@ -47,6 +48,21 @@ public class SwingInterface {
     //TODO translate to german and correct the information in menu
     private final class Menu extends JMenuBar {
         public Menu(JFrame frame) {
+            JButton back = new JButton("⬅");
+            back.addActionListener(e -> {
+                frame.getContentPane().remove(ticTacToeGameUI);
+                ticTacToeGameUI.getParent().setVisible(true);
+                frame.setSize(ticTacToeGameUI.getOldWidth(),ticTacToeGameUI.getOldHeight());
+                back.setVisible(false);
+                frame.setResizable(true);
+                backButton.setVisible(true);
+                forwardButton.setVisible(true);
+
+
+            });
+            add(back);
+            back.setVisible(false);
+
             backButton.addActionListener(e -> {
                 //noinspection StatementWithEmptyBody
                 if (level1UI.isVisible()) {
@@ -69,13 +85,21 @@ public class SwingInterface {
             });
             add(forwardButton);
 
-            JMenu helpMenu = new JMenu("Help");
+            JMenu helpMenu = new JMenu("Hilfe");
             MenuItem guideItem = new MenuItem("Guide", """
-                    - Select the directories you want to compare.
-                    - The application will show the differences between the directories.
+                    - Wählen Sie die Verzeichnisse aus, die Sie vergleichen möchten.
+                    - Die Anwendung zeigt die Unterschiede zwischen 2 Verzeichnissen an.
+                      Zusätzlich können Sie die Unterschiede zwischen 2 Dateien anzeigen lassen.
+                      Hierfür wählen Sie die Dateien aus, die Sie vergleichen möchten, indem
+                      Sie den Pfad in der TextBox eingeben oder das Verzeichnis mit dem Button "Select" auswählen.
+                      Danach auf "Confirm" klicken.
+                    - Jederzeit können Sie mit der Escape-Taste zum vorherigen Menü zurückkehren.
+                    - Um diese Anleitung erneut anzuzeigen, wählen Sie im Menü "Hilfe" -> "Guide".
+                    - Um Informationen über die Entwickler zu erhalten, wählen Sie im Menü "Hilfe" -> "Über uns".
+                    - Um das Programm zu beenden, wählen Sie im Menü "Beenden" -> "Beende Programm".
                     - Use the menu to view help or exit the application.""", frame, "Help");
-            MenuItem aboutItem = new MenuItem("About Us",
-                    "Developed as part of the Software Project 1 course at Hochschule für Technik Stuttgart.\n" +
+            MenuItem aboutItem = new MenuItem("Über uns",
+                    "Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.\n" +
                             "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "About Us");
 
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
@@ -93,13 +117,33 @@ public class SwingInterface {
             helpMenu.add(switchItem);
             add(helpMenu);
 
+            JMenu zusaetzliches = new JMenu("Zusätzliches");
+            JMenuItem ticTacToe = new JMenuItem("TicTacToe Minispiel");
+            ticTacToe.addActionListener(e -> {
+                JPanel parent;
+                if(level1UI.isVisible()) parent = level1UI;
+                else if (level2UI != null && level2UI.isVisible()) parent = level2UI;
+                else parent = level3UI;
+                ticTacToeGameUI = new TicTacToeUI(parent,frame.getHeight(),frame.getWidth());
+                frame.setResizable(false);
+                changeActivePanelFromTo(parent, ticTacToeGameUI);
+                frame.setSize(600,670);
+                frame.add(ticTacToeGameUI);
+                back.setVisible(true);
+                backButton.setVisible(false);
+                forwardButton.setVisible(false);
+                frame.revalidate();
+                frame.repaint();
+
+            });
+            zusaetzliches.add(ticTacToe);
+            add(zusaetzliches);
+
             JMenu exitMenu = new JMenu("Beenden");
             JMenuItem exitItem = new JMenuItem("Programm beenden");
             exitItem.addActionListener(e -> System.exit(0));
             exitMenu.add(exitItem);
             add(exitMenu);
-
-
         }
 
 
@@ -360,6 +404,33 @@ public class SwingInterface {
         }
     }
 
+    private final  class TicTacToeUI extends  JPanel{
+        private int oldHeight;
+        private int oldWidth;
+        private JPanel parent;
+        TicTacToeUI(JPanel parent,int oldHeight,int oldWidth) {
+            super(new BorderLayout());
+            this.oldWidth = oldWidth;
+            this.oldHeight = oldHeight;
+            this.parent = parent;
+            SwingTicTacToeMinigame swingTicTacToeMinigame = new SwingTicTacToeMinigame();
+            add(swingTicTacToeMinigame, BorderLayout.CENTER);
+        }
+
+        public int getOldHeight() {
+            return oldHeight;
+        }
+
+        public int getOldWidth() {
+            return oldWidth;
+        }
+
+        @Override
+        public JPanel getParent() {
+            return parent;
+        }
+    }
+
     private void initializeEscFocus() {
         level1UI.setFocusable(false);
         menu.setFocusable(false);
@@ -373,9 +444,9 @@ public class SwingInterface {
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
                     //noinspection StatementWithEmptyBody
                     if (level1UI.isVisible()) {
-                    } else if (level2UI.isVisible()) {
+                    } else if (level2UI != null && level2UI.isVisible()) {
                         changeActivePanelFromTo(level2UI, level1UI);
-                    } else if (level3UI.isVisible()) {
+                    } else if (level3UI != null && level3UI.isVisible()) {
                         changeActivePanelFromTo(level3UI, level2UI);
                     }
                 }
