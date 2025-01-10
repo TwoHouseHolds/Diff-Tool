@@ -294,13 +294,24 @@ public class SwingInterface {
                     } catch (NoSuchElementException e) {
                         JOptionPane.showMessageDialog(frame, ("Es existiert keine solche Datei im anderen Verzeichnis"), "Info", JOptionPane.INFORMATION_MESSAGE);
                     }
+
+                    ///////
                     if (rightFile == null) {
                         //TODO: RightFile später nicht mehr anzeigen oder das Feld frei lassen -> Idee: Boolean oder Enum an LV3UI
-                        rightFile = leftFile;
+                        level3UI = new Level3UI(fileUtils.readFile(leftFile), fileUtils.readFile(rightFile));
+                    }else{
+                        FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
+                        level3UI = new Level3UI(lr.left(), lr.right());
                     }
 
+                    ///////
+
+                /*
                     FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile);
                     level3UI = new Level3UI(lr.left(), lr.right());
+
+                 */
+
                     frame.add(level3UI);
                     changeActivePanelFromTo(level2UI, level3UI);
                 }
