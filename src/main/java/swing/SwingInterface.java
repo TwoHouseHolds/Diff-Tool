@@ -2,6 +2,7 @@ package swing;
 
 import algorithms.FileUtils;
 import lanterna.LanternaInterface;
+import utils.Side;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,8 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-
-import utils.Side;
 
 public class SwingInterface {
 
@@ -65,7 +64,7 @@ public class SwingInterface {
                 ticTacToeGameUI.setOldSize(frame.getSize());
                 frame.add(ticTacToeGameUI);
                 frame.setResizable(false);
-                frame.setSize(600,670);
+                frame.setSize(600, 670);
                 backButton.setVisible(false);
                 forwardButton.setVisible(false);
                 changeActivePanelFromTo(parent, ticTacToeGameUI);
@@ -289,10 +288,10 @@ public class SwingInterface {
             gbc.fill = GridBagConstraints.BOTH;
             gbc.insets = new Insets(1, 1, 1, 1);
 
-            JList<String> leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, "L"));
+            JList<String> leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, Side.LEFT));
             applyListSelectionListener(leftList, leftFiles, rightFiles, Side.LEFT);
 
-            JList<String> rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, "R"));
+            JList<String> rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, Side.RIGHT));
             applyListSelectionListener(rightList, rightFiles, leftFiles, Side.RIGHT);
 
             JScrollPane leftScrollPane = new JScrollPane(leftList);
@@ -308,21 +307,20 @@ public class SwingInterface {
         }
 
         // variable names for left side, method can still be used for right side
-        private static String[] getFormatFileNames(List<File> leftFiles, List<File> rightFiles, String sideInformation) {
+        private static String[] getFormatFileNames(List<File> leftFiles, List<File> rightFiles, Side sideInformation) {
             List<String> result = new ArrayList<>();
             for (File leftFile : leftFiles) {
                 String leftFileName = leftFile.getName();
-                boolean inBoth = rightFiles.stream().anyMatch(f -> f.getName().equals(leftFile.getName()));
-                File otherFile = inBoth ? rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow() : null;
-                if (inBoth) {
+                Optional<File> rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst();
+                if (rightFile.isPresent()) {
                     try {
-                        boolean identical = Files.mismatch(leftFile.toPath(), otherFile.toPath()) == -1;
+                        boolean identical = Files.mismatch(leftFile.toPath(), rightFile.get().toPath()) == -1;
                         if (identical) result.add(leftFileName + " (in L&R identisch)");
                         else result.add(leftFileName + " (in L&R verschieden)");
                     } catch (IOException ignored) {
                     }
                 } else {
-                    result.add(leftFileName + String.format(" (in %s)", sideInformation));
+                    result.add(leftFileName + String.format(" (in %s)", sideInformation.toString()));
                 }
             }
             return result.toArray(new String[0]);
@@ -384,8 +382,6 @@ public class SwingInterface {
             gbc.weighty = 1;
             gbc.weightx = 1;
             add(splitPane, gbc);
-
-
         }
     }
 
