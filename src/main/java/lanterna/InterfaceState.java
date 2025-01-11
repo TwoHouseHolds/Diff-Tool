@@ -24,8 +24,10 @@ public class InterfaceState {
     private List<File> rightDir;
     private List<String> currentDirectorys;
     private WindowListenerAdapter currentListener;
+    private SortType sortTypeLeft;
+    private SortType sortTypeRight;
 
-    private InterfaceState(LanternaState state, File currentLeftFile, File currentRightFile, Side currentSide, List<File> leftDir, List<File> rightDir, List<String> currentDirectorys, WindowListenerAdapter currentListener) {
+    private InterfaceState(LanternaState state, File currentLeftFile, File currentRightFile, Side currentSide, List<File> leftDir, List<File> rightDir, List<String> currentDirectorys, WindowListenerAdapter currentListener, SortType sortTypeLeft, SortType sortTypeRight) {
         this.state = state;
         this.currentLeftFile = currentLeftFile;
         this.currentRightFile = currentRightFile;
@@ -34,6 +36,8 @@ public class InterfaceState {
         this.rightDir = rightDir;
         this.currentDirectorys = currentDirectorys;
         this.currentListener = currentListener;
+        this.sortTypeLeft = sortTypeLeft;
+        this.sortTypeRight = sortTypeRight;
     }
 
     /**
@@ -43,7 +47,7 @@ public class InterfaceState {
      */
     public static InterfaceState getInterfaceState() {
         if(INSTANCE == null) {
-            INSTANCE = new InterfaceState(LanternaState.DIRECTORYSELECT, null, null, null, new ArrayList<>(), new ArrayList<>(), null, null);
+            INSTANCE = new InterfaceState(LanternaState.DIRECTORYSELECT, null, null, null, new ArrayList<>(), new ArrayList<>(), null, null, SortType.UNSORTED, SortType.UNSORTED);
         }
 
         return INSTANCE;
@@ -111,5 +115,31 @@ public class InterfaceState {
 
     public WindowListenerAdapter getCurrentListener() {
         return currentListener;
+    }
+
+    public int getSortTypeLeft() {
+        return switch (sortTypeLeft) {
+            case UNSORTED -> 0;
+            case ALPHABETICAL -> 1;
+            case SIZE -> 2;
+            case DATE -> 3;
+        };
+    }
+
+    public int getSortTypeRight() {
+        return switch (sortTypeRight) {
+            case UNSORTED -> 0;
+            case ALPHABETICAL -> 1;
+            case SIZE -> 2;
+            case DATE -> 3;
+        };
+    }
+
+    public void setSortTypeLeft(SortType sortTypeLeft) {
+        this.sortTypeLeft = sortTypeLeft;
+    }
+
+    public void setSortTypeRight(SortType sortTypeRight) {
+        this.sortTypeRight = sortTypeRight;
     }
 }

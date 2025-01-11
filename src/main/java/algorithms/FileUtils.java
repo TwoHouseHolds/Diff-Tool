@@ -56,6 +56,9 @@ public class FileUtils {
      * @return List of lines in the file
      * @noinspection unused*/
     public List<String> readFile(File file) {
+        if(isBinary(file, false)) {
+            return List.of("Cannot read binary files yet");
+        }
         List<String> lines = new ArrayList<>();
         try {
             lines = Files.readAllLines(Paths.get(file.toURI()));
