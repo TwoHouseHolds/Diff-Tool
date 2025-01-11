@@ -148,10 +148,10 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
         int win = this.checkWin();
 
         if(win == 1) {
-            JOptionPane.showMessageDialog(this, "PC won!");
+            JOptionPane.showMessageDialog(this, aiEnabled ? "AI won!" : "Player 1 won!");
         }
         if(win == 2) {
-            JOptionPane.showMessageDialog(this, "Human won!");
+            JOptionPane.showMessageDialog(this, aiEnabled ? "Player won!" : "Player 2 won!");
         }
         if(win == 3) {
             JOptionPane.showMessageDialog(this, "Game ended in a draw!");
