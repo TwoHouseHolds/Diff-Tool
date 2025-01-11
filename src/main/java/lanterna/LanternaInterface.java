@@ -248,30 +248,28 @@ public class LanternaInterface {
         ActionListBox leftListBox = new ActionListBox();
         ActionListBox rightListBox = new ActionListBox();
 
-        for (File leftFile : leftFiles) {
-            String fileName = leftFile.getName();
-            boolean inBoth = rightFiles.stream().anyMatch(f -> f.getName().equals(leftFile.getName()));
-            File rightFile = inBoth ? rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst().orElseThrow() : leftFile;
-            if (inBoth) {
-                fileName = getFormattedFileName(leftFile, fileName, rightFile);
-            } else {
-                fileName += " (in L)";
-            }
-            leftListBox.addItem(fileName, () -> showFileContents(leftFile, rightFile, Side.LEFT));
-        }
+        ComboBox<String> leftComboBox = new ComboBox<>();
+        leftComboBox.addItem( "Unsortiert");
+        leftComboBox.addItem("Alphabetisch");
+        leftComboBox.addItem("Größe");
+        leftComboBox.addItem("Datum");
 
-        for (File rightFile : rightFiles) {
-            String fileName = rightFile.getName();
-            boolean inBoth = leftFiles.stream().anyMatch(f -> f.getName().equals(rightFile.getName()));
-            File leftFile = inBoth ? leftFiles.stream().filter(f -> f.getName().equals(rightFile.getName())).findFirst().orElseThrow() : rightFile;
-            if (inBoth) {
-                fileName = getFormattedFileName(rightFile, fileName, leftFile);
-            } else {
-                fileName += " (in R)";
-            }
-            rightListBox.addItem(fileName, () -> showFileContents(rightFile, leftFile, Side.RIGHT));
-        }
+        ComboBox<String> rightComboBox = new ComboBox<>();
+        rightComboBox.addItem("Unsortiert");
+        rightComboBox.addItem("Alphabetisch");
+        rightComboBox.addItem("Größe");
+        rightComboBox.addItem("Datum");
 
+        manageSortingBox(leftComboBox, leftListBox, leftFiles, rightFiles, Side.LEFT);
+        manageSortingBox(rightComboBox, rightListBox, rightFiles, leftFiles, Side.RIGHT);
+
+        leftComboBox.setSelectedIndex(interfaceState.getSortTypeLeft());
+        rightComboBox.setSelectedIndex(interfaceState.getSortTypeRight());
+
+        leftPanel.addComponent(leftComboBox);
+        rightPanel.addComponent(rightComboBox);
+        leftPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+        rightPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         leftPanel.addComponent(leftListBox);
         rightPanel.addComponent(rightListBox);
         outterPanel.addComponent(leftPanel);
@@ -296,6 +294,89 @@ public class LanternaInterface {
 
         interfaceState.setCurrentListener(listener);
         window.addWindowListener(listener);
+    }
+
+    private void manageSortingBox(ComboBox<String> comboBox,ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side) {
+        comboBox.addListener((i, i1, b) -> {
+            switch(i) {
+                case 0: {
+                    if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.UNSORTED);
+                    else interfaceState.setSortTypeRight(SortType.UNSORTED);
+                    listBox.clearItems();
+                    for(File file : firstFiles) {
+                        String fileName = file.getName();
+                        boolean inBoth = secondFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
+                        File rightFile = inBoth ? secondFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
+                        if (inBoth) {
+                            fileName = getFormattedFileName(file, fileName, rightFile);
+                        } else {
+                            fileName += side == Side.LEFT ? " (in L)" : " (in R)";
+                        }
+                        listBox.addItem(fileName, () -> showFileContents(file, rightFile, side));
+                    }
+                    break;
+                }
+                case 1: {
+                    if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.ALPHABETICAL);
+                    else interfaceState.setSortTypeRight(SortType.ALPHABETICAL);
+                    listBox.clearItems();
+                    List<File> sortedFiles = new ArrayList<>(firstFiles);
+                    sortedFiles.sort(Comparator.comparing(File::getName));
+                    for(File file : sortedFiles) {
+                        String fileName = file.getName();
+                        boolean inBoth = secondFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
+                        File rightFile = inBoth ? secondFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
+                        if (inBoth) {
+                            fileName = getFormattedFileName(file, fileName, rightFile);
+                        } else {
+                            fileName += side == Side.LEFT ? " (in L)" : " (in R)";
+                        }
+                        listBox.addItem(fileName, () -> showFileContents(file, rightFile, side));
+                    }
+                    break;
+                }
+                case 2: {
+                    if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.SIZE);
+                    else interfaceState.setSortTypeRight(SortType.SIZE);
+                    listBox.clearItems();
+                    List<File> sortedFiles = new ArrayList<>(firstFiles);
+                    sortedFiles.sort(Comparator.comparing(File::length));
+                    for(File file : sortedFiles) {
+                        String fileName = file.getName();
+                        boolean inBoth = secondFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
+                        File rightFile = inBoth ? secondFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
+                        if (inBoth) {
+                            fileName = getFormattedFileName(file, fileName, rightFile);
+                        } else {
+                            fileName += side == Side.LEFT ? " (in L)" : " (in R)";
+                        }
+                        listBox.addItem(fileName, () -> showFileContents(file, rightFile, side));
+                    }
+                    break;
+                }
+                case 3: {
+                    if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.DATE);
+                    else interfaceState.setSortTypeRight(SortType.DATE);
+                    listBox.clearItems();
+                    List<File> sortedFiles = new ArrayList<>(firstFiles);
+                    sortedFiles.sort(Comparator.comparing(File::lastModified));
+                    for(File file : sortedFiles) {
+                        String fileName = file.getName();
+                        boolean inBoth = secondFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
+                        File rightFile = inBoth ? secondFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
+                        if (inBoth) {
+                            fileName = getFormattedFileName(file, fileName, rightFile);
+                        } else {
+                            fileName += side == Side.LEFT ? " (in L)" : " (in R)";
+                        }
+                        listBox.addItem(fileName, () -> showFileContents(file, rightFile, side));
+                    }
+                    break;
+                }
+
+            }
+
+        });
     }
 
     private String getFormattedFileName(File leftFile, String fileName, File rightFile) {
