@@ -163,6 +163,14 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
 
     }
 
+    /**
+     * MiniMax Algorithm for "AI"
+     * @param gameState Current game-state
+     * @param depth Current depth
+     * @param isMaximizing If the AI is maximizing
+     * @param currentScore Current score
+     * @return Best score
+     */
     private int minimax(int[][] gameState, int depth, boolean isMaximizing, int currentScore) {
 
         int win = checkWin();
