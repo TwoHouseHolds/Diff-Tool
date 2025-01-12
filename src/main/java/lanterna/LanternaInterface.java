@@ -2,6 +2,9 @@ package lanterna;
 
 import algorithms.FileUtils;
 import algorithms.FileUtils.SpecificLineChange;
+import com.googlecode.lanterna.bundle.LanternaThemes;
+import com.googlecode.lanterna.graphics.DelegatingTheme;
+import com.googlecode.lanterna.graphics.Theme;
 import swing.SwingInterface;
 import swing.SwingTicTacToeMinigame;
 
@@ -36,6 +39,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.prefs.Preferences;
 
 import utils.Side;
 
@@ -72,7 +76,13 @@ public class LanternaInterface {
             terminalFactory.setPreferTerminalEmulator(true);
             screen = terminalFactory.createScreen();
             screen.startScreen();
-            textGUI = new MultiWindowTextGUI(screen, new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLUE));
+            textGUI = new MultiWindowTextGUI(screen);
+
+            //Load Prefs
+            Preferences prefs = Preferences.userNodeForPackage(LanternaInterface.class);
+            String theme = prefs.get("theme", "default");
+            Theme lanternaTheme = LanternaThemes.getRegisteredTheme(theme);
+            textGUI.setTheme(lanternaTheme);
 
             window = new BasicWindow();
             window.setHints(Set.of(Window.Hint.FIT_TERMINAL_WINDOW, Window.Hint.CENTERED));
@@ -403,8 +413,8 @@ public class LanternaInterface {
         Panel leftPanel = new Panel(new LinearLayout(Direction.VERTICAL));
         Panel rightPanel = new Panel(new LinearLayout(Direction.VERTICAL));
 
-        leftPanel.addComponent(new Label("Ausgewählte Datei " + leftFile.getName() + " :").addStyle(SGR.BOLD));
-        rightPanel.addComponent(new Label("Datei in anderem Verzeichnis " + rightFile.getName() + " :").addStyle(SGR.BOLD));
+        leftPanel.addComponent(new Label("Datei im linken Verzeichnis " + leftFile.getName() + " :").addStyle(SGR.BOLD));
+        rightPanel.addComponent(new Label("Datei im rechten Verzeichnis " + rightFile.getName() + " :").addStyle(SGR.BOLD));
 
         List<String> leftLines = new ArrayList<>();
         List<String> rightLines = new ArrayList<>();
@@ -423,14 +433,19 @@ public class LanternaInterface {
         if (!leftFile.equals(rightFile)) {
             FileUtils.LineResult result = fileUtils.compareFiles(leftFile, rightFile);
 
-            leftLines = result.left();
-            rightLines = result.right();
+            if(selectedSide == Side.LEFT) {
+                leftLines = result.left();
+                rightLines = result.right();
+            } else {
+                leftLines = result.right();
+                rightLines = result.left();
+            }
 
             lineChanges = result.specificLineChanges();
         }
 
-        ColoredTextBox leftTextBox = new ColoredTextBox(new TerminalSize(100, 100), Side.LEFT);
-        ColoredTextBox rightTextBox = new ColoredTextBox(new TerminalSize(100, 100), Side.RIGHT);
+        ColoredTextBox leftTextBox = new ColoredTextBox(new TerminalSize(100, 100), selectedSide == Side.LEFT ? Side.LEFT : Side.RIGHT);
+        ColoredTextBox rightTextBox = new ColoredTextBox(new TerminalSize(100, 100), selectedSide == Side.LEFT ? Side.RIGHT : Side.LEFT);
 
         for (String line : leftLines) {
             leftTextBox.addLine(line);
@@ -577,6 +592,8 @@ public class LanternaInterface {
 
         fileMenu.add(new MenuItem("Datei editieren", this::editFile));
 
+        fileMenu.add(new MenuItem("Einstellungen", this::showSettings));
+
         Menu additionalMenu = new Menu("Zusätzliches");
         menuBar.add(additionalMenu);
 
@@ -601,6 +618,71 @@ public class LanternaInterface {
         menuBar.add(exitMenu);
         exitMenu.add(new MenuItem("Beende Programm", () -> System.exit(3)));
         panel.addComponent(menuBar);
+    }
+
+    /**
+     * Show the settings window
+     * @see BasicWindow
+     * @see Panel
+     */
+    private void showSettings() {
+        Window settingsWindow = new BasicWindow("Einstellungen");
+        settingsWindow.setHints(Set.of(Window.Hint.CENTERED));
+        Panel settingsPanel = new Panel(new LinearLayout(Direction.VERTICAL));
+
+        settingsPanel.addComponent(new Label("Einstellungen:").addStyle(SGR.BOLD));
+
+        //TODO Allow user to change theme
+        settingsPanel.addComponent(new Button("Farbschema ändern", () -> {
+            Window colorWindow = new BasicWindow("Farbschema ändern");
+            colorWindow.setHints(Set.of(Window.Hint.CENTERED));
+            Panel colorPanel = new Panel(new LinearLayout(Direction.VERTICAL));
+
+            Theme oldTheme = textGUI.getTheme();
+
+            ComboBox<String> colorComboBox = new ComboBox<>();
+            for(String theme : LanternaThemes.getRegisteredThemes()) {
+                colorComboBox.addItem(theme);
+            }
+
+            colorPanel.addComponent(new Label("Wähle ein Farbschema:"));
+            colorPanel.addComponent(colorComboBox);
+
+            colorComboBox.addListener((i, i1, b) -> {
+                String themeString = LanternaThemes.getRegisteredThemes().stream().filter(s -> s.equals(colorComboBox.getText())).findFirst().orElseThrow();
+                Theme theme = LanternaThemes.getRegisteredTheme(themeString);
+                textGUI.setTheme(theme);
+                tryScreenUpdate();
+            });
+
+            colorPanel.addComponent(new Button("Abbrechen", () -> {
+                textGUI.removeWindow(colorWindow);
+                textGUI.setTheme(oldTheme);
+            }));
+
+            colorPanel.addComponent(new Button("Speichern", () -> {
+                Preferences prefs = Preferences.userNodeForPackage(LanternaInterface.class);
+                prefs.put("theme", colorComboBox.getText());
+                textGUI.removeWindow(colorWindow);
+            }));
+
+            colorWindow.setComponent(colorPanel);
+            textGUI.addWindow(colorWindow);
+        }));
+
+        settingsPanel.addComponent(new Button("Zurück", () -> textGUI.removeWindow(settingsWindow)));
+
+        textGUI.addWindow(settingsWindow);
+        settingsWindow.setComponent(settingsPanel);
+
+        settingsWindow.addWindowListener(new WindowListenerAdapter() {
+            @Override
+            public void onInput(Window window, KeyStroke keyStroke, AtomicBoolean atomicBoolean) {
+                if (keyStroke.getKeyType() == KeyType.Escape) {
+                    textGUI.removeWindow(settingsWindow);
+                }
+            }
+        });
     }
 
     /**

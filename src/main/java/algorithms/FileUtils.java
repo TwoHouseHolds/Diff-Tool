@@ -54,7 +54,7 @@ public class FileUtils {
      * Read a file and return its lines with line numbers
      * @param file File to read
      * @return List of lines in the file
-     * @noinspection unused*/
+    */
     public List<String> readFile(File file) {
         if(isBinary(file, false)) {
             return List.of("Cannot read binary files yet");
@@ -125,9 +125,9 @@ public class FileUtils {
      * @param lineNumber
      * @param index
      * @param character
-     * @param longerSide
+     * @param displaySide
      */
-    public record SpecificLineChange(int lineNumber, int index, char character, Side longerSide) {
+    public record SpecificLineChange(int lineNumber, int index, char character, Side displaySide) {
     }
 
     /**
@@ -167,17 +167,21 @@ public class FileUtils {
             return new LineResult(leftLines, rightLines, null);
         }
 
+        int lineCounterLeft = 1;
+
         for (HuntMcIlroy.StringPair pair : result.stringPairs()) {
             if(pair.leftText() == null) {
-                leftLines.add(lineNumber + ": - ");
-                rightLines.add(lineNumber + ": + " + pair.rightText());
+                String emptySpaces = " ".repeat(String.valueOf(lineCounterLeft).length());
+                leftLines.add(emptySpaces + "  - ");
+                rightLines.add(emptySpaces + "    " + pair.rightText());
                 lineNumber++;
                 continue;
             }
 
             if(pair.rightText() == null) {
-                leftLines.add(lineNumber + ": + " + pair.leftText());
-                rightLines.add(lineNumber + ": - ");
+                leftLines.add(lineCounterLeft + ": + " + pair.leftText());
+                rightLines.add(lineCounterLeft + ":   ");
+                lineCounterLeft++;
                 lineNumber++;
                 continue;
             }
@@ -185,29 +189,54 @@ public class FileUtils {
             if(!pair.leftText().equals(pair.rightText())) {
                 String[] leftText = pair.leftText().split("");
                 String[] rightText = pair.rightText().split("");
-                //TODO Levenshtein-Distanz < ~% Zeilenlänge
+
+                String leftString = pair.leftText();
+                String rightString = pair.rightText();
+
                 Side longerSide = leftText.length > rightText.length ? Side.LEFT : Side.RIGHT;
-                String[] longer = leftText.length > rightText.length ? leftText : rightText;
 
                 String longerString = longerSide == Side.LEFT ? pair.leftText() : pair.rightText();
                 String shorterString = longerSide == Side.LEFT ? pair.rightText() : pair.leftText();
 
-                String diffString = compareString(longerString, shorterString);
+                int distance = LevenshteinDistance.of(leftString, rightString);
 
-                for(int i = 0; i < diffString.length(); i++) {
-                    if(diffString.charAt(i) == '!') {
-                        specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longer[i].charAt(0), longerSide));
+                if(distance < leftString.length() * 0.3 || distance < rightString.length() * 0.3) {
+
+                    String diffString = compareString(longerString, shorterString);
+
+                    for (int i = 0; i < diffString.length(); i++) {
+                        if (diffString.charAt(i) == '!') {
+                            specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longerString.charAt(i), longerSide));
+                        }
                     }
-                }
 
-                leftLines.add(lineNumber + ": ! " + pair.leftText());
-                rightLines.add(lineNumber + ": ! " + pair.rightText());
-                lineNumber++;
-                continue;
+                    leftLines.add(lineCounterLeft + ": ! " + pair.leftText());
+                    rightLines.add(lineCounterLeft + ": ! " + pair.rightText());
+                    lineCounterLeft++;
+                    lineNumber++;
+                    continue;
+                } else {
+
+                    for(int i = 0; i < leftString.length(); i++) {
+                        specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, leftString.charAt(i), Side.LEFT));
+                    }
+
+                    for(int i = 0; i < rightString.length(); i++) {
+                        specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, rightString.charAt(i), Side.RIGHT));
+                    }
+
+                    leftLines.add(lineCounterLeft + ": ! " + pair.leftText());
+                    rightLines.add(lineCounterLeft + ": ! " + pair.rightText());
+                    lineCounterLeft++;
+                    lineNumber++;
+                    continue;
+                }
             }
-            leftLines.add(lineNumber + ":   " + pair.leftText());
-            rightLines.add(lineNumber  + ":   " + pair.rightText());
+
+            leftLines.add(lineCounterLeft + ":   " + pair.leftText());
+            rightLines.add(lineCounterLeft  + ":   " + pair.rightText());
             lineNumber++;
+            lineCounterLeft++;
         }
 
         return new LineResult(leftLines, rightLines, specificLineChanges);
