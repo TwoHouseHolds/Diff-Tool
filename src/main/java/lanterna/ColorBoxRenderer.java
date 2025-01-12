@@ -79,7 +79,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
 
             for(SpecificLineChange c : coloredTextBox.getSpecificLineChanges()) {
 
-                if(coloredTextBox.getSide() != c.longerSide()) {
+                if(coloredTextBox.getSide() != c.displaySide()) {
                     continue;
                 }
 
