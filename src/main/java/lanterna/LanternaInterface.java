@@ -476,8 +476,10 @@ public class LanternaInterface {
         linkedCheckBox.addListener((e) -> {
             if(linkedCheckBox.isChecked()) {
                 leftTextBox.setScrollSlave(rightTextBox);
+                rightTextBox.setEnabled(false);
             } else {
                 leftTextBox.setScrollSlave(null);
+                rightTextBox.setEnabled(true);
             }
         });
 
