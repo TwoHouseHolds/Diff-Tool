@@ -5,6 +5,7 @@ import algorithms.FileUtils.SpecificLineChange;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.DelegatingTheme;
 import com.googlecode.lanterna.graphics.Theme;
+import com.googlecode.lanterna.terminal.MouseCaptureMode;
 import swing.SwingInterface;
 import swing.SwingTicTacToeMinigame;
 
@@ -470,8 +471,15 @@ public class LanternaInterface {
         outterPanel.addComponent(new EmptySpace(new TerminalSize(2, 0)));
         outterPanel.addComponent(rightPanel);
 
-        //TODO LINKED SCROLLING OF TEXTBOXES
-        CheckBox linkedCheckBox = new CheckBox("Verlinktes Scrolling ( TODO )");
+        CheckBox linkedCheckBox = new CheckBox("Verlinktes Scrolling");
+
+        linkedCheckBox.addListener((e) -> {
+            if(linkedCheckBox.isChecked()) {
+                leftTextBox.setScrollSlave(rightTextBox);
+            } else {
+                leftTextBox.setScrollSlave(null);
+            }
+        });
 
         addMenu(menuPanel);
         menuPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
