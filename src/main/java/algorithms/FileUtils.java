@@ -179,7 +179,9 @@ public class FileUtils {
             }
 
             if(pair.rightText() == null) {
+                String emptySpaces = " ".repeat(String.valueOf(lineCounterLeft).length());
                 leftLines.add(lineCounterLeft + ": + " + pair.leftText());
+                //rightLines.add(emptySpaces + "    ");
                 rightLines.add(lineCounterLeft + ":   ");
                 lineCounterLeft++;
                 lineNumber++;
