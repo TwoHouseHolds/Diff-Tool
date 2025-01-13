@@ -470,15 +470,12 @@ public class LanternaInterface {
         outterPanel.addComponent(new EmptySpace(new TerminalSize(2, 0)));
         outterPanel.addComponent(rightPanel);
 
-
-        ScrollBar verticalScrollBar = new ScrollBar(Direction.VERTICAL);
-        verticalScrollBar.setViewSize(100);
-        verticalScrollBar.setScrollMaximum(100);
-
-        outterPanel.addComponent(verticalScrollBar);
+        //TODO LINKED SCROLLING OF TEXTBOXES
+        CheckBox linkedCheckBox = new CheckBox("Verlinktes Scrolling ( TODO )");
 
         addMenu(menuPanel);
         menuPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+        menuPanel.addComponent(linkedCheckBox);
         menuPanel.addComponent(outterPanel);
 
         window.setComponent(menuPanel);
@@ -632,7 +629,6 @@ public class LanternaInterface {
 
         settingsPanel.addComponent(new Label("Einstellungen:").addStyle(SGR.BOLD));
 
-        //TODO Allow user to change theme
         settingsPanel.addComponent(new Button("Farbschema ändern", () -> {
             Window colorWindow = new BasicWindow("Farbschema ändern");
             colorWindow.setHints(Set.of(Window.Hint.CENTERED));

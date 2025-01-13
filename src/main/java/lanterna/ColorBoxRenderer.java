@@ -27,7 +27,10 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
         int xScrollOffset = getViewTopLeft().getColumn();
         int yScrollOffset = getViewTopLeft().getRow();
 
-        for (int i = 0; i < lines.length; i++) {
+        for (int i = yScrollOffset; i < yScrollOffset + textBox.getSize().getRows() - 1; i++) {
+            if (i >= lines.length) {
+                break;
+            }
             String line = lines[i];
             int yPos = i - yScrollOffset;
             int index = line.indexOf("+");
