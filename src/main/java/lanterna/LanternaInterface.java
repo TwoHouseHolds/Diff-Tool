@@ -162,7 +162,7 @@ public class LanternaInterface {
             }));
         }
 
-        Panel rightMostPanel = panels.getLast();
+        Panel rightMostPanel = panels.get(panels.size() - 1);
         rightMostPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         rightMostPanel.addComponent(confirmButton);
 
