@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class SwingInterface {
@@ -274,7 +273,6 @@ public class SwingInterface {
     }
 
     private final class Level2UI extends JPanel {
-        private final GridBagConstraints gbc = new GridBagConstraints();
 
         public Level2UI(List<File> leftFiles, List<File> rightFiles) {
             super(new GridBagLayout());
@@ -285,6 +283,7 @@ public class SwingInterface {
                 return;
             }
 
+            GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.insets = new Insets(1, 1, 1, 1);
 
@@ -357,7 +356,6 @@ public class SwingInterface {
     }
 
     private static final class Level3UI extends JPanel {
-        private final GridBagConstraints gbc = new GridBagConstraints();
 
         public Level3UI(List<String> leftLines, List<String> rightLines) {
             super(new GridBagLayout());
@@ -376,6 +374,7 @@ public class SwingInterface {
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftJSP, rightJSP);
             splitPane.setResizeWeight(0.5);
+            GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.gridx = 0;
             gbc.gridy = 0;

@@ -306,7 +306,7 @@ public class LanternaInterface {
     }
 
     private void manageSortingBox(ComboBox<String> comboBox, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side) {
-        comboBox.addListener((i, _, _) -> {
+        comboBox.addListener((i, i2, i3) -> {
             listBox.clearItems();
             listBox.addItem("Lade Daten...", () -> {});
             //noinspection rawtypes
@@ -471,7 +471,7 @@ public class LanternaInterface {
 
         CheckBox linkedCheckBox = new CheckBox("Verlinktes Scrolling");
 
-        linkedCheckBox.addListener((_) -> {
+        linkedCheckBox.addListener((b) -> {
             if(linkedCheckBox.isChecked()) {
                 leftTextBox.setScrollSlave(rightTextBox);
                 rightTextBox.setEnabled(false);
@@ -652,7 +652,7 @@ public class LanternaInterface {
             colorPanel.addComponent(new Label("Wähle ein Farbschema:"));
             colorPanel.addComponent(colorComboBox);
 
-            colorComboBox.addListener((_, _, _) -> {
+            colorComboBox.addListener((i, i2, b) -> {
                 String themeString = LanternaThemes.getRegisteredThemes().stream().filter(s -> s.equals(colorComboBox.getText())).findFirst().orElseThrow();
                 Theme theme = LanternaThemes.getRegisteredTheme(themeString);
                 textGUI.setTheme(theme);
