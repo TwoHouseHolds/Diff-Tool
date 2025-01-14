@@ -1,7 +1,5 @@
 package algorithms;
 
-import java.util.Arrays;
-
 public class LevenshteinDistance {
 
     public static int of(String s1, String s2) {

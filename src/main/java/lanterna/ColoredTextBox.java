@@ -2,7 +2,6 @@ package lanterna;
 
 import algorithms.FileUtils;
 import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.gui2.Interactable;
 import com.googlecode.lanterna.gui2.TextBox;
 
 import java.util.ArrayList;
@@ -10,8 +9,6 @@ import java.util.List;
 
 import com.googlecode.lanterna.input.KeyStroke;
 import utils.Side;
-
-import javax.swing.*;
 
 /**
  * A TextBox that uses a custom renderer to colorize the text based on the characters in it
@@ -46,6 +43,7 @@ public class ColoredTextBox extends TextBox {
         this.scrollSlave = slave;
     }
 
+    @SuppressWarnings("unused")
     public ColoredTextBox getScrollSlave() {
         return scrollSlave;
     }

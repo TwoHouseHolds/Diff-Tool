@@ -3,9 +3,7 @@ package lanterna;
 import algorithms.FileUtils;
 import algorithms.FileUtils.SpecificLineChange;
 import com.googlecode.lanterna.bundle.LanternaThemes;
-import com.googlecode.lanterna.graphics.DelegatingTheme;
 import com.googlecode.lanterna.graphics.Theme;
-import com.googlecode.lanterna.terminal.MouseCaptureMode;
 import swing.SwingInterface;
 import swing.SwingTicTacToeMinigame;
 
@@ -164,7 +162,7 @@ public class LanternaInterface {
             }));
         }
 
-        Panel rightMostPanel = panels.get(panels.size() - 1);
+        Panel rightMostPanel = panels.getLast();
         rightMostPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         rightMostPanel.addComponent(confirmButton);
 
@@ -308,7 +306,7 @@ public class LanternaInterface {
     }
 
     private void manageSortingBox(ComboBox<String> comboBox, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side) {
-        comboBox.addListener((i, i1, b) -> {
+        comboBox.addListener((i, i2, i3) -> {
             listBox.clearItems();
             listBox.addItem("Lade Daten...", () -> {});
             //noinspection rawtypes
@@ -473,7 +471,7 @@ public class LanternaInterface {
 
         CheckBox linkedCheckBox = new CheckBox("Verlinktes Scrolling");
 
-        linkedCheckBox.addListener((e) -> {
+        linkedCheckBox.addListener((b) -> {
             if(linkedCheckBox.isChecked()) {
                 leftTextBox.setScrollSlave(rightTextBox);
                 rightTextBox.setEnabled(false);
@@ -654,7 +652,7 @@ public class LanternaInterface {
             colorPanel.addComponent(new Label("Wähle ein Farbschema:"));
             colorPanel.addComponent(colorComboBox);
 
-            colorComboBox.addListener((i, i1, b) -> {
+            colorComboBox.addListener((i, i2, b) -> {
                 String themeString = LanternaThemes.getRegisteredThemes().stream().filter(s -> s.equals(colorComboBox.getText())).findFirst().orElseThrow();
                 Theme theme = LanternaThemes.getRegisteredTheme(themeString);
                 textGUI.setTheme(theme);
