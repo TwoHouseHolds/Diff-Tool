@@ -49,6 +49,7 @@ public class SwingInterface {
     //TODO translate to german and correct the information in menu
     private final class Menu extends JMenuBar {
         JButton back = new JButton("⬅");
+        private static final JMenu sortMenu = new JMenu("Sortier Optionen");
 
         public Menu(JFrame frame) {
             this.back.setVisible(false);
@@ -77,6 +78,9 @@ public class SwingInterface {
                     backButton.setVisible(true);
                     forwardButton.setVisible(true);
                     ticTacToe.setEnabled(true);
+                    if(level2UI.isVisible()){
+                        sortMenu.setVisible(true);
+                    }
                 });
             });
 
@@ -143,6 +147,25 @@ public class SwingInterface {
             exitItem.addActionListener(e -> System.exit(0));
             exitMenu.add(exitItem);
             add(exitMenu);
+
+            /// /////////////////////////// SORT MENU /////////////////////////////
+            //TODO implement sorting
+            JMenuItem sortByName = new JMenuItem("Alphabetisch");
+            JMenuItem sortBySize = new JMenuItem("Größe");
+            JMenuItem sortByDate = new JMenuItem("Datum");
+            sortByName.addActionListener(e -> {
+
+            });
+            sortBySize.addActionListener(e -> {
+
+            });
+            sortByDate.addActionListener(e -> {
+
+            });
+            sortMenu.add(sortByName);
+            sortMenu.add(sortBySize);
+            sortMenu.add(sortByDate);
+            add(sortMenu);
         }
 
 
@@ -156,6 +179,8 @@ public class SwingInterface {
 
     }
 
+
+
     private final class Level1UI extends JPanel {
         private final GridBagConstraints gbc = new GridBagConstraints();
         private final DirectorySelectionPanel leftPanel = new DirectorySelectionPanel("Erstes Verzeichnis:");
@@ -163,6 +188,7 @@ public class SwingInterface {
 
         Level1UI() {
             super(new GridBagLayout());
+            Menu.sortMenu.setVisible(false);
             gbc.fill = GridBagConstraints.BOTH;
             gbc.insets = new Insets(1, 1, 1, 1);
 
@@ -274,8 +300,10 @@ public class SwingInterface {
 
     private final class Level2UI extends JPanel {
 
+
         public Level2UI(List<File> leftFiles, List<File> rightFiles) {
             super(new GridBagLayout());
+            Menu.sortMenu.setVisible(true);
             setFocusable(false);
             if (leftFiles == null || rightFiles == null) {
                 JOptionPane.showMessageDialog(frame, (leftFiles == null ? "Linkes" : "Rechtes") + " Verzeichnis ist leer!", "Fehler", JOptionPane.ERROR_MESSAGE);
@@ -303,6 +331,7 @@ public class SwingInterface {
             gbc.weighty = 1;
             gbc.weightx = 1;
             add(splitPane, gbc);
+
         }
 
         // variable names for left side, method can still be used for right side
@@ -353,6 +382,7 @@ public class SwingInterface {
                 }
             });
         }
+
     }
 
     private static final class Level3UI extends JPanel {
@@ -410,6 +440,12 @@ public class SwingInterface {
     private void changeActivePanelFromTo(JPanel oldPanel, JPanel newPanel) {
         oldPanel.setVisible(false);
         newPanel.setVisible(true);
+
+        if(newPanel == level2UI){
+            Menu.sortMenu.setVisible(true);
+        }else{
+            Menu.sortMenu.setVisible(false);
+        }
         /*frame.invalidate();
         frame.revalidate();
         frame.repaint();*/
