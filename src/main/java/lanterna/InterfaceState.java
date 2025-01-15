@@ -27,6 +27,8 @@ public class InterfaceState {
     private WindowListenerAdapter currentListener;
     private SortType sortTypeLeft;
     private SortType sortTypeRight;
+    private boolean sortLeftReversed = false;
+    private boolean sortRightReversed = false;
 
     private InterfaceState(LanternaState state, File currentLeftFile, File currentRightFile, Side currentSide, List<File> leftDir, List<File> rightDir, List<String> currentDirectorys, WindowListenerAdapter currentListener, SortType sortTypeLeft, SortType sortTypeRight) {
         this.state = state;
@@ -142,5 +144,21 @@ public class InterfaceState {
 
     public void setSortTypeRight(SortType sortTypeRight) {
         this.sortTypeRight = sortTypeRight;
+    }
+
+    public boolean isSortLeftReversed() {
+        return sortLeftReversed;
+    }
+
+    public boolean isSortRightReversed() {
+        return sortRightReversed;
+    }
+
+    public void setSortLeftReversed(boolean sortLeftReversed) {
+        this.sortLeftReversed = sortLeftReversed;
+    }
+
+    public void setSortRightReversed(boolean sortRightReversed) {
+        this.sortRightReversed = sortRightReversed;
     }
 }
