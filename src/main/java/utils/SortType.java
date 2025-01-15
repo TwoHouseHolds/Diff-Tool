@@ -1,4 +1,4 @@
-package lanterna;
+package utils;
 
 public enum SortType {
     UNSORTED,

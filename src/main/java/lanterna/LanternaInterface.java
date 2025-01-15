@@ -41,6 +41,7 @@ import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
 import utils.Side;
+import utils.SortType;
 
 /**
  * Lanterna interface for comparing two directories
