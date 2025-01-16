@@ -33,47 +33,40 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
             }
             String line = lines[i];
             int yPos = i - yScrollOffset;
-            int index = line.indexOf("+");
-            index = index - xScrollOffset;
+            int xPos = line.indexOf("+");
+            xPos = xPos - xScrollOffset;
 
-            while (index >= 0 && index + xScrollOffset < String.valueOf(i).length() + 4) {
+            if(xPos < String.valueOf(i).length() + 4) {
                 graphics.setBackgroundColor(TextColor.ANSI.GREEN);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                graphics.putString(index, yPos, "+");
+                graphics.putString(xPos, yPos, "+");
 
                 graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
-
-                index = line.indexOf("+", index + line.length());
             }
 
-            index = line.indexOf("-");
-            index = index - xScrollOffset;
+            xPos = line.indexOf("-");
+            xPos = xPos - xScrollOffset;
 
-            while (index >= 0 && index + xScrollOffset < String.valueOf(i).length() + 4) {
-                //Check if - is outside of view due to scrolling
+            if(xPos < String.valueOf(i).length() + 4) {
                 graphics.setBackgroundColor(TextColor.ANSI.RED);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                graphics.putString(index, yPos, "-");
+                graphics.putString(xPos, yPos, "-");
 
                 graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
-
-                index = line.indexOf("-", index + line.length());
             }
 
-            index = line.indexOf("!");
-            index = index - xScrollOffset;
+            xPos = line.indexOf("!");
+            xPos = xPos - xScrollOffset;
 
-            while (index >= 0 && index + xScrollOffset < String.valueOf(i).length() + 4) {
+            if(xPos < String.valueOf(i).length() + 4) {
                 graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                graphics.putString(index, yPos, "!");
+                graphics.putString(xPos, yPos, "!");
 
                 graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
-
-                index = line.indexOf("!", index + line.length());
             }
 
             if(coloredTextBox.getSpecificLineChanges() == null) {
@@ -86,12 +79,12 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                     continue;
                 }
 
-                index = c.index() - xScrollOffset;
+                xPos = c.index() - xScrollOffset;
 
                 if(c.lineNumber() == i) {
                     graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
                     graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                    graphics.putString(index, yPos, String.valueOf(c.character()));
+                    graphics.putString(xPos, yPos, String.valueOf(c.character()));
                     graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                     graphics.setForegroundColor(TextColor.ANSI.WHITE);
                 }

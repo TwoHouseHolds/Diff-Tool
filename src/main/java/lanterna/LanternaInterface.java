@@ -840,6 +840,16 @@ public class LanternaInterface {
                 }));
                 editPanel.addComponent(new Button("Abbrechen", () -> getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories)));
                 window.setComponent(editPanel);
+
+                window.addWindowListener(new WindowListenerAdapter() {
+                    @Override
+                    public void onInput(Window window, KeyStroke keyStroke, AtomicBoolean atomicBoolean) {
+                        if(keyStroke.getKeyType() == KeyType.Escape) {
+                            resetWindow(this);
+                            getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
+                        }
+                    }
+                });
             } catch (IOException e) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gelesen werden oder existiert nicht", MessageDialogButton.OK);
                 getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
