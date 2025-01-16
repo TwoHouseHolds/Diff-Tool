@@ -1,19 +1,21 @@
 package swing;
 
 import algorithms.FileUtils;
+import com.googlecode.lanterna.gui2.ActionListBox;
+import com.googlecode.lanterna.gui2.ComboBox;
 import lanterna.LanternaInterface;
 import utils.Side;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
 
 public class SwingInterface {
 
@@ -49,7 +51,6 @@ public class SwingInterface {
     //TODO translate to german and correct the information in menu
     private final class Menu extends JMenuBar {
         JButton back = new JButton("⬅");
-        private static final JMenu sortMenu = new JMenu("Sortier Optionen");
 
         public Menu(JFrame frame) {
             this.back.setVisible(false);
@@ -80,9 +81,7 @@ public class SwingInterface {
                     backButton.setVisible(true);
                     forwardButton.setVisible(true);
                     ticTacToe.setEnabled(true);
-                    if(level2UI.isVisible()){
-                        sortMenu.setVisible(true);
-                    }
+
                 });
             });
 
@@ -150,24 +149,7 @@ public class SwingInterface {
             exitMenu.add(exitItem);
             add(exitMenu);
 
-            /// /////////////////////////// SORT MENU /////////////////////////////
-            //TODO implement sorting
-            JMenuItem sortByName = new JMenuItem("Alphabetisch");
-            JMenuItem sortBySize = new JMenuItem("Größe");
-            JMenuItem sortByDate = new JMenuItem("Datum");
-            sortByName.addActionListener(e -> {
 
-            });
-            sortBySize.addActionListener(e -> {
-
-            });
-            sortByDate.addActionListener(e -> {
-
-            });
-            sortMenu.add(sortByName);
-            sortMenu.add(sortBySize);
-            sortMenu.add(sortByDate);
-            add(sortMenu);
         }
 
 
@@ -190,7 +172,6 @@ public class SwingInterface {
 
         Level1UI() {
             super(new GridBagLayout());
-            Menu.sortMenu.setVisible(false);
             gbc.fill = GridBagConstraints.BOTH;
             gbc.insets = new Insets(1, 1, 1, 1);
 
@@ -305,7 +286,6 @@ public class SwingInterface {
 
         public Level2UI(List<File> leftFiles, List<File> rightFiles) {
             super(new GridBagLayout());
-            Menu.sortMenu.setVisible(true);
             setFocusable(false);
             if (leftFiles == null || rightFiles == null) {
                 JOptionPane.showMessageDialog(frame, (leftFiles == null ? "Linkes" : "Rechtes") + " Verzeichnis ist leer!", "Fehler", JOptionPane.ERROR_MESSAGE);
@@ -326,16 +306,47 @@ public class SwingInterface {
             JScrollPane leftScrollPane = new JScrollPane(leftList);
             JScrollPane rightScrollPane = new JScrollPane(rightList);
 
-            JComboBox<String> leftComboBox = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch"});
-            JComboBox<String> rightComboBox = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch"});
+            JComboBox<String> leftComboBox = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
+            JComboBox<String> rightComboBox = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
+
+            JCheckBox checkBoxReverseLeft = new JCheckBox("Umgekehrte Sortierung");
+            JCheckBox checkBoxReverseRight = new JCheckBox("Umgekehrte Sortierung");
+
 
             JPanel left = new JPanel(new BorderLayout());
-            left.add(rightComboBox, BorderLayout.NORTH);
+            JPanel leftNorthPanel = new JPanel();
+            leftNorthPanel.setLayout(new BoxLayout(leftNorthPanel, BoxLayout.Y_AXIS));
+            leftNorthPanel.add(checkBoxReverseLeft);
+            leftNorthPanel.add(leftComboBox);
+            left.add(leftNorthPanel, BorderLayout.NORTH);
             left.add(leftScrollPane, BorderLayout.CENTER);
 
             JPanel right = new JPanel(new BorderLayout());
-            right.add(leftComboBox, BorderLayout.NORTH);
+            JPanel rightNorthPanel = new JPanel();
+            rightNorthPanel.setLayout(new BoxLayout(rightNorthPanel, BoxLayout.Y_AXIS));
+            rightNorthPanel.add(checkBoxReverseRight);
+            rightNorthPanel.add(rightComboBox);
+            right.add(rightNorthPanel, BorderLayout.NORTH);
             right.add(rightScrollPane, BorderLayout.CENTER);
+
+            ActionListener leftActionListener = e -> {
+                int selected = leftComboBox.getSelectedIndex();
+                Boolean isReversed = checkBoxReverseLeft.isSelected();
+                manageSortingBox(leftComboBox, leftList, leftFiles, rightFiles, Side.LEFT, selected, isReversed);
+            };
+
+            leftComboBox.addActionListener(leftActionListener);
+            checkBoxReverseLeft.addActionListener((e) -> leftComboBox.setSelectedIndex(leftComboBox.getSelectedIndex()));
+
+            ActionListener rightActionListener = e -> {
+                int selected = rightComboBox.getSelectedIndex();
+                Boolean isReversed = checkBoxReverseRight.isSelected();
+                manageSortingBox(rightComboBox, rightList, rightFiles, leftFiles, Side.RIGHT, selected, isReversed);
+            };
+
+            rightComboBox.addActionListener(rightActionListener);
+            checkBoxReverseRight.addActionListener((e) -> rightComboBox.setSelectedIndex(rightComboBox.getSelectedIndex()));
+
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
             splitPane.setResizeWeight(0.5);
@@ -396,8 +407,67 @@ public class SwingInterface {
                 }
             });
         }
+    }
+
+    private void manageSortingBox(JComboBox<String> comboBox, JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed){
+            //Lade Daten message
+            @SuppressWarnings("rawtypes")
+            SwingWorker worker = new SwingWorker() {
+                @Override
+                protected Object doInBackground() {
+
+                    if(selected != -1) {
+                        switch (selected) {
+                            case 0: {
+                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                                break;
+                            }
+                            case 1: {
+                                if(isReversed){
+                                    firstFiles.sort(Comparator.comparing(File::getName).reversed());
+                                }else{
+                                    firstFiles.sort(Comparator.comparing(File::getName));
+                                }
+                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                                break;
+                            }
+
+                            case 2: {
+                                if(isReversed){
+                                    firstFiles.sort(Comparator.comparingLong(File::length).reversed());
+                                }else{
+                                    firstFiles.sort(Comparator.comparingLong(File::length));
+                                }
+                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                                break;
+                            }
+                            case 3: {
+                                if(isReversed){
+                                    firstFiles.sort(Comparator.comparingLong(File::lastModified).reversed());
+                                }else{
+                                    firstFiles.sort(Comparator.comparingLong(File::lastModified));
+                                }
+                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                                break;
+                            }
+                        }
+
+                    }
+                    return null;
+                }
+
+                    protected void done() {
+
+                    frame.invalidate();
+                    frame.revalidate();
+                    frame.repaint();
+                }
+            };
+        worker.execute();
+
 
     }
+
 
     private static final class Level3UI extends JPanel {
 
@@ -455,11 +525,6 @@ public class SwingInterface {
         oldPanel.setVisible(false);
         newPanel.setVisible(true);
 
-        if(newPanel == level2UI){
-            Menu.sortMenu.setVisible(true);
-        }else{
-            Menu.sortMenu.setVisible(false);
-        }
         /*frame.invalidate();
         frame.revalidate();
         frame.repaint();*/
