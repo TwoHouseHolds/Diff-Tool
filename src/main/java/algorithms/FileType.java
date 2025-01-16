@@ -1,0 +1,44 @@
+package algorithms;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+public enum FileType {
+    ZIP(0x50, 0x4B, 0x03, 0x04),
+    RAR(0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00),
+    PDF(0x25, 0x50, 0x44, 0x46),
+    XML(0x3C, 0x3F, 0x78, 0x6D, 0x6C),
+    EXE(0x4D, 0x5A),
+    JPG(0xFF, 0xD8, 0xFF),
+    PNG(0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A),
+    GIF(new int[]{0x47, 0x49, 0x46, 0x38, 0x37, 0x61}, new int[]{0x47, 0x49, 0x46, 0x38, 0x39, 0x61}),
+    MP4(0x66, 0x74, 0x79, 0x70),
+    MP3(new int[]{0xFF, 0xFB}, new int[]{0x49, 0x44, 0x33}),
+    WAV(0x52, 0x49, 0x46, 0x46),
+    FLAC(0x66, 0x4C, 0x61, 0x43),
+    OGG(0x4F, 0x67, 0x67, 0x53),
+    TEXT(-1),
+    BINARY(-1),
+    ERROR(-1);
+
+    private final int[] magicNumbers;
+    private final Set<int[]> alternativeMagicNumbers = new HashSet<>();
+
+    public int[] getMagicNumbers() {
+        return magicNumbers;
+    }
+
+    public Set<int[]> getAlternativeMagicNumbers() {
+        return alternativeMagicNumbers;
+    }
+
+    FileType(int... magicNumbers) {
+        this.magicNumbers = magicNumbers;
+    }
+
+    FileType (int[] mainMagicNumbers, int[]... alternatives){
+        magicNumbers = mainMagicNumbers;
+        alternativeMagicNumbers.addAll(Arrays.asList(alternatives));
+    }
+}

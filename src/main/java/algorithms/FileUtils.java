@@ -47,7 +47,7 @@ public class FileUtils {
      * @see BinaryHeuristics
      */
     public boolean isBinary(File file, boolean extensive) {
-        return Boolean.TRUE.equals(BinaryHeuristics.isBinary(file, extensive));
+        return BinaryHeuristics.isBinary(file, extensive);
     }
 
     /**
