@@ -324,12 +324,24 @@ public class SwingInterface {
             JScrollPane leftScrollPane = new JScrollPane(leftList);
             JScrollPane rightScrollPane = new JScrollPane(rightList);
 
-            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftScrollPane, rightScrollPane);
+            JComboBox<String> leftComboBox = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch"});
+            JComboBox<String> rightComboBox = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch"});
+
+            JPanel left = new JPanel(new BorderLayout());
+            left.add(rightComboBox, BorderLayout.NORTH);
+            left.add(leftScrollPane, BorderLayout.CENTER);
+
+            JPanel right = new JPanel(new BorderLayout());
+            right.add(leftComboBox, BorderLayout.NORTH);
+            right.add(rightScrollPane, BorderLayout.CENTER);
+
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
             splitPane.setResizeWeight(0.5);
             gbc.gridx = 0;
             gbc.gridy = 0;
             gbc.weighty = 1;
             gbc.weightx = 1;
+
             add(splitPane, gbc);
 
         }
