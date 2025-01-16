@@ -70,7 +70,9 @@ public class SwingInterface {
                 back.setVisible(true);
                 back.addActionListener(b -> {
                     ticTacToeGameUI.getCustomParent().setVisible(true);
-                    frame.setSize(ticTacToeGameUI.getOldSize());
+                    SwingUtilities.invokeLater(() -> {
+                        frame.setSize(ticTacToeGameUI.getOldSize());
+                    });
                     frame.getContentPane().remove(ticTacToeGameUI);
                     back.setVisible(false);
                     frame.setResizable(true);
