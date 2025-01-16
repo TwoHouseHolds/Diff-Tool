@@ -1,8 +1,8 @@
-package lanterna;
+package utils;
 
 public enum SortType {
     UNSORTED,
     ALPHABETICAL,
     SIZE,
-    DATE
+    DATE,
 }
