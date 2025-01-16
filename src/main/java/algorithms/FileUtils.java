@@ -42,12 +42,12 @@ public class FileUtils {
      * Check if a file is binary
      * @param file File to check
      * @param extensive If true, check the entire file. If false, check the first 1MB (1048576 bytes)
-     * @return True if the file is binary, false otherwise
+     * @return FileType of the file
      * @see java.io.File
      * @see BinaryHeuristics
      */
-    public boolean isBinary(File file, boolean extensive) {
-        return BinaryHeuristics.isBinary(file, extensive);
+    public FileType getFileType(File file, boolean extensive) {
+        return BinaryHeuristics.fileTypeOf(file, extensive);
     }
 
     /**
@@ -56,8 +56,12 @@ public class FileUtils {
      * @return List of lines in the file
     */
     public List<String> readFile(File file) {
-        if(isBinary(file, false)) {
-            return List.of("Cannot read binary files yet");
+        FileType fileType = getFileType(file, false);
+        if(fileType == FileType.ERROR) {
+            return List.of("Fehler beim Lesen der Datei");
+        }
+        if(fileType != FileType.TEXT) {
+            return List.of("Es ist ( noch ) nicht möglich " + (fileType == FileType.BINARY ? "Binäre Dateien " : fileType) + "zu vergleichen");
         }
         List<String> lines = new ArrayList<>();
         try {
@@ -148,22 +152,20 @@ public class FileUtils {
         List<String> rightLines = new ArrayList<>();
         List<SpecificLineChange> specificLineChanges = new ArrayList<>();
 
-        boolean leftBinary;
-        boolean rightBinary;
-
-        if(leftFile.equals(rightFile)) {
-            leftBinary = isBinary(leftFile, false);
-            rightBinary = leftBinary;
-        } else {
-            leftBinary = isBinary(leftFile, false);
-            rightBinary = isBinary(rightFile, false);
-        }
+        FileType fileTypeLeft = getFileType(leftFile, false);
+        FileType fileTypeRight = getFileType(rightFile, false);
 
         int lineNumber = 1;
 
         if(result == null) {
-            leftLines.add(leftBinary ? "Cannot compare binary files yet" : "Cannot compare this filetype yet");
-            rightLines.add(rightBinary ? "Cannot compare binary files yet" : "Cannot compare this filetype yet");
+            if(fileTypeLeft  == FileType.ERROR) {
+                leftLines.add("Fehler beim Lesen der Datei");
+            } else if(fileTypeRight == FileType.ERROR) {
+                rightLines.add("Fehler beim Lesen der Datei");
+            } else {
+                leftLines.add("Es ist ( noch ) nicht möglich " + (fileTypeLeft == FileType.BINARY ? "Binäre Dateien " : fileTypeLeft) + "zu vergleichen");
+                rightLines.add("Es ist ( noch ) nicht möglich " + (fileTypeRight == FileType.BINARY ? "Binäre Dateien " : fileTypeRight) + "zu vergleichen");
+            }
             return new LineResult(leftLines, rightLines, null);
         }
 
