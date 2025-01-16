@@ -61,7 +61,7 @@ public class FileUtils {
             return List.of("Fehler beim Lesen der Datei");
         }
         if(fileType != FileType.TEXT) {
-            return List.of("Es ist ( noch ) nicht möglich " + (fileType == FileType.BINARY ? "Binäre Dateien " : fileType) + "zu vergleichen");
+            return List.of((fileType == FileType.BINARY ? "Binäre Dateien" : fileType) + " können (noch) nicht verglichen werden");
         }
         List<String> lines = new ArrayList<>();
         try {
@@ -163,8 +163,8 @@ public class FileUtils {
             } else if(fileTypeRight == FileType.ERROR) {
                 rightLines.add("Fehler beim Lesen der Datei");
             } else {
-                leftLines.add("Es ist ( noch ) nicht möglich " + (fileTypeLeft == FileType.BINARY ? "Binäre Dateien " : fileTypeLeft) + "zu vergleichen");
-                rightLines.add("Es ist ( noch ) nicht möglich " + (fileTypeRight == FileType.BINARY ? "Binäre Dateien " : fileTypeRight) + "zu vergleichen");
+                leftLines.add((fileTypeLeft == FileType.BINARY ? "Binäre Dateien" : fileTypeLeft) + " können (noch) nicht verglichen werden");
+                rightLines.add((fileTypeRight == FileType.BINARY ? "Binäre Dateien" : fileTypeRight) + " können (noch) nicht verglichen werden");
             }
             return new LineResult(leftLines, rightLines, null);
         }
