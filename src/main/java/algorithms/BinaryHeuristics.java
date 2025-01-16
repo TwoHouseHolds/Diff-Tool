@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.Set;
 
 // TODO UTF16 = Text? (wird oft falsch erkannt
-// TODO .java etc
 public class BinaryHeuristics {
     /**
      * Check if a file is binary
@@ -17,8 +16,7 @@ public class BinaryHeuristics {
      * @return True if the file is binary, false otherwise
      * @see java.io.File
      */
-    // TODO set private after FileUtils code has been adjusted
-    public static Boolean isBinary(File file, boolean extensive) throws IOException {
+    private static Boolean isBinary(File file, boolean extensive) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         long length = extensive ? file.length() : Math.min(file.length() / 10, 1048576);
         long binaryChars = 0;
