@@ -5,6 +5,7 @@ import lanterna.LanternaInterface;
 import utils.Side;
 
 import javax.swing.*;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -361,13 +362,16 @@ public class SwingInterface {
             super(new GridBagLayout());
             setFocusable(false);
 
-            JTextArea leftTextArea = new JTextArea();
+            JTextPane leftTextArea = new JTextPane();
             leftTextArea.setEditable(false);
-            JTextArea rightTextArea = new JTextArea();
+            JTextPane rightTextArea = new JTextPane();
             rightTextArea.setEditable(false);
 
-            if (leftLines != null) leftLines.forEach(s -> leftTextArea.append(s + "\n"));
-            if (rightLines != null) rightLines.forEach(s -> rightTextArea.append(s + "\n"));
+            if (leftLines != null) leftLines.forEach(s -> leftTextArea.setText(leftTextArea.getText() + s + "\n"));
+            if (rightLines != null) rightLines.forEach(s -> rightTextArea.setText(rightTextArea.getText() + s + "\n"));
+
+            //changeColor(leftTextArea);
+            //changeColor(rightTextArea);
 
             JScrollPane leftJSP = new JScrollPane(leftTextArea);
             JScrollPane rightJSP = new JScrollPane(rightTextArea);
@@ -382,6 +386,31 @@ public class SwingInterface {
             gbc.weightx = 1;
             add(splitPane, gbc);
         }
+    }
+
+    private static void changeColor(JTextPane textPane){
+        MutableAttributeSet attrs = textPane.getInputAttributes();
+        StyledDocument doc = textPane.getStyledDocument();
+
+        String[] lines = textPane.getText().split("\n");
+
+        for(int i = 0; i < lines.length; i++){
+            String line = lines[i];
+            for(int y = 0; y < String.valueOf(i).length() + 4; y++){
+                if(line.charAt(y) == '+'){
+                    StyleConstants.setForeground(attrs, Color.RED);
+                    doc.setCharacterAttributes(y, 1, attrs, false);
+                   // StyleConstants.setForeground(attrs,Color.BLACK);
+                }
+            }
+
+        }
+
+        /*for(int i = 0; i < textPane.getText().length(); i++) {
+
+            StyleConstants.setForeground(attrs, Color.RED);
+            doc.setCharacterAttributes(i, 1, attrs, false);
+        } */
     }
 
     private void initializeEscFocus() {

@@ -35,7 +35,6 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
             int yPos = i - yScrollOffset;
             int index = line.indexOf("+");
             index = index - xScrollOffset;
-
             while (index >= 0 && index + xScrollOffset < String.valueOf(i).length() + 4) {
                 graphics.setBackgroundColor(TextColor.ANSI.GREEN);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
