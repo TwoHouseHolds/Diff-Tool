@@ -7,6 +7,62 @@ import java.util.Set;
 
 // TODO UTF16 = Text? (wird oft falsch erkannt
 public class BinaryHeuristics {
+
+    public static FileType fileTypeOf(File file, boolean extensive) {
+        try {
+            FileType fileType = getFileTypeFromMagicNumber(file);
+            if (fileType != null) {
+                return fileType;
+            } else if (isBinary(file, extensive)) {
+                return FileType.BINARY;
+            } else {
+                return FileType.TEXT;
+            }
+        } catch (IOException e) {
+            return FileType.ERROR;
+        }
+    }
+
+    private static FileType getFileTypeFromMagicNumber(File file) throws IOException {
+        FileInputStream fis1 = new FileInputStream(file);
+        int[] actual8FirstMN = nextNMagicNumbers(fis1, 8);
+        for (FileType fileType : FileType.values()) {
+            if (fileType.magicNumbersWithOffset.isEmpty()) { // in most cases magic numbers do not have an offset
+                int[] currentMN = fileType.magicNumbers;
+                if (magicNumbersMatch(actual8FirstMN, currentMN)) return fileType;
+                // check alternative magic numbers if applicable
+                Set<int[]> currentAltMN = fileType.alternativeMagicNumbers;
+                if (!currentAltMN.isEmpty()) for (int[] amn : currentAltMN) {
+                    if (magicNumbersMatch(actual8FirstMN, amn)) return fileType;
+                }
+            } else { // if magic numbers have offset
+                for (FileType.MagicNumberWithOffset mnwo : fileType.magicNumbersWithOffset) {
+                    FileInputStream fis2 = new FileInputStream(file);
+                    fis2.skipNBytes(mnwo.offset()); // skip to location of magic number
+                    int[] currentMN = mnwo.magicNumber();
+                    int[] actualMN = nextNMagicNumbers(fis2, currentMN.length);
+                    fis2.close();
+                    if(magicNumbersMatch(actualMN, currentMN)) return fileType;
+                }
+            }
+        }
+        return null; // no file type matches
+    }
+
+    private static int[] nextNMagicNumbers(FileInputStream fis, int n) throws IOException {
+        int[] firstMN = new int[n];
+        for (int i = 0; i < n; i++) firstMN[i] = fis.read();
+        fis.close();
+        return firstMN;
+    }
+
+    private static boolean magicNumbersMatch(int[] actualMN, int[] currentMN) {
+        for (int i = 0; i < currentMN.length; i++) {
+            if (currentMN[i] != actualMN[i]) return false;// mismatch
+        }
+        return true; // all match
+    }
+
     /**
      * Check if a file is binary
      *
@@ -58,45 +114,5 @@ public class BinaryHeuristics {
         }
         fis.close();
         return binaryChars > length / 10 || nonUtf8Chars > length / 10 || nonIsoChars > length / 10;
-    }
-
-    public static FileType fileTypeOf(File file, boolean extensive) {
-        try (FileInputStream fis = new FileInputStream(file)) {
-            FileType fileType = getFileTypeFromMagicNumber(fis);
-            if (fileType != null) {
-                return fileType;
-            } else if (isBinary(file, extensive)) {
-                return FileType.BINARY;
-            } else {
-                return FileType.TEXT;
-            }
-        } catch (IOException e) {
-            return FileType.ERROR;
-        }
-    }
-
-    private static FileType getFileTypeFromMagicNumber(FileInputStream fis) throws IOException {
-        // read first 8 potential magic numbers
-        int[] actualMN = new int[8];
-        for (int i = 0; i < 8; i++) {
-            actualMN[i] = fis.read();
-        }
-        // compare file type magic numbers to actual magic numbers
-        for (FileType fileType : FileType.values()) {
-            int[] currentMN = fileType.getMagicNumbers();
-            if (magicNumbersMatch(actualMN, currentMN)) return fileType;
-            // check alternative magic numbers if applicable
-            Set<int[]> currentAltMN = fileType.getAlternativeMagicNumbers();
-            if (!currentAltMN.isEmpty()) for (int[] amn : currentAltMN) {
-                if (magicNumbersMatch(actualMN, amn)) return fileType;
-            }
-        } return null; // no file type matches
-    }
-
-    private static boolean magicNumbersMatch(int[] actualMN, int[] currentMN) {
-        for (int i = 0; i < currentMN.length; i++) {
-            if (currentMN[i] != actualMN[i]) return false;// mismatch
-        }
-        return true; // all match
     }
 }
