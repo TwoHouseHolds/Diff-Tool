@@ -102,7 +102,7 @@ public class HuntMcIlroy {
         List<Subsequence> copy = new ArrayList<>();
         copy.add(new Subsequence(linesLeft.size(), linesRight.size(), 0));
         inputs.forEach(x->copy.add(0, x));
-        copy.add(0, new Subsequence(-1, -1, 1));
+        copy.add(0, new Subsequence(-1, -1, 1));;
         for (int i = 0; i < copy.size()-1; i++) {
             Subsequence last = copy.get(i);
             Subsequence next = copy.get(i+1);
