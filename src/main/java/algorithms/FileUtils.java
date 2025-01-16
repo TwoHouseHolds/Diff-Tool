@@ -210,11 +210,6 @@ public class FileUtils {
                         }
                     }
 
-                    leftLines.add(lineCounterLeft + ": ! " + pair.leftText());
-                    rightLines.add(lineCounterLeft + ": ! " + pair.rightText());
-                    lineCounterLeft++;
-                    lineNumber++;
-                    continue;
                 } else {
 
                     for(int i = 0; i < leftString.length(); i++) {
@@ -225,12 +220,12 @@ public class FileUtils {
                         specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, rightString.charAt(i), Side.RIGHT));
                     }
 
-                    leftLines.add(lineCounterLeft + ": ! " + pair.leftText());
-                    rightLines.add(lineCounterLeft + ": ! " + pair.rightText());
-                    lineCounterLeft++;
-                    lineNumber++;
-                    continue;
                 }
+                leftLines.add(lineCounterLeft + ": ! " + pair.leftText());
+                rightLines.add(lineCounterLeft + ": ! " + pair.rightText());
+                lineCounterLeft++;
+                lineNumber++;
+                continue;
             }
 
             leftLines.add(lineCounterLeft + ":   " + pair.leftText());

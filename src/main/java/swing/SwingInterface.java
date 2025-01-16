@@ -1,20 +1,21 @@
 package swing;
 
 import algorithms.FileUtils;
+import com.googlecode.lanterna.gui2.ActionListBox;
+import com.googlecode.lanterna.gui2.ComboBox;
 import lanterna.LanternaInterface;
 import utils.Side;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 public class SwingInterface {
 
@@ -71,13 +72,16 @@ public class SwingInterface {
                 back.setVisible(true);
                 back.addActionListener(b -> {
                     ticTacToeGameUI.getCustomParent().setVisible(true);
-                    frame.setSize(ticTacToeGameUI.getOldSize());
+                    SwingUtilities.invokeLater(() -> {
+                        frame.setSize(ticTacToeGameUI.getOldSize());
+                    });
                     frame.getContentPane().remove(ticTacToeGameUI);
                     back.setVisible(false);
                     frame.setResizable(true);
                     backButton.setVisible(true);
                     forwardButton.setVisible(true);
                     ticTacToe.setEnabled(true);
+
                 });
             });
 
@@ -144,6 +148,8 @@ public class SwingInterface {
             exitItem.addActionListener(e -> System.exit(0));
             exitMenu.add(exitItem);
             add(exitMenu);
+
+
         }
 
 
@@ -156,6 +162,8 @@ public class SwingInterface {
 
 
     }
+
+
 
     private final class Level1UI extends JPanel {
         private final GridBagConstraints gbc = new GridBagConstraints();
@@ -274,7 +282,7 @@ public class SwingInterface {
     }
 
     private final class Level2UI extends JPanel {
-        private final GridBagConstraints gbc = new GridBagConstraints();
+
 
         public Level2UI(List<File> leftFiles, List<File> rightFiles) {
             super(new GridBagLayout());
@@ -285,6 +293,7 @@ public class SwingInterface {
                 return;
             }
 
+            GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.insets = new Insets(1, 1, 1, 1);
 
@@ -297,13 +306,57 @@ public class SwingInterface {
             JScrollPane leftScrollPane = new JScrollPane(leftList);
             JScrollPane rightScrollPane = new JScrollPane(rightList);
 
-            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftScrollPane, rightScrollPane);
+            JComboBox<String> leftComboBox = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
+            JComboBox<String> rightComboBox = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
+
+            JCheckBox checkBoxReverseLeft = new JCheckBox("Umgekehrte Sortierung");
+            JCheckBox checkBoxReverseRight = new JCheckBox("Umgekehrte Sortierung");
+
+
+            JPanel left = new JPanel(new BorderLayout());
+            JPanel leftNorthPanel = new JPanel();
+            leftNorthPanel.setLayout(new BoxLayout(leftNorthPanel, BoxLayout.Y_AXIS));
+            leftNorthPanel.add(checkBoxReverseLeft);
+            leftNorthPanel.add(leftComboBox);
+            left.add(leftNorthPanel, BorderLayout.NORTH);
+            left.add(leftScrollPane, BorderLayout.CENTER);
+
+            JPanel right = new JPanel(new BorderLayout());
+            JPanel rightNorthPanel = new JPanel();
+            rightNorthPanel.setLayout(new BoxLayout(rightNorthPanel, BoxLayout.Y_AXIS));
+            rightNorthPanel.add(checkBoxReverseRight);
+            rightNorthPanel.add(rightComboBox);
+            right.add(rightNorthPanel, BorderLayout.NORTH);
+            right.add(rightScrollPane, BorderLayout.CENTER);
+
+            ActionListener leftActionListener = e -> {
+                int selected = leftComboBox.getSelectedIndex();
+                Boolean isReversed = checkBoxReverseLeft.isSelected();
+                manageSortingBox(leftComboBox, leftList, leftFiles, rightFiles, Side.LEFT, selected, isReversed);
+            };
+
+            leftComboBox.addActionListener(leftActionListener);
+            checkBoxReverseLeft.addActionListener((e) -> leftComboBox.setSelectedIndex(leftComboBox.getSelectedIndex()));
+
+            ActionListener rightActionListener = e -> {
+                int selected = rightComboBox.getSelectedIndex();
+                Boolean isReversed = checkBoxReverseRight.isSelected();
+                manageSortingBox(rightComboBox, rightList, rightFiles, leftFiles, Side.RIGHT, selected, isReversed);
+            };
+
+            rightComboBox.addActionListener(rightActionListener);
+            checkBoxReverseRight.addActionListener((e) -> rightComboBox.setSelectedIndex(rightComboBox.getSelectedIndex()));
+
+
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
             splitPane.setResizeWeight(0.5);
             gbc.gridx = 0;
             gbc.gridy = 0;
             gbc.weighty = 1;
             gbc.weightx = 1;
+
             add(splitPane, gbc);
+
         }
 
         // variable names for left side, method can still be used for right side
@@ -356,8 +409,67 @@ public class SwingInterface {
         }
     }
 
+    private void manageSortingBox(JComboBox<String> comboBox, JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed){
+            //Lade Daten message
+            @SuppressWarnings("rawtypes")
+            SwingWorker worker = new SwingWorker() {
+                @Override
+                protected Object doInBackground() {
+
+                    if(selected != -1) {
+                        switch (selected) {
+                            case 0: {
+                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                                break;
+                            }
+                            case 1: {
+                                if(isReversed){
+                                    firstFiles.sort(Comparator.comparing(File::getName).reversed());
+                                }else{
+                                    firstFiles.sort(Comparator.comparing(File::getName));
+                                }
+                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                                break;
+                            }
+
+                            case 2: {
+                                if(isReversed){
+                                    firstFiles.sort(Comparator.comparingLong(File::length).reversed());
+                                }else{
+                                    firstFiles.sort(Comparator.comparingLong(File::length));
+                                }
+                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                                break;
+                            }
+                            case 3: {
+                                if(isReversed){
+                                    firstFiles.sort(Comparator.comparingLong(File::lastModified).reversed());
+                                }else{
+                                    firstFiles.sort(Comparator.comparingLong(File::lastModified));
+                                }
+                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                                break;
+                            }
+                        }
+
+                    }
+                    return null;
+                }
+
+                    protected void done() {
+
+                    frame.invalidate();
+                    frame.revalidate();
+                    frame.repaint();
+                }
+            };
+        worker.execute();
+
+
+    }
+
+
     private static final class Level3UI extends JPanel {
-        private final GridBagConstraints gbc = new GridBagConstraints();
 
         public Level3UI(List<String> leftLines, List<String> rightLines) {
             super(new GridBagLayout());
@@ -376,6 +488,7 @@ public class SwingInterface {
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftJSP, rightJSP);
             splitPane.setResizeWeight(0.5);
+            GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.gridx = 0;
             gbc.gridy = 0;
@@ -411,6 +524,7 @@ public class SwingInterface {
     private void changeActivePanelFromTo(JPanel oldPanel, JPanel newPanel) {
         oldPanel.setVisible(false);
         newPanel.setVisible(true);
+
         /*frame.invalidate();
         frame.revalidate();
         frame.repaint();*/

@@ -3,7 +3,6 @@ package lanterna;
 import algorithms.FileUtils;
 import algorithms.FileUtils.SpecificLineChange;
 import com.googlecode.lanterna.bundle.LanternaThemes;
-import com.googlecode.lanterna.graphics.DelegatingTheme;
 import com.googlecode.lanterna.graphics.Theme;
 import swing.SwingInterface;
 import swing.SwingTicTacToeMinigame;
@@ -42,6 +41,7 @@ import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 
 import utils.Side;
+import utils.SortType;
 
 /**
  * Lanterna interface for comparing two directories
@@ -270,14 +270,22 @@ public class LanternaInterface {
         rightComboBox.addItem("Größe");
         rightComboBox.addItem("Datum");
 
-        manageSortingBox(leftComboBox, leftListBox, leftFiles, rightFiles, Side.LEFT);
-        manageSortingBox(rightComboBox, rightListBox, rightFiles, leftFiles, Side.RIGHT);
+        CheckBox leftReverseBox = new CheckBox("Umgekehrte Reihenfolge");
+        CheckBox rightReverseBox = new CheckBox("Umgekehrte Reihenfolge");
+
+        leftReverseBox.setChecked(interfaceState.isSortLeftReversed());
+        rightReverseBox.setChecked(interfaceState.isSortRightReversed());
+
+        manageSortingBox(leftComboBox, leftListBox, leftFiles, rightFiles, Side.LEFT, leftReverseBox);
+        manageSortingBox(rightComboBox, rightListBox, rightFiles, leftFiles, Side.RIGHT, rightReverseBox);
 
         leftComboBox.setSelectedIndex(interfaceState.getSortTypeLeft());
         rightComboBox.setSelectedIndex(interfaceState.getSortTypeRight());
 
         leftPanel.addComponent(leftComboBox);
+        leftPanel.addComponent(leftReverseBox);
         rightPanel.addComponent(rightComboBox);
+        rightPanel.addComponent(rightReverseBox);
         leftPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         rightPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         leftPanel.addComponent(leftListBox);
@@ -302,12 +310,22 @@ public class LanternaInterface {
             }
         };
 
+        //Trigger comboBox event
+        leftReverseBox.addListener((b) -> {
+            leftComboBox.setSelectedIndex(leftComboBox.getSelectedIndex());
+            interfaceState.setSortLeftReversed(leftReverseBox.isChecked());
+        });
+        rightReverseBox.addListener((b) -> {
+            rightComboBox.setSelectedIndex(rightComboBox.getSelectedIndex());
+            interfaceState.setSortRightReversed(rightReverseBox.isChecked());
+        });
+
         interfaceState.setCurrentListener(listener);
         window.addWindowListener(listener);
     }
 
-    private void manageSortingBox(ComboBox<String> comboBox, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side) {
-        comboBox.addListener((i, i1, b) -> {
+    private void manageSortingBox(ComboBox<String> comboBox, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side, CheckBox reverseBox) {
+        comboBox.addListener((i, i2, i3) -> {
             listBox.clearItems();
             listBox.addItem("Lade Daten...", () -> {});
             //noinspection rawtypes
@@ -325,19 +343,34 @@ public class LanternaInterface {
                         case 1: {
                             if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.ALPHABETICAL);
                             else interfaceState.setSortTypeRight(SortType.ALPHABETICAL);
-                            manageSortedList(Comparator.comparing(File::getName), listBox, firstFiles, secondFiles, side);
+                            boolean reverse = reverseBox.isChecked();
+                            if(reverse) {
+                                manageSortedList(Comparator.comparing(File::getName).reversed(), listBox, firstFiles, secondFiles, side);
+                            } else {
+                                manageSortedList(Comparator.comparing(File::getName), listBox, firstFiles, secondFiles, side);
+                            }
                             break;
                         }
                         case 2: {
                             if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.SIZE);
                             else interfaceState.setSortTypeRight(SortType.SIZE);
-                            manageSortedList(Comparator.comparing(File::length), listBox, firstFiles, secondFiles, side);
+                            boolean reverse = reverseBox.isChecked();
+                            if(reverse) {
+                                manageSortedList(Comparator.comparing(File::length).reversed(), listBox, firstFiles, secondFiles, side);
+                            } else {
+                                manageSortedList(Comparator.comparing(File::length), listBox, firstFiles, secondFiles, side);
+                            }
                             break;
                         }
                         case 3: {
                             if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.DATE);
                             else interfaceState.setSortTypeRight(SortType.DATE);
-                            manageSortedList(Comparator.comparing(File::lastModified), listBox, firstFiles, secondFiles, side);
+                            boolean reverse = reverseBox.isChecked();
+                            if(reverse) {
+                                manageSortedList(Comparator.comparing(File::lastModified).reversed(), listBox, firstFiles, secondFiles, side);
+                            } else {
+                                manageSortedList(Comparator.comparing(File::lastModified), listBox, firstFiles, secondFiles, side);
+                            }
                             break;
                         }
 
@@ -470,15 +503,21 @@ public class LanternaInterface {
         outterPanel.addComponent(new EmptySpace(new TerminalSize(2, 0)));
         outterPanel.addComponent(rightPanel);
 
+        CheckBox linkedCheckBox = new CheckBox("Verlinktes Scrolling");
 
-        ScrollBar verticalScrollBar = new ScrollBar(Direction.VERTICAL);
-        verticalScrollBar.setViewSize(100);
-        verticalScrollBar.setScrollMaximum(100);
-
-        outterPanel.addComponent(verticalScrollBar);
+        linkedCheckBox.addListener((b) -> {
+            if(linkedCheckBox.isChecked()) {
+                leftTextBox.setScrollSlave(rightTextBox);
+                rightTextBox.setEnabled(false);
+            } else {
+                leftTextBox.setScrollSlave(null);
+                rightTextBox.setEnabled(true);
+            }
+        });
 
         addMenu(menuPanel);
         menuPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+        menuPanel.addComponent(linkedCheckBox);
         menuPanel.addComponent(outterPanel);
 
         window.setComponent(menuPanel);
@@ -632,7 +671,6 @@ public class LanternaInterface {
 
         settingsPanel.addComponent(new Label("Einstellungen:").addStyle(SGR.BOLD));
 
-        //TODO Allow user to change theme
         settingsPanel.addComponent(new Button("Farbschema ändern", () -> {
             Window colorWindow = new BasicWindow("Farbschema ändern");
             colorWindow.setHints(Set.of(Window.Hint.CENTERED));
@@ -648,7 +686,7 @@ public class LanternaInterface {
             colorPanel.addComponent(new Label("Wähle ein Farbschema:"));
             colorPanel.addComponent(colorComboBox);
 
-            colorComboBox.addListener((i, i1, b) -> {
+            colorComboBox.addListener((i, i2, b) -> {
                 String themeString = LanternaThemes.getRegisteredThemes().stream().filter(s -> s.equals(colorComboBox.getText())).findFirst().orElseThrow();
                 Theme theme = LanternaThemes.getRegisteredTheme(themeString);
                 textGUI.setTheme(theme);
@@ -802,6 +840,16 @@ public class LanternaInterface {
                 }));
                 editPanel.addComponent(new Button("Abbrechen", () -> getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories)));
                 window.setComponent(editPanel);
+
+                window.addWindowListener(new WindowListenerAdapter() {
+                    @Override
+                    public void onInput(Window window, KeyStroke keyStroke, AtomicBoolean atomicBoolean) {
+                        if(keyStroke.getKeyType() == KeyType.Escape) {
+                            resetWindow(this);
+                            getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
+                        }
+                    }
+                });
             } catch (IOException e) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gelesen werden oder existiert nicht", MessageDialogButton.OK);
                 getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);

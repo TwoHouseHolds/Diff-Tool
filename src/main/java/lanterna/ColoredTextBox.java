@@ -7,6 +7,7 @@ import com.googlecode.lanterna.gui2.TextBox;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.googlecode.lanterna.input.KeyStroke;
 import utils.Side;
 
 /**
@@ -18,6 +19,8 @@ import utils.Side;
 public class ColoredTextBox extends TextBox {
     private final Side side;
     private List<FileUtils.SpecificLineChange> specificLineChanges = new ArrayList<>();
+    ColoredTextBox scrollSlave = null;
+
     public ColoredTextBox(TerminalSize initialSize, Side side) {
         super(initialSize, Style.MULTI_LINE);
         this.side = side;
@@ -36,4 +39,20 @@ public class ColoredTextBox extends TextBox {
         return side;
     }
 
+    public void setScrollSlave(ColoredTextBox slave) {
+        this.scrollSlave = slave;
+    }
+
+    @SuppressWarnings("unused")
+    public ColoredTextBox getScrollSlave() {
+        return scrollSlave;
+    }
+
+    @Override
+    public synchronized Result handleKeyStroke(KeyStroke keyStroke) {
+        if(this.scrollSlave != null) {
+            this.scrollSlave.handleKeyStroke(keyStroke);
+        }
+        return super.handleKeyStroke(keyStroke);
+    }
 }
