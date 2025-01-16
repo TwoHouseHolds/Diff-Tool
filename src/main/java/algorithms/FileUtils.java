@@ -39,9 +39,9 @@ public class FileUtils {
     }
 
     /**
-     * Check if a file is binary
+     * Check which FileType a file is
      * @param file File to check
-     * @param extensive If true, check the entire file. If false, check the first 1MB (1048576 bytes)
+     * @param extensive If true, check the entire file. If false, check the first 1MB (1048576 bytes). If possible only check the magic number
      * @return FileType of the file
      * @see java.io.File
      * @see BinaryHeuristics
@@ -61,7 +61,7 @@ public class FileUtils {
             return List.of("Fehler beim Lesen der Datei");
         }
         if(fileType != FileType.TEXT) {
-            return List.of((fileType == FileType.BINARY ? "Binäre Dateien" : fileType) + " können (noch) nicht verglichen werden");
+            return List.of((fileType == FileType.BINARY ? "Binäre " : fileType) + " Dateien können (noch) nicht verglichen werden.");
         }
         List<String> lines = new ArrayList<>();
         try {
@@ -163,8 +163,8 @@ public class FileUtils {
             } else if(fileTypeRight == FileType.ERROR) {
                 rightLines.add("Fehler beim Lesen der Datei");
             } else {
-                leftLines.add((fileTypeLeft == FileType.BINARY ? "Binäre Dateien" : fileTypeLeft) + " können (noch) nicht verglichen werden");
-                rightLines.add((fileTypeRight == FileType.BINARY ? "Binäre Dateien" : fileTypeRight) + " können (noch) nicht verglichen werden");
+                leftLines.add((fileTypeLeft == FileType.BINARY ? "Binäre " : fileTypeLeft) + " Dateien können (noch) nicht verglichen werden.");
+                rightLines.add((fileTypeRight == FileType.BINARY ? "Binäre " : fileTypeRight) + " Dateien können (noch) nicht verglichen werden.");
             }
             return new LineResult(leftLines, rightLines, null);
         }
