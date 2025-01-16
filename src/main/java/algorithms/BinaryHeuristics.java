@@ -38,7 +38,8 @@ public class BinaryHeuristics {
             } else { // if magic numbers have offset
                 for (FileType.MagicNumberWithOffset mnwo : fileType.magicNumbersWithOffset) {
                     FileInputStream fis2 = new FileInputStream(file);
-                    fis2.skipNBytes(mnwo.offset()); // skip to location of magic number
+                    if(mnwo.offsetFromLeft()) fis2.skipNBytes(mnwo.offset()); // skip to location of magic number
+                    else fis2.skipNBytes(file.length() - mnwo.offset()); // skip to location of magic number (offset from right)
                     int[] currentMN = mnwo.magicNumber();
                     int[] actualMN = nextNMagicNumbers(fis2, currentMN.length);
                     fis2.close();
