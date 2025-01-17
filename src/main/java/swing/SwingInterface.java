@@ -464,8 +464,6 @@ public class SwingInterface {
                 }
             };
         worker.execute();
-
-
     }
 
 
@@ -488,6 +486,9 @@ public class SwingInterface {
             changeColor(leftTextPane,lineChanges,Side.LEFT);
             changeColor(rightTextPane,lineChanges,Side.RIGHT);
 
+            leftTextPane.setCaretPosition(0);
+            rightTextPane.setCaretPosition(0);
+
             JPanel leftTextArea = new JPanel();
             leftTextArea.add(leftTextPane);
             leftTextArea.setBackground(Color.WHITE);
@@ -495,10 +496,11 @@ public class SwingInterface {
             rightTextArea.setBackground(Color.WHITE);
             rightTextArea.add(rightTextPane);
 
-
-
             JScrollPane leftJSP = new JScrollPane(leftTextArea);
+            leftJSP.getVerticalScrollBar().setUnitIncrement(20);
             JScrollPane rightJSP = new JScrollPane(rightTextArea);
+            rightJSP.getVerticalScrollBar().setUnitIncrement(20);
+
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftJSP, rightJSP);
             splitPane.setResizeWeight(0.5);
@@ -538,11 +540,11 @@ public class SwingInterface {
         for(int i = 0; i < lines.length; i++){
             String line = lines[i];
             int space = String.valueOf(i).length() + 4;
-            int indexOfPlus = line.indexOf("-");
+            int indexOfMinus = line.indexOf("-");
 
-            if(indexOfPlus >= 0 && indexOfPlus <= space){
+            if(indexOfMinus >= 0 && indexOfMinus <= space){
                 StyleConstants.setBackground(attrs, Color.RED);
-                doc.setCharacterAttributes(offset + indexOfPlus, 1, attrs, false);
+                doc.setCharacterAttributes(offset + indexOfMinus, 1, attrs, false);
             }
             offset += line.length() + 1;
         }
@@ -553,28 +555,31 @@ public class SwingInterface {
         for(int i = 0; i < lines.length; i++){
             String line = lines[i];
             int space = String.valueOf(i).length() + 4;
-            int indexOfPlus = line.indexOf("!");
+            int indexOfExclationMark = line.indexOf("!");
 
-            if(indexOfPlus >= 0 && indexOfPlus <= space){
+            if(indexOfExclationMark >= 0 && indexOfExclationMark <= space){
                 StyleConstants.setBackground(attrs, Color.ORANGE);
-                doc.setCharacterAttributes(offset + indexOfPlus, 1, attrs, false);
+                doc.setCharacterAttributes(offset + indexOfExclationMark, 1, attrs, false);
             }
             offset += line.length() + 1;
         }
 
-        if(lineChanges != null){
+         if(lineChanges != null){
             for(FileUtils.SpecificLineChange change : lineChanges){
                 if(change.displaySide() == side){
                     offset = 0;
-                    
+                    int lineNumber = change.lineNumber();
+                    int index = change.index();
+
+                    for(int i = 0; i < lineNumber - 1; i++){
+                        offset += lines[i].length() + 1;
+                    }
+                    int indexOfMarked = offset + index;
+                    StyleConstants.setBackground(attrs, Color.ORANGE);
+                    doc.setCharacterAttributes(indexOfMarked, 1, attrs, false);
                 }
             }
         }
-
-
-
-
-
     }
 
     private void initializeEscFocus() {
