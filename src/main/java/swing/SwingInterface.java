@@ -7,6 +7,7 @@ import lanterna.LanternaInterface;
 import utils.Side;
 
 import javax.swing.*;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -389,16 +390,16 @@ public class SwingInterface {
                     Optional<File> rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst();
 
                     if (sideInformation.equals(Side.LEFT)) {
-                        if (rightFile.isEmpty()) level3UI = new Level3UI(FileUtils.readFile(leftFile), null);
+                        if (rightFile.isEmpty()) level3UI = new Level3UI(FileUtils.readFile(leftFile), null, null);
                         else {
                             FileUtils.LineResult lr = FileUtils.compareFiles(leftFile, rightFile.get());
-                            level3UI = new Level3UI(lr.left(), lr.right());
+                            level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges());
                         }
                     } else { // called from right side
-                        if (rightFile.isEmpty()) level3UI = new Level3UI(null, FileUtils.readFile(leftFile));
+                        if (rightFile.isEmpty()) level3UI = new Level3UI(null, FileUtils.readFile(leftFile), null);
                         else {
                             FileUtils.LineResult lr = FileUtils.compareFiles(rightFile.get(), leftFile);
-                            level3UI = new Level3UI(lr.left(), lr.right());
+                            level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges());
                         }
                     }
                     frame.add(level3UI);
@@ -470,17 +471,31 @@ public class SwingInterface {
 
     private static final class Level3UI extends JPanel {
 
-        public Level3UI(List<String> leftLines, List<String> rightLines) {
+        public Level3UI(List<String> leftLines, List<String> rightLines, List<FileUtils.SpecificLineChange> lineChanges) {
             super(new GridBagLayout());
             setFocusable(false);
 
-            JTextArea leftTextArea = new JTextArea();
-            leftTextArea.setEditable(false);
-            JTextArea rightTextArea = new JTextArea();
-            rightTextArea.setEditable(false);
+            JTextPane leftTextPane = new JTextPane();
+            leftTextPane.setEditable(false);
+            leftTextPane.setFont(new Font(Font.MONOSPACED,Font.PLAIN,12));
+            JTextPane rightTextPane = new JTextPane();
+            rightTextPane.setEditable(false);
+            rightTextPane.setFont(new Font(Font.MONOSPACED,Font.PLAIN,12));
 
-            if (leftLines != null) leftLines.forEach(s -> leftTextArea.append(s + "\n"));
-            if (rightLines != null) rightLines.forEach(s -> rightTextArea.append(s + "\n"));
+            if (leftLines != null) leftLines.forEach(s -> leftTextPane.setText(leftTextPane.getText() + s + "\n"));
+            if (rightLines != null) rightLines.forEach(s -> rightTextPane.setText(rightTextPane.getText() + s + "\n"));
+
+            changeColor(leftTextPane,lineChanges,Side.LEFT);
+            changeColor(rightTextPane,lineChanges,Side.RIGHT);
+
+            JPanel leftTextArea = new JPanel();
+            leftTextArea.add(leftTextPane);
+            leftTextArea.setBackground(Color.WHITE);
+            JPanel rightTextArea = new JPanel();
+            rightTextArea.setBackground(Color.WHITE);
+            rightTextArea.add(rightTextPane);
+
+
 
             JScrollPane leftJSP = new JScrollPane(leftTextArea);
             JScrollPane rightJSP = new JScrollPane(rightTextArea);
@@ -495,6 +510,71 @@ public class SwingInterface {
             gbc.weightx = 1;
             add(splitPane, gbc);
         }
+    }
+
+    private static void changeColor(JTextPane textPane,List<FileUtils.SpecificLineChange> lineChanges,Side side){
+        MutableAttributeSet attrs = textPane.getInputAttributes();
+        StyledDocument doc = textPane.getStyledDocument();
+
+        String[] lines = textPane.getText().split("\n");
+        int offset = 0;
+
+        //Change color of every added + to green
+        for(int i = 0; i < lines.length; i++){
+            String line = lines[i];
+            int space = String.valueOf(i).length() + 4;
+            int indexOfPlus = line.indexOf("+");
+
+            if(indexOfPlus >= 0 && indexOfPlus <= space){
+                StyleConstants.setBackground(attrs, Color.GREEN);
+                doc.setCharacterAttributes(offset + indexOfPlus, 1, attrs, false);
+            }
+            offset += line.length() + 1;
+        }
+
+        offset = 0;
+
+        //Change color of every added - to red
+        for(int i = 0; i < lines.length; i++){
+            String line = lines[i];
+            int space = String.valueOf(i).length() + 4;
+            int indexOfPlus = line.indexOf("-");
+
+            if(indexOfPlus >= 0 && indexOfPlus <= space){
+                StyleConstants.setBackground(attrs, Color.RED);
+                doc.setCharacterAttributes(offset + indexOfPlus, 1, attrs, false);
+            }
+            offset += line.length() + 1;
+        }
+
+        offset = 0;
+
+        //Change color of every added ! to orange
+        for(int i = 0; i < lines.length; i++){
+            String line = lines[i];
+            int space = String.valueOf(i).length() + 4;
+            int indexOfPlus = line.indexOf("!");
+
+            if(indexOfPlus >= 0 && indexOfPlus <= space){
+                StyleConstants.setBackground(attrs, Color.ORANGE);
+                doc.setCharacterAttributes(offset + indexOfPlus, 1, attrs, false);
+            }
+            offset += line.length() + 1;
+        }
+
+        if(lineChanges != null){
+            for(FileUtils.SpecificLineChange change : lineChanges){
+                if(change.displaySide() == side){
+                    offset = 0;
+                    
+                }
+            }
+        }
+
+
+
+
+
     }
 
     private void initializeEscFocus() {
