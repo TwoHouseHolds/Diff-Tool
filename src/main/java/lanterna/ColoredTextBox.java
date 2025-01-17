@@ -43,11 +43,6 @@ public class ColoredTextBox extends TextBox {
         this.scrollSlave = slave;
     }
 
-    @SuppressWarnings("unused")
-    public ColoredTextBox getScrollSlave() {
-        return scrollSlave;
-    }
-
     @Override
     public synchronized Result handleKeyStroke(KeyStroke keyStroke) {
         if(this.scrollSlave != null) {

@@ -9,53 +9,82 @@ import java.util.List;
 
 /**
  * Compare two files using the Hunt-McIlroy algorithm
+ *
  * @see java.io.File
  * @see java.io.IOException
  * @see java.nio.file.Files
  * @see java.nio.file.Path
  */
 public class HuntMcIlroy {
-    List<String> linesLeft;
-    List<String> linesRight;
+    private static List<String> linesLeft;
+    private static List<String> linesRight;
 
     /**
-     * Represents a subsequence of two files
-     * @see java.lang.Integer
-     * @see java.lang.String
-     * @param startLeft
-     * @param startRight
-     * @param length
+     * Get the strings from the two files
+     *
+     * @param fileLeft  First file to compare
+     * @param fileRight Second file to compare
+     * @return List of StringPairs
+     * @throws IOException If an I/O error occurs
+     * @see java.io.File
+     * @see java.io.File
+     * @see java.io.IOException
      */
-    public record Subsequence(int startLeft, int startRight, int length) {
+    public static List<StringPair> compare(File fileLeft, File fileRight) throws IOException {
+        List<Subsequence> inputs = getSubsequences(fileLeft, fileRight);
+        List<StringPair> result = new ArrayList<>();
+        List<Subsequence> copy = new ArrayList<>();
+        copy.add(new Subsequence(linesLeft.size(), linesRight.size(), 0));
+        inputs.forEach(x -> copy.add(0, x));
+        copy.add(0, new Subsequence(-1, -1, 1));
+        ;
+        for (int i = 0; i < copy.size() - 1; i++) {
+            Subsequence last = copy.get(i);
+            Subsequence next = copy.get(i + 1);
+            int leftStart = last.startLeft() + last.length();
+            int rightStart = last.startRight() + last.length();
+            int leftLimit = next.startLeft();
+            int rightLimit = next.startRight();
+            while (leftStart < leftLimit && rightStart < rightLimit) {
+                result.add(new StringPair(leftStart, linesLeft.get(leftStart),
+                        rightStart, linesRight.get(rightStart)));
+                leftStart++;
+                rightStart++;
+            }
+            while (leftStart < leftLimit) {
+                result.add(new StringPair(leftStart, linesLeft.get(leftStart),
+                        -1, null));
+                leftStart++;
+            }
+            while (rightStart < rightLimit) {
+                result.add(new StringPair(-1, null, rightStart,
+                        linesRight.get(rightStart)));
+                rightStart++;
+            }
+            for (int j = 0; j < next.length; j++) {
+                result.add(new StringPair(leftStart + j, linesLeft.get(leftStart + j),
+                        rightStart + j, linesRight.get(rightStart + j)));
+            }
+        }
+        return result;
     }
 
     /**
      * Represents a pair of strings from two files
-     * @see java.lang.Integer
-     * @see java.lang.String
+     *
      * @param leftIndex
      * @param leftText
      * @param rightIndex
      * @param rightText
+     * @see java.lang.Integer
+     * @see java.lang.String
      */
     public record StringPair(int leftIndex, String leftText, int rightIndex, String rightText) {
     }
 
-    /**
-     * Create a new algorithms.HuntMcIlroy object
-     * @param fileLeft First file to compare
-     *                 @see java.io.File
-     * @param fileRight Second file to compare
-     *                  @see java.io.File
-     * @throws IOException If an I/O error occurs
-     *                    @see java.io.IOException
-     */
-    public HuntMcIlroy(File fileLeft, File fileRight) throws IOException {
+    private static List<Subsequence> getSubsequences(File fileLeft, File fileRight) throws IOException {
         linesLeft = Files.readAllLines(Path.of(fileLeft.toURI()));
         linesRight = Files.readAllLines(Path.of(fileRight.toURI()));
-    }
-
-    public List<Subsequence> getSubsequences() {
         int[][] data = new int[linesLeft.size()][linesRight.size()];
         List<Subsequence> result = new ArrayList<>();
         for (int i = 0; i < linesLeft.size(); i++) {
@@ -88,59 +117,24 @@ public class HuntMcIlroy {
                 j--;
             }
         }
-
         return result;
     }
 
     /**
-     * Get the strings from the two files
-     * @param inputs List of Subsequences
-     * @return List of StringPairs
+     * Represents a subsequence of two files
+     *
+     * @param startLeft
+     * @param startRight
+     * @param length
+     * @see java.lang.Integer
+     * @see java.lang.String
      */
-    public List<StringPair> getStringpairs(List<Subsequence> inputs) {
-        List<StringPair> result = new ArrayList<>();
-        List<Subsequence> copy = new ArrayList<>();
-        copy.add(new Subsequence(linesLeft.size(), linesRight.size(), 0));
-        inputs.forEach(x->copy.add(0, x));
-        copy.add(0, new Subsequence(-1, -1, 1));;
-        for (int i = 0; i < copy.size()-1; i++) {
-            Subsequence last = copy.get(i);
-            Subsequence next = copy.get(i+1);
-            int leftStart = last.startLeft()+last.length();
-            int rightStart = last.startRight()+last.length();
-            int leftLimit = next.startLeft();
-            int rightLimit = next.startRight();
-            while ( leftStart < leftLimit && rightStart < rightLimit ) {
-                result.add(new StringPair(leftStart, linesLeft.get(leftStart),
-                        rightStart, linesRight.get(rightStart)));
-                leftStart++;
-                rightStart++;
-            }
-            while ( leftStart < leftLimit ) {
-                result.add(new StringPair(leftStart, linesLeft.get(leftStart),
-                        -1, null));
-                leftStart++;
-            }
-            while ( rightStart < rightLimit ) {
-                result.add(new StringPair(-1, null, rightStart,
-                        linesRight.get(rightStart)));
-                rightStart++;
-            }
-            for (int j = 0; j < next.length; j++) {
-                    result.add(new StringPair(leftStart+j, linesLeft.get(leftStart+j),
-                            rightStart+j, linesRight.get(rightStart+j)));
-            }
-        }
-        return result;
+    private record Subsequence(int startLeft, int startRight, int length) {
     }
 
-    private int getData(int[][] data, int i, int j) {
-        if (i < -1 || j < -1) {
-            return Integer.MIN_VALUE;
-        }
-        if (i == -1 || j == -1) {
-            return 0;
-        }
+    private static int getData(int[][] data, int i, int j) {
+        if (i < -1 || j < -1) return Integer.MIN_VALUE;
+        if (i == -1 || j == -1) return 0;
         return data[i][j];
     }
 }
