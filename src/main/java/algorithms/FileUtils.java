@@ -147,7 +147,6 @@ public class FileUtils {
      */
     public LineResult compareFiles(File leftFile, File rightFile) {
         HuntIllroyResult result = this.huntCompare(leftFile, rightFile);
-        System.out.println(result);
         List<String> leftLines = new ArrayList<>();
         List<String> rightLines = new ArrayList<>();
         List<SpecificLineChange> specificLineChanges = new ArrayList<>();
