@@ -88,7 +88,7 @@ public class FileUtils {
      * @see HuntMcIlroy.Subsequence
      * @see HuntMcIlroy.StringPair
      */
-    public record huntIllroyResult(List<HuntMcIlroy.Subsequence> subsequences, List<HuntMcIlroy.StringPair> stringPairs) {
+    public record HuntIllroyResult(List<HuntMcIlroy.Subsequence> subsequences, List<HuntMcIlroy.StringPair> stringPairs) {
     }
 
     /**
@@ -97,16 +97,15 @@ public class FileUtils {
      * @param fileRight Second file to compare
      * @return Result of the comparison as a huntIllroyResult object
      * @see HuntMcIlroy
-     * @see huntIllroyResult
+     * @see HuntIllroyResult
      * @see java.io.File
      */
-    private huntIllroyResult huntCompare(File fileLeft, File fileRight) {
+    private HuntIllroyResult huntCompare(File fileLeft, File fileRight) {
         try {
             HuntMcIlroy hm = new HuntMcIlroy(fileLeft, fileRight);
             List<HuntMcIlroy.Subsequence> subsequences = hm.getSubsequences();
-            List<HuntMcIlroy.StringPair> stringPairs;
-            stringPairs = hm.getStringpairs(subsequences);
-            return new huntIllroyResult(subsequences, stringPairs);
+            List<HuntMcIlroy.StringPair> stringPairs = hm.getStringpairs(subsequences);
+            return new HuntIllroyResult(subsequences, stringPairs);
         } catch (Exception e) {
             return null;
         }
@@ -147,7 +146,8 @@ public class FileUtils {
      * @see java.util.List
      */
     public LineResult compareFiles(File leftFile, File rightFile) {
-        huntIllroyResult result = this.huntCompare(leftFile, rightFile);
+        HuntIllroyResult result = this.huntCompare(leftFile, rightFile);
+        System.out.println(result);
         List<String> leftLines = new ArrayList<>();
         List<String> rightLines = new ArrayList<>();
         List<SpecificLineChange> specificLineChanges = new ArrayList<>();
