@@ -22,7 +22,6 @@ public class SwingInterface {
     //TODO LVUI doesnt resize correctly after going back
 
     private static final Dimension defaultTextFieldDimension = new Dimension(300, 25);
-    private static final FileUtils fileUtils = new FileUtils();
     private final JFrame frame = new JFrame("Swing Oberfläche");
     private final JButton backButton = new JButton("⬅");
     private final JButton forwardButton = new JButton("➡");
@@ -205,8 +204,8 @@ public class SwingInterface {
                 } else if (!new File(pathRight).exists()) {
                     JOptionPane.showMessageDialog(this, "'" + pathRight + "' (rechts) ist kein valider Pfad!", "Fehler", JOptionPane.ERROR_MESSAGE);
                 } else {
-                    List<File> leftFiles = fileUtils.getFiles(pathLeft);
-                    List<File> rightFiles = fileUtils.getFiles(pathRight);
+                    List<File> leftFiles = FileUtils.getFiles(pathLeft);
+                    List<File> rightFiles = FileUtils.getFiles(pathRight);
                     setVisible(false);
                     level2UI = new Level2UI(leftFiles, rightFiles);
                     frame.add(level2UI);
@@ -390,15 +389,15 @@ public class SwingInterface {
                     Optional<File> rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst();
 
                     if (sideInformation.equals(Side.LEFT)) {
-                        if (rightFile.isEmpty()) level3UI = new Level3UI(fileUtils.readFile(leftFile), null);
+                        if (rightFile.isEmpty()) level3UI = new Level3UI(FileUtils.readFile(leftFile), null);
                         else {
-                            FileUtils.LineResult lr = fileUtils.compareFiles(leftFile, rightFile.get());
+                            FileUtils.LineResult lr = FileUtils.compareFiles(leftFile, rightFile.get());
                             level3UI = new Level3UI(lr.left(), lr.right());
                         }
                     } else { // called from right side
-                        if (rightFile.isEmpty()) level3UI = new Level3UI(null, fileUtils.readFile(leftFile));
+                        if (rightFile.isEmpty()) level3UI = new Level3UI(null, FileUtils.readFile(leftFile));
                         else {
-                            FileUtils.LineResult lr = fileUtils.compareFiles(rightFile.get(), leftFile);
+                            FileUtils.LineResult lr = FileUtils.compareFiles(rightFile.get(), leftFile);
                             level3UI = new Level3UI(lr.left(), lr.right());
                         }
                     }

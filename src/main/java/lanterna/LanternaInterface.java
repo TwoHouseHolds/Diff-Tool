@@ -59,7 +59,6 @@ public class LanternaInterface {
     private final InterfaceState interfaceState = InterfaceState.getInterfaceState();
     private BasicWindow window;
     private WindowBasedTextGUI textGUI;
-    private final FileUtils fileUtils = new FileUtils();
     private TerminalScreen screen;
 
     /**
@@ -200,8 +199,8 @@ public class LanternaInterface {
      * @param output List of directories only the first 2 are used
      */
     private void compareDirectories(String... output) {
-        interfaceState.setLeftDir(fileUtils.getFiles(output[0]));
-        interfaceState.setRightDir(fileUtils.getFiles(output[1]));
+        interfaceState.setLeftDir(FileUtils.getFiles(output[0]));
+        interfaceState.setRightDir(FileUtils.getFiles(output[1]));
         
         if (interfaceState.getLeftDir() == null) {
             MessageDialog.showMessageDialog(textGUI, "Fehler", "Linkes Verzeichnis existiert nicht oder ist leer", MessageDialogButton.OK);
@@ -454,17 +453,17 @@ public class LanternaInterface {
         List<SpecificLineChange> lineChanges = new ArrayList<>();
 
         if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
-            leftLines = fileUtils.readFile(leftFile);
+            leftLines = FileUtils.readFile(leftFile);
             rightLines = new ArrayList<>();
         }
 
         if (leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
-            rightLines = fileUtils.readFile(rightFile);
+            rightLines = FileUtils.readFile(rightFile);
             leftLines = new ArrayList<>();
         }
 
         if (!leftFile.equals(rightFile)) {
-            FileUtils.LineResult result = fileUtils.compareFiles(leftFile, rightFile);
+            FileUtils.LineResult result = FileUtils.compareFiles(leftFile, rightFile);
 
             if(selectedSide == Side.LEFT) {
                 leftLines = result.left();
@@ -775,7 +774,7 @@ public class LanternaInterface {
                 .showDialog(textGUI);
 
         if (file1 != null && file2 != null) {
-            FileUtils.LineResult result = fileUtils.compareFiles(file1, file2);
+            FileUtils.LineResult result = FileUtils.compareFiles(file1, file2);
 
             File file =  new FileDialogBuilder()
                     .setTitle("Speichere die Differenz")
@@ -873,7 +872,7 @@ public class LanternaInterface {
                 .showDialog(textGUI);
 
         if (file1 != null && file2 != null) {
-            FileUtils.LineResult result = fileUtils.compareFiles(file1, file2);
+            FileUtils.LineResult result = FileUtils.compareFiles(file1, file2);
 
             File file =  new FileDialogBuilder()
                     .setTitle("Speichere die Differenz")
