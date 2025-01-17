@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -16,8 +17,8 @@ import java.util.List;
  * @see java.nio.file.Path
  */
 public class HuntMcIlroy {
-    private static List<String> linesLeft;
-    private static List<String> linesRight;
+    private static List<String> leftLines;
+    private static List<String> rightLines;
 
     /**
      * Get the strings from the two files
@@ -26,44 +27,43 @@ public class HuntMcIlroy {
      * @param fileRight Second file to compare
      * @return List of StringPairs
      * @throws IOException If an I/O error occurs
-     * @see java.io.File
-     * @see java.io.File
-     * @see java.io.IOException
+     * @see File
+     * @see File
+     * @see IOException
      */
     public static List<StringPair> compare(File fileLeft, File fileRight) throws IOException {
-        List<Subsequence> inputs = getSubsequences(fileLeft, fileRight);
+        List<Subsequence> subsequences = huntMcIllroy(fileLeft, fileRight);
+        // Collections.reverse(subsequences);
+        List<Subsequence> reversed = new ArrayList<>();
+        // reversed.add(new Subsequence(leftLines.size(), rightLines.size(), 0)); // WHAT IS THIS FOR???
+        subsequences.forEach(x -> reversed.add(0, x));
+        reversed.add(0, new Subsequence(-1, -1, 1)); // endmarker
+        //reversed.addAll(subsequences);
         List<StringPair> result = new ArrayList<>();
-        List<Subsequence> copy = new ArrayList<>();
-        copy.add(new Subsequence(linesLeft.size(), linesRight.size(), 0));
-        inputs.forEach(x -> copy.add(0, x));
-        copy.add(0, new Subsequence(-1, -1, 1));
-        ;
-        for (int i = 0; i < copy.size() - 1; i++) {
-            Subsequence last = copy.get(i);
-            Subsequence next = copy.get(i + 1);
+        // // why does subsequences.reversed() not work???
+
+        for (int i = 0; i < reversed.size() - 1; i++) {
+            Subsequence last = reversed.get(i);
+            Subsequence next = reversed.get(i + 1);
             int leftStart = last.startLeft() + last.length();
             int rightStart = last.startRight() + last.length();
             int leftLimit = next.startLeft();
             int rightLimit = next.startRight();
             while (leftStart < leftLimit && rightStart < rightLimit) {
-                result.add(new StringPair(leftStart, linesLeft.get(leftStart),
-                        rightStart, linesRight.get(rightStart)));
+                result.add(new StringPair(leftStart, leftLines.get(leftStart), rightStart, rightLines.get(rightStart)));
                 leftStart++;
                 rightStart++;
             }
             while (leftStart < leftLimit) {
-                result.add(new StringPair(leftStart, linesLeft.get(leftStart),
-                        -1, null));
+                result.add(new StringPair(leftStart, leftLines.get(leftStart), -1, null));
                 leftStart++;
             }
             while (rightStart < rightLimit) {
-                result.add(new StringPair(-1, null, rightStart,
-                        linesRight.get(rightStart)));
+                result.add(new StringPair(-1, null, rightStart, rightLines.get(rightStart)));
                 rightStart++;
             }
             for (int j = 0; j < next.length; j++) {
-                result.add(new StringPair(leftStart + j, linesLeft.get(leftStart + j),
-                        rightStart + j, linesRight.get(rightStart + j)));
+                result.add(new StringPair(leftStart + j, leftLines.get(leftStart + j), rightStart + j, rightLines.get(rightStart + j)));
             }
         }
         return result;
@@ -82,39 +82,43 @@ public class HuntMcIlroy {
     public record StringPair(int leftIndex, String leftText, int rightIndex, String rightText) {
     }
 
-    private static List<Subsequence> getSubsequences(File fileLeft, File fileRight) throws IOException {
-        linesLeft = Files.readAllLines(Path.of(fileLeft.toURI()));
-        linesRight = Files.readAllLines(Path.of(fileRight.toURI()));
-        int[][] data = new int[linesLeft.size()][linesRight.size()];
+    private static List<Subsequence> huntMcIllroy(File fileLeft, File fileRight) throws IOException {
+        leftLines = Files.readAllLines(fileLeft.toPath());
+        rightLines = Files.readAllLines(fileRight.toPath());
+        int[][] hmiMatrix = new int[leftLines.size()][rightLines.size()];
+
+        // fill hmiMatrix
+        for (int row = 0; row < leftLines.size(); row++) {
+            for (int col = 0; col < rightLines.size(); col++) {
+                hmiMatrix[row][col] = leftLines.get(row).equals(rightLines.get(col)) ? // lines are equal?
+                        getMatrixData(hmiMatrix, row - 1, col - 1) + 1 : // ggZ wächst um 1
+                        Math.max( // // ggz bleibt bei einseitigem Anhängen eines Buchstaben gleich (=> größtmögl. Wert)
+                                getMatrixData(hmiMatrix, row - 1, col), //
+                                getMatrixData(hmiMatrix, row, col - 1));
+            }
+        }
+        return getSubsequences(hmiMatrix);
+    }
+
+    private static List<Subsequence> getSubsequences(int[][] hmiMatrix) {
         List<Subsequence> result = new ArrayList<>();
-        for (int i = 0; i < linesLeft.size(); i++) {
-            for (int j = 0; j < linesRight.size(); j++) {
-                data[i][j] = linesLeft.get(i).equals(linesRight.get(j)) ?
-                        1 + getData(data, i - 1, j - 1) : Math.max(getData(data, i - 1, j), getData(data, i, j - 1));
+        int row = leftLines.size() - 1; // bottom row
+        int col = rightLines.size() - 1; // most right column
+        while (row >= 0 && col >= 0) {
+            int oldRow = row;
+            int oldCol = col;
+            while (row >= 0 && col >= 0 && leftLines.get(row).equals(rightLines.get(col))) {
+                // skip through one subsequence of equal lines
+                row--;
+                col--;
             }
-        }
-        int max = 0;
-        for (int i = 0; i < linesLeft.size(); i++) {
-            for (int j = 0; j < linesRight.size(); j++) {
-                max = Math.max(getData(data, i, j), max);
+            result.add(new Subsequence(row + 1, col + 1, oldRow - row));
+            oldRow = row;
+            while (getMatrixData(hmiMatrix, row - 1, col) == getMatrixData(hmiMatrix, oldRow, oldCol)) {
+                row--;
             }
-        }
-        int i = linesLeft.size() - 1;
-        int j = linesRight.size() - 1;
-        while (i >= 0 && j >= 0) {
-            int x = i;
-            int y = j;
-            while (i >= 0 && j >= 0 && linesLeft.get(i).equals(linesRight.get(j))) {
-                i--;
-                j--;
-            }
-            result.add(new Subsequence(i + 1, j + 1, x - i));
-            x = i;
-            while (getData(data, i - 1, j) == getData(data, x, y)) {
-                i--;
-            }
-            while (getData(data, i, j - 1) == getData(data, x, y)) {
-                j--;
+            while (getMatrixData(hmiMatrix, row, col - 1) == getMatrixData(hmiMatrix, oldRow, oldCol)) {
+                col--;
             }
         }
         return result;
@@ -132,9 +136,9 @@ public class HuntMcIlroy {
     private record Subsequence(int startLeft, int startRight, int length) {
     }
 
-    private static int getData(int[][] data, int i, int j) {
+    private static int getMatrixData(int[][] hmiMatrix, int i, int j) {
         if (i < -1 || j < -1) return Integer.MIN_VALUE;
         if (i == -1 || j == -1) return 0;
-        return data[i][j];
+        return hmiMatrix[i][j];
     }
 }
