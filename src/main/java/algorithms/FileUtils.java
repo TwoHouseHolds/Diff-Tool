@@ -81,32 +81,17 @@ public class FileUtils {
     }
 
     /**
-     * Represents the result of the Hunt-McIlroy algorithm for comparing two files
-     * Has a List<algorithms.HuntMcIlroy.Subsequence> subsequences and a List<algorithms.HuntMcIlroy.StringPair> stringPairs
-     * @see HuntMcIlroy
-     * @see java.util.List
-     * @see HuntMcIlroy.Subsequence
-     * @see HuntMcIlroy.StringPair
-     */
-    public record HuntIllroyResult(List<HuntMcIlroy.Subsequence> subsequences, List<HuntMcIlroy.StringPair> stringPairs) {
-    }
-
-    /**
      * Compare two files using the Hunt-McIlroy algorithm
      * @param fileLeft First file to compare
      * @param fileRight Second file to compare
-     * @return Result of the comparison as a huntIllroyResult object
+     * @return Result of the comparison as a List<HuntMcIlroy.StringPair> object
      * @see HuntMcIlroy
-     * @see HuntIllroyResult
      * @see java.io.File
      */
-    private HuntIllroyResult huntCompare(File fileLeft, File fileRight) {
+    private List<HuntMcIlroy.StringPair> huntCompare(File fileLeft, File fileRight) {
         try {
-            HuntMcIlroy hm = new HuntMcIlroy(fileLeft, fileRight);
-            List<HuntMcIlroy.Subsequence> subsequences = hm.getSubsequences();
-            List<HuntMcIlroy.StringPair> stringPairs = hm.getStringpairs(subsequences);
-            return new HuntIllroyResult(subsequences, stringPairs);
-        } catch (Exception e) {
+            return HuntMcIlroy.compare(fileLeft, fileRight);
+        } catch (IOException e) {
             return null;
         }
     }
@@ -146,7 +131,7 @@ public class FileUtils {
      * @see java.util.List
      */
     public LineResult compareFiles(File leftFile, File rightFile) {
-        HuntIllroyResult result = this.huntCompare(leftFile, rightFile);
+        List<HuntMcIlroy.StringPair> stringPairs = this.huntCompare(leftFile, rightFile);
         List<String> leftLines = new ArrayList<>();
         List<String> rightLines = new ArrayList<>();
         List<SpecificLineChange> specificLineChanges = new ArrayList<>();
@@ -156,7 +141,7 @@ public class FileUtils {
 
         int lineNumber = 1;
 
-        if(result == null) {
+        if(stringPairs == null) {
             if(fileTypeLeft  == FileType.ERROR) {
                 leftLines.add("Fehler beim Lesen der Datei");
             } else if(fileTypeRight == FileType.ERROR) {
@@ -170,7 +155,7 @@ public class FileUtils {
 
         int lineCounterLeft = 1;
 
-        for (HuntMcIlroy.StringPair pair : result.stringPairs()) {
+        for (HuntMcIlroy.StringPair pair : stringPairs) {
             if(pair.leftText() == null) {
                 String emptySpaces = " ".repeat(String.valueOf(lineCounterLeft).length());
                 leftLines.add(emptySpaces + "  - ");
