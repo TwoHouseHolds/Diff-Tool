@@ -39,9 +39,9 @@ public class FileUtils {
     }
 
     /**
-     * Check if a file is binary
+     * Check which FileType a file is
      * @param file File to check
-     * @param extensive If true, check the entire file. If false, check the first 1MB (1048576 bytes)
+     * @param extensive If true, check the entire file. If false, check the first 1MB (1048576 bytes). If possible only check the magic number
      * @return FileType of the file
      * @see java.io.File
      * @see BinaryHeuristics
@@ -61,7 +61,7 @@ public class FileUtils {
             return List.of("Fehler beim Lesen der Datei");
         }
         if(fileType != FileType.TEXT) {
-            return List.of("Es ist ( noch ) nicht möglich " + (fileType == FileType.BINARY ? "Binäre Dateien " : fileType) + "zu vergleichen");
+            return List.of((fileType == FileType.BINARY ? "Binäre " : fileType) + " Dateien können (noch) nicht verglichen werden.");
         }
         List<String> lines = new ArrayList<>();
         try {
@@ -88,7 +88,7 @@ public class FileUtils {
      * @see HuntMcIlroy.Subsequence
      * @see HuntMcIlroy.StringPair
      */
-    public record huntIllroyResult(List<HuntMcIlroy.Subsequence> subsequences, List<HuntMcIlroy.StringPair> stringPairs) {
+    public record HuntIllroyResult(List<HuntMcIlroy.Subsequence> subsequences, List<HuntMcIlroy.StringPair> stringPairs) {
     }
 
     /**
@@ -97,16 +97,15 @@ public class FileUtils {
      * @param fileRight Second file to compare
      * @return Result of the comparison as a huntIllroyResult object
      * @see HuntMcIlroy
-     * @see huntIllroyResult
+     * @see HuntIllroyResult
      * @see java.io.File
      */
-    private huntIllroyResult huntCompare(File fileLeft, File fileRight) {
+    private HuntIllroyResult huntCompare(File fileLeft, File fileRight) {
         try {
             HuntMcIlroy hm = new HuntMcIlroy(fileLeft, fileRight);
             List<HuntMcIlroy.Subsequence> subsequences = hm.getSubsequences();
-            List<HuntMcIlroy.StringPair> stringPairs;
-            stringPairs = hm.getStringpairs(subsequences);
-            return new huntIllroyResult(subsequences, stringPairs);
+            List<HuntMcIlroy.StringPair> stringPairs = hm.getStringpairs(subsequences);
+            return new HuntIllroyResult(subsequences, stringPairs);
         } catch (Exception e) {
             return null;
         }
@@ -147,7 +146,8 @@ public class FileUtils {
      * @see java.util.List
      */
     public LineResult compareFiles(File leftFile, File rightFile) {
-        huntIllroyResult result = this.huntCompare(leftFile, rightFile);
+        HuntIllroyResult result = this.huntCompare(leftFile, rightFile);
+        System.out.println(result);
         List<String> leftLines = new ArrayList<>();
         List<String> rightLines = new ArrayList<>();
         List<SpecificLineChange> specificLineChanges = new ArrayList<>();
@@ -163,8 +163,8 @@ public class FileUtils {
             } else if(fileTypeRight == FileType.ERROR) {
                 rightLines.add("Fehler beim Lesen der Datei");
             } else {
-                leftLines.add("Es ist ( noch ) nicht möglich " + (fileTypeLeft == FileType.BINARY ? "Binäre Dateien " : fileTypeLeft) + "zu vergleichen");
-                rightLines.add("Es ist ( noch ) nicht möglich " + (fileTypeRight == FileType.BINARY ? "Binäre Dateien " : fileTypeRight) + "zu vergleichen");
+                leftLines.add((fileTypeLeft == FileType.BINARY ? "Binäre " : fileTypeLeft) + " Dateien können (noch) nicht verglichen werden.");
+                rightLines.add((fileTypeRight == FileType.BINARY ? "Binäre " : fileTypeRight) + " Dateien können (noch) nicht verglichen werden.");
             }
             return new LineResult(leftLines, rightLines, null);
         }
