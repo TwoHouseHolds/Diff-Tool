@@ -2,6 +2,7 @@ package lanterna;
 
 import algorithms.FileUtils;
 import algorithms.FileUtils.SpecificLineChange;
+import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
 import swing.SwingInterface;
@@ -88,8 +89,12 @@ public class LanternaInterface {
 
             getInput(List.of("Erstes Verzeichnis", "Zweites Verzeichnis"), this::compareDirectories);
 
-            textGUI.addWindowAndWait(window);
+            TerminalSize screenSize = textGUI.getScreen().getTerminalSize();
+            int x = (screenSize.getColumns() / 2);
+            int y = (screenSize.getRows() ) / 2;
+            window.setPosition(new TerminalPosition(x, y));
 
+            textGUI.addWindowAndWait(window);
         } catch (Exception e) {
             System.out.println("Initialization of Lanterna Interface has failed. Please try again and check the Error message");
             System.out.println(e.getMessage());
@@ -272,6 +277,9 @@ public class LanternaInterface {
         CheckBox leftReverseBox = new CheckBox("Umgekehrte Reihenfolge");
         CheckBox rightReverseBox = new CheckBox("Umgekehrte Reihenfolge");
 
+        TextBox leftSearchBox = new TextBox(new TerminalSize(30, 1));
+        TextBox rightSearchBox = new TextBox(new TerminalSize(30, 1));
+
         leftReverseBox.setChecked(interfaceState.isSortLeftReversed());
         rightReverseBox.setChecked(interfaceState.isSortRightReversed());
 
@@ -283,8 +291,10 @@ public class LanternaInterface {
 
         leftPanel.addComponent(leftComboBox);
         leftPanel.addComponent(leftReverseBox);
+        leftPanel.addComponent(leftSearchBox);
         rightPanel.addComponent(rightComboBox);
         rightPanel.addComponent(rightReverseBox);
+        rightPanel.addComponent(rightSearchBox);
         leftPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         rightPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         leftPanel.addComponent(leftListBox);
@@ -296,6 +306,20 @@ public class LanternaInterface {
         menuPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         menuPanel.addComponent(outterPanel);
         window.setComponent(menuPanel);
+
+        leftSearchBox.setTextChangeListener((s, s1) -> {
+            leftListBox.clearItems();
+            String search = leftSearchBox.getText().toLowerCase();
+            List<File> filteredFiles = leftFiles.stream().filter(f -> f.getName().toLowerCase().contains(search)).toList();
+            displayList(filteredFiles, rightFiles, Side.LEFT, leftListBox);
+        });
+
+        rightSearchBox.setTextChangeListener((s, s1) -> {
+            rightListBox.clearItems();
+            String search = rightSearchBox.getText().toLowerCase();
+            List<File> filteredFiles = rightFiles.stream().filter(f -> f.getName().toLowerCase().contains(search)).toList();
+            displayList(filteredFiles, rightFiles, Side.RIGHT, rightListBox);
+        });
 
         WindowListenerAdapter listener = new WindowListenerAdapter() {
             @Override
@@ -454,12 +478,12 @@ public class LanternaInterface {
 
         if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
             leftLines = FileUtils.readFile(leftFile);
-            rightLines = new ArrayList<>();
+            rightLines = leftLines;
         }
 
         if (leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
             rightLines = FileUtils.readFile(rightFile);
-            leftLines = new ArrayList<>();
+            leftLines = rightLines;
         }
 
         if (!leftFile.equals(rightFile)) {
