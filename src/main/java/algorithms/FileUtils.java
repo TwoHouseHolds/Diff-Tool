@@ -24,7 +24,6 @@ public class FileUtils {
     public static List<File> getFiles(String path) {
         Path p = Path.of(path);
         Directory dir = new Directory(p);
-
         return dir.getFiles();
     }
 
@@ -53,9 +52,8 @@ public class FileUtils {
         if(fileType != FileType.TEXT) {
             return List.of((fileType == FileType.BINARY ? "Binäre " : fileType) + " Dateien können (noch) nicht verglichen werden.");
         }
-        List<String> lines = new ArrayList<>();
         try {
-            lines = Files.readAllLines(Paths.get(file.toURI()));
+            List<String> lines = Files.readAllLines(Paths.get(file.toURI()));
             int lineNumber = 1;
             for(String line : lines) {
                 String prefix = lineNumber + ":   ";
@@ -63,11 +61,10 @@ public class FileUtils {
                 lines.set(lineNumber - 1, line);
                 lineNumber++;
             }
+            return lines;
         } catch (IOException e) {
-            System.out.println("File-Read has failed");
-            System.out.println(e.getMessage());
+            return List.of("Fehler beim Lesen der Datei");
         }
-        return lines;
     }
 
     /**

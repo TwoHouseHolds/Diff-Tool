@@ -7,9 +7,7 @@ import utils.Side;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,7 +17,6 @@ import java.util.prefs.Preferences;
 
 public class SwingInterface {
 
-    //TODO level 1 & 2 don't resize correctly after going back
     private static final Dimension defaultTextFieldDimension = new Dimension(400, 25);
     private final JFrame frame = new JFrame("Swing Oberfläche");
     private final JButton backButton = new JButton("⬅");
@@ -42,6 +39,14 @@ public class SwingInterface {
             frame.setJMenuBar(menu);
             frame.add(level1UI);
 
+            frame.addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    resizeAll();
+                }
+            });
+            frame.addWindowStateListener(e -> resizeAll());
+
             Preferences preferences = Preferences.userNodeForPackage(SwingInterface.class);
             String themeString = preferences.get("theme", SwingTheme.DARK.toString());
             SwingTheme startTheme = null;
@@ -51,6 +56,12 @@ public class SwingInterface {
             SwingUtilities.updateComponentTreeUI(frame);
             frame.setVisible(true);
         });
+    }
+
+    private void resizeAll() {
+        level1UI.setSize(frame.getSize());
+        if (level2UI != null) level2UI.setSize(frame.getSize());
+        if (level3UI != null) level3UI.setSize(frame.getSize());
     }
 
     //TODO translate to german and correct the information in menu
@@ -192,13 +203,12 @@ public class SwingInterface {
         private final GridBagConstraints gbc = new GridBagConstraints();
         private final DirectorySelectionPanel leftPanel = new DirectorySelectionPanel("Erstes Verzeichnis:");
         private final DirectorySelectionPanel rightPanel = new DirectorySelectionPanel("Zweites Verzeichnis:");
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
 
         Level1UI() {
             super(new GridBagLayout());
             gbc.fill = GridBagConstraints.BOTH;
             gbc.insets = new Insets(1, 1, 1, 1);
-
-            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
             splitPane.setResizeWeight(0.5);
             gbc.gridx = 0;
             gbc.gridy = 0;
@@ -308,8 +318,9 @@ public class SwingInterface {
     private final class Level2UI extends JPanel {
 
         private FileUtils.LineResult lr;
-        JList<String> leftList;
-        JList<String> rightList;
+        private JList<String> leftList;
+        private JList<String> rightList;
+        private JSplitPane splitPane;
 
         public Level2UI(List<File> leftFiles, List<File> rightFiles) {
             super(new GridBagLayout());
@@ -374,7 +385,7 @@ public class SwingInterface {
             checkBoxReverseRight.addActionListener((e) -> rightComboBox.setSelectedIndex(rightComboBox.getSelectedIndex()));
 
 
-            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
             splitPane.setResizeWeight(0.5);
             gbc.gridx = 0;
             gbc.gridy = 0;
@@ -407,14 +418,14 @@ public class SwingInterface {
         }
 
         // variable names for left side, method can still be used for right side
-        private void applyListSelectionListener(JList<String> leftList, List<File> leftFiles, List<File> rightFiles, Side sideInformation) {
-            leftList.addListSelectionListener(select -> {
-                if (!select.getValueIsAdjusting() && leftList.getSelectedIndex() != -1) {
-                    File leftFile = leftFiles.get(leftList.getSelectedIndex());
-                    leftList.clearSelection();
+        private void applyListSelectionListener(JList<String> thisList, List<File> thisFiles, List<File> otherFiles, Side sideInformation) {
+            thisList.addListSelectionListener(select -> {
+                if (!select.getValueIsAdjusting() && thisList.getSelectedIndex() != -1) {
+                    File thisFile = thisFiles.get(thisList.getSelectedIndex());
+                    thisList.clearSelection();
 
                     //Stream findet in den right Files die left File mit gleichem Namen, falls diese vorhanden ist, falls nicht, wird ein leeres Optional zurückgegeben
-                    Optional<File> rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst();
+                    Optional<File> otherFile = otherFiles.stream().filter(f -> f.getName().equals(thisFile.getName())).findFirst();
 
                     deactivate();
                     menu.deactivate();
@@ -424,18 +435,18 @@ public class SwingInterface {
                         @Override
                         protected Object doInBackground() {
                             if (sideInformation.equals(Side.LEFT)) {
-                                if (rightFile.isEmpty())
-                                    level3UI = new Level3UI(FileUtils.readFile(leftFile), null, null);
+                                if (otherFile.isEmpty())
+                                    level3UI = new Level3UI(FileUtils.readFile(thisFile), null, null, false);
                                 else {
-                                    lr = FileUtils.compareFiles(leftFile, rightFile.get());
-                                    level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges());
+                                    lr = FileUtils.compareFiles(thisFile, otherFile.get());
+                                    level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges(), false);
                                 }
                             } else { // called from right side
-                                if (rightFile.isEmpty())
-                                    level3UI = new Level3UI(null, FileUtils.readFile(leftFile), null);
+                                if (otherFile.isEmpty())
+                                    level3UI = new Level3UI(null, FileUtils.readFile(thisFile), null, false);
                                 else {
-                                    FileUtils.LineResult lr = FileUtils.compareFiles(rightFile.get(), leftFile);
-                                    level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges());
+                                    lr = FileUtils.compareFiles(thisFile, otherFile.get());
+                                    level3UI = new Level3UI(lr.right(), lr.left(), lr.specificLineChanges(), true);
                                 }
                             }
                             frame.add(level3UI);
@@ -513,7 +524,6 @@ public class SwingInterface {
             }
 
             protected void done() {
-
                 frame.invalidate();
                 frame.revalidate();
                 frame.repaint();
@@ -525,9 +535,14 @@ public class SwingInterface {
 
     private static final class Level3UI extends JPanel {
 
-        public Level3UI(List<String> leftLines, List<String> rightLines, List<FileUtils.SpecificLineChange> lineChanges) {
+        private final JSplitPane splitPane;
+        private final boolean swapLineChanges;
+
+        public Level3UI(List<String> leftLines, List<String> rightLines, List<FileUtils.SpecificLineChange> lineChanges, boolean swapLineChanges) {
             super(new GridBagLayout());
             setFocusable(false);
+
+            this.swapLineChanges = swapLineChanges;
 
             JTextPane leftTextPane = new JTextPane();
             leftTextPane.setEditable(false);
@@ -556,7 +571,7 @@ public class SwingInterface {
             rightJSP.getVerticalScrollBar().setUnitIncrement(20);
 
 
-            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftJSP, rightJSP);
+            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftJSP, rightJSP);
             splitPane.setResizeWeight(0.5);
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
@@ -566,75 +581,95 @@ public class SwingInterface {
             gbc.weightx = 1;
             add(splitPane, gbc);
         }
-    }
 
-    private static void changeColor(JTextPane textPane, List<FileUtils.SpecificLineChange> lineChanges, Side side) {
-        MutableAttributeSet attrs = textPane.getInputAttributes();
-        StyledDocument doc = textPane.getStyledDocument();
+        private void changeColor(JTextPane textPane, List<FileUtils.SpecificLineChange> lineChanges, Side side) {
+            MutableAttributeSet attrs = textPane.getInputAttributes();
+            StyledDocument doc = textPane.getStyledDocument();
 
-        String[] lines = textPane.getText().split("\n");
-        int offset = 0;
+            String[] lines = textPane.getText().split("\n");
+            int offset = 0;
 
-        //Change color of every added + to green
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            int space = String.valueOf(i).length() + 4;
-            int indexOfPlus = line.indexOf("+");
+            //Change color of every added + to green
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
+                int space = String.valueOf(i).length() + 4;
+                int indexOfPlus = line.indexOf("+");
 
-            if (indexOfPlus >= 0 && indexOfPlus <= space) {
-                StyleConstants.setBackground(attrs, Color.GREEN);
-                StyleConstants.setForeground(attrs, Color.BLACK);
-                doc.setCharacterAttributes(offset + indexOfPlus, 1, attrs, false);
+                if (indexOfPlus >= 0 && indexOfPlus < space) {
+                    StyleConstants.setBackground(attrs, Color.GREEN);
+                    StyleConstants.setForeground(attrs, Color.BLACK);
+                    doc.setCharacterAttributes(offset + indexOfPlus, 1, attrs, false);
+                }
+                offset += line.length() + 1;
             }
-            offset += line.length() + 1;
-        }
 
-        offset = 0;
+            offset = 0;
 
-        //Change color of every added - to red
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            int space = String.valueOf(i).length() + 4;
-            int indexOfMinus = line.indexOf("-");
+            //Change color of every added - to red
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
+                int space = String.valueOf(i).length() + 4;
+                int indexOfMinus = line.indexOf("-");
 
-            if (indexOfMinus >= 0 && indexOfMinus <= space) {
-                StyleConstants.setBackground(attrs, Color.RED);
-                StyleConstants.setForeground(attrs, Color.BLACK);
-                doc.setCharacterAttributes(offset + indexOfMinus, 1, attrs, false);
+                if (indexOfMinus >= 0 && indexOfMinus < space) {
+                    StyleConstants.setBackground(attrs, Color.RED);
+                    StyleConstants.setForeground(attrs, Color.BLACK);
+                    doc.setCharacterAttributes(offset + indexOfMinus, 1, attrs, false);
+                }
+                offset += line.length() + 1;
             }
-            offset += line.length() + 1;
-        }
 
-        offset = 0;
+            offset = 0;
 
-        //Change color of every added ! to orange
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            int space = String.valueOf(i).length() + 4;
-            int indexOfExclamationMark = line.indexOf("!");
+            //Change color of every added ! to orange
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
+                int space = String.valueOf(i).length() + 4;
+                int indexOfExclamationMark = line.indexOf("!");
 
-            if (indexOfExclamationMark >= 0 && indexOfExclamationMark <= space) {
-                StyleConstants.setBackground(attrs, Color.ORANGE);
-                StyleConstants.setForeground(attrs, Color.BLACK);
-                doc.setCharacterAttributes(offset + indexOfExclamationMark, 1, attrs, false);
-            }
-            offset += line.length() + 1;
-        }
-
-        if (lineChanges != null) {
-            for (FileUtils.SpecificLineChange change : lineChanges) {
-                if (change.displaySide() == side) {
-                    offset = 0;
-                    int lineNumber = change.lineNumber();
-                    int index = change.index();
-
-                    for (int i = 0; i < lineNumber - 1; i++) {
-                        offset += lines[i].length() + 1;
-                    }
-                    int indexOfMarked = offset + index;
+                if (indexOfExclamationMark >= 0 && indexOfExclamationMark < space) {
                     StyleConstants.setBackground(attrs, Color.ORANGE);
                     StyleConstants.setForeground(attrs, Color.BLACK);
-                    doc.setCharacterAttributes(indexOfMarked, 1, attrs, false);
+                    doc.setCharacterAttributes(offset + indexOfExclamationMark, 1, attrs, false);
+                }
+                offset += line.length() + 1;
+            }
+
+            if (lineChanges != null) {
+                for (FileUtils.SpecificLineChange change : lineChanges) {
+                    if (!swapLineChanges) {
+                        if (side == change.displaySide()) {
+
+                            offset = 0;
+                            int lineNumber = change.lineNumber();
+                            int index = change.index();
+
+                            for (int i = 0; i < lineNumber - 1; i++) {
+                                offset += lines[i].length() + 1;
+                            }
+
+                            int indexOfMarked = offset + index;
+                            StyleConstants.setBackground(attrs, Color.ORANGE);
+                            StyleConstants.setForeground(attrs, Color.BLACK);
+                            doc.setCharacterAttributes(indexOfMarked, 1, attrs, false);
+                        }
+                    } else {
+                        if (side != change.displaySide()) {
+
+                            offset = 0;
+                            int lineNumber = change.lineNumber();
+                            int index = change.index();
+
+                            for (int i = 0; i < lineNumber - 1; i++) {
+                                offset += lines[i].length() + 1;
+                            }
+
+                            int indexOfMarked = offset + index;
+                            StyleConstants.setBackground(attrs, Color.ORANGE);
+                            StyleConstants.setForeground(attrs, Color.BLACK);
+                            doc.setCharacterAttributes(indexOfMarked, 1, attrs, false);
+                        }
+                    }
                 }
             }
         }
@@ -666,11 +701,8 @@ public class SwingInterface {
     private void changeActivePanelFromTo(JPanel oldPanel, JPanel newPanel) {
         oldPanel.setVisible(false);
         newPanel.setVisible(true);
-
-        /*frame.invalidate();
-        frame.revalidate();
-        frame.repaint();*/
     }
+
 
     private void switchThemeTo(SwingTheme theme) {
         try {
