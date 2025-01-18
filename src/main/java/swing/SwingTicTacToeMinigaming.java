@@ -8,7 +8,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 
-public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener, KeyListener {
+public class SwingTicTacToeMinigaming extends JPanel implements MouseInputListener, KeyListener {
 
     //Board
     public int[][] gameState = new int[3][3];
@@ -19,7 +19,7 @@ public class SwingTicTacToeMinigame extends JPanel implements MouseInputListener
     private Dimension oldSize = null;
     private JPanel parent = null;
 
-    public SwingTicTacToeMinigame() {
+    public SwingTicTacToeMinigaming() {
         super();
 
         this.setBackground(Color.BLACK);

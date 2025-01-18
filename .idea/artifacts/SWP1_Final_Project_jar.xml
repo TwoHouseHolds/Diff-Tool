@@ -1,5 +1,5 @@
 <component name="ArtifactManager">
-  <artifact type="jar" build-on-make="true" name="SWP1_Final_Project:jar">
+  <artifact type="jar" name="SWP1_Final_Project:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/SWP1_Final_Project_jar</output-path>
     <root id="archive" name="SWP1_Final_Project.jar">
       <element id="module-output" name="SWP1_Final_Project" />
