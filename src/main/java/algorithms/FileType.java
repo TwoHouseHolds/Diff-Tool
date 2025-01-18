@@ -8,7 +8,6 @@ public enum FileType {
     ZIP(new int[]{0x50, 0x4B, 0x03, 0x04}, new int[]{0x50, 0x4B, 0x05, 0x06}, new int[]{0x50, 0x4B, 0x07, 0x08}), // (comments to fix auto-formating)
     RAR(new int[]{0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00}, new int[]{0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00}), //
     PDF(0x25, 0x50, 0x44, 0x46, 0x2D), //
-    XML(0x3C, 0x3F, 0x78, 0x6D, 0x6C), //
     EXE(new int[]{0x4D, 0x5A}, new int[]{0x5A, 0x4D}), //
     JPG(0xFF, 0xD8, 0xFF), //
     PNG(0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A), //
@@ -43,11 +42,12 @@ public enum FileType {
         alternativeMagicNumbers.addAll(Arrays.asList(alternatives));
     }
 
-    public record MagicNumberWithOffset(int offset, boolean offsetFromLeft, int... magicNumber) {
-    } // if offsetFromLeft is false, the offset is applied at the end/right of the file, e.g. the offset of .dmg files is "end – 512"
-
     FileType(MagicNumberWithOffset... offsetMagicNumbers) {
         magicNumbers = null;
         magicNumbersWithOffset.addAll(Arrays.asList(offsetMagicNumbers));
     }
+
+    public record MagicNumberWithOffset(int offset, boolean offsetFromLeft, int... magicNumber) {
+    } // if offsetFromLeft is false, the offset is applied at the end/right of the file, e.g. the offset of .dmg files is "end – 512"
+
 }
