@@ -675,15 +675,14 @@ public class SwingInterface {
     private void switchThemeTo(SwingTheme theme) {
         try {
             UIManager.setLookAndFeel(theme.laf);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            String[] components = {"Panel", "OptionPane", "Label", "Button", "TextField", "TextPane", "CheckBox",
+                    "ComboBox", "List", "MenuBar", "Menu", "MenuItem", "SplitPane", "Frame", "FileChooser", "ScrollBar",
+                    "ScrollPane"};
+            Arrays.stream(components).forEach(component -> UIManager.put(component + ".foreground", theme.textColor));
+            SwingUtilities.updateComponentTreeUI(frame);
+            Preferences preferences = Preferences.userNodeForPackage(SwingInterface.class);
+            preferences.put("theme", theme.toString());
+        } catch (Exception ignored) {
         }
-        String[] components = {"Panel", "OptionPane", "Label", "Button", "TextField", "TextPane", "CheckBox",
-                "ComboBox", "List", "MenuBar", "Menu", "MenuItem", "SplitPane", "Frame", "FileChooser", "ScrollBar",
-                "ScrollPane"};
-        Arrays.stream(components).forEach(component -> UIManager.put(component + ".foreground", theme.textColor));
-        SwingUtilities.updateComponentTreeUI(frame);
-        Preferences preferences = Preferences.userNodeForPackage(SwingInterface.class);
-        preferences.put("theme", theme.toString());
     }
 }
