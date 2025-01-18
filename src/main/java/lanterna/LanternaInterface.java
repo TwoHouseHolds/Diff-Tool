@@ -62,6 +62,10 @@ public class LanternaInterface {
     private WindowBasedTextGUI textGUI;
     private TerminalScreen screen;
 
+    List<String> leftLines = new ArrayList<>();
+    List<String> rightLines = new ArrayList<>();
+    List<SpecificLineChange> lineChanges = new ArrayList<>();
+
     /**
      * Start the Lanterna interface
      *
@@ -83,6 +87,7 @@ public class LanternaInterface {
             String theme = prefs.get("theme", "default");
             Theme lanternaTheme = LanternaThemes.getRegisteredTheme(theme);
             textGUI.setTheme(lanternaTheme);
+
 
             window = new BasicWindow();
             window.setHints(Set.of(Window.Hint.FIT_TERMINAL_WINDOW, Window.Hint.CENTERED));
@@ -351,6 +356,10 @@ public class LanternaInterface {
         comboBox.addListener((i, i2, i3) -> {
             listBox.clearItems();
             listBox.addItem("Lade Daten...", () -> {});
+            //tryScreenUpdate();
+            comboBox.setEnabled(false);
+            reverseBox.setEnabled(false);
+            searchBox.setEnabled(false);
             //noinspection rawtypes
             SwingWorker worker = new SwingWorker() {
                 @Override
@@ -359,42 +368,24 @@ public class LanternaInterface {
                         case 0: {
                             if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.UNSORTED);
                             else interfaceState.setSortTypeRight(SortType.UNSORTED);
-                            listBox.clearItems();
                             displayList(firstFiles, secondFiles, side, listBox, searchBox);
                             break;
                         }
                         case 1: {
                             if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.ALPHABETICAL);
                             else interfaceState.setSortTypeRight(SortType.ALPHABETICAL);
-                            boolean reverse = reverseBox.isChecked();
-                            if(reverse) {
-                                manageSortedList(Comparator.comparing(File::getName).reversed(), listBox, firstFiles, secondFiles, side, searchBox);
-                            } else {
-                                manageSortedList(Comparator.comparing(File::getName), listBox, firstFiles, secondFiles, side, searchBox);
-                            }
+                            manageReversedSort(Comparator.comparing(File::getName), reverseBox, listBox, firstFiles, secondFiles, side, searchBox);
                             break;
                         }
                         case 2: {
                             if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.SIZE);
                             else interfaceState.setSortTypeRight(SortType.SIZE);
-                            boolean reverse = reverseBox.isChecked();
-                            if(reverse) {
-                                manageSortedList(Comparator.comparing(File::length).reversed(), listBox, firstFiles, secondFiles, side, searchBox);
-                            } else {
-                                manageSortedList(Comparator.comparing(File::length), listBox, firstFiles, secondFiles, side, searchBox);
-                            }
-                            break;
+                            manageReversedSort(Comparator.comparing(File::length), reverseBox, listBox, firstFiles, secondFiles, side, searchBox);
                         }
                         case 3: {
                             if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.DATE);
                             else interfaceState.setSortTypeRight(SortType.DATE);
-                            boolean reverse = reverseBox.isChecked();
-                            if(reverse) {
-                                manageSortedList(Comparator.comparing(File::lastModified).reversed(), listBox, firstFiles, secondFiles, side,searchBox);
-                            } else {
-                                manageSortedList(Comparator.comparing(File::lastModified), listBox, firstFiles, secondFiles, side, searchBox);
-                            }
-                            break;
+                            manageReversedSort(Comparator.comparing(File::lastModified), reverseBox, listBox, firstFiles, secondFiles, side, searchBox);
                         }
 
                     }
@@ -405,6 +396,9 @@ public class LanternaInterface {
                 protected void done() {
                     super.done();
                     tryScreenUpdate();
+                    comboBox.setEnabled(true);
+                    reverseBox.setEnabled(true);
+                    searchBox.setEnabled(true);
                 }
             };
 
@@ -412,7 +406,17 @@ public class LanternaInterface {
         });
     }
 
+    private void manageReversedSort(Comparator<File> comparing, CheckBox reverseBox, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side, TextBox searchBox) {
+        boolean reverse = reverseBox.isChecked();
+        if(reverse) {
+            manageSortedList(comparing.reversed(), listBox, firstFiles, secondFiles, side, searchBox);
+        } else {
+            manageSortedList(comparing, listBox, firstFiles, secondFiles, side, searchBox);
+        }
+    }
+
     private void displayList(List<File> firstFiles, List<File> secondFiles, Side side, ActionListBox listBox, TextBox searchBox) {
+        listBox.clearItems();
         for(File file : firstFiles) {
             String fileName = file.getName();
             String search = searchBox.getText().toLowerCase();
@@ -432,7 +436,6 @@ public class LanternaInterface {
     }
 
     private void manageSortedList(Comparator<File> comparing, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side, TextBox searchBox) {
-        listBox.clearItems();
         List<File> sortedFiles = new ArrayList<>(firstFiles);
         sortedFiles.sort(comparing);
         displayList(sortedFiles, secondFiles, side, listBox, searchBox);
@@ -476,52 +479,74 @@ public class LanternaInterface {
         leftPanel.addComponent(new Label("Datei im linken Verzeichnis " + leftFile.getName() + " :").addStyle(SGR.BOLD));
         rightPanel.addComponent(new Label("Datei im rechten Verzeichnis " + rightFile.getName() + " :").addStyle(SGR.BOLD));
 
-        List<String> leftLines = new ArrayList<>();
-        List<String> rightLines = new ArrayList<>();
-        List<SpecificLineChange> lineChanges = new ArrayList<>();
-
-        if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
-            leftLines = FileUtils.readFile(leftFile);
-            rightLines = leftLines;
-        }
-
-        if (leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
-            rightLines = FileUtils.readFile(rightFile);
-            leftLines = rightLines;
-        }
-
-        if (!leftFile.equals(rightFile)) {
-            FileUtils.LineResult result = FileUtils.compareFiles(leftFile, rightFile);
-
-            if(selectedSide == Side.LEFT) {
-                leftLines = result.left();
-                rightLines = result.right();
-            } else {
-                leftLines = result.right();
-                rightLines = result.left();
-            }
-
-            lineChanges = result.specificLineChanges();
-        }
+        leftLines = new ArrayList<>();
+        rightLines = new ArrayList<>();
+        lineChanges = new ArrayList<>();
 
         ColoredTextBox leftTextBox = new ColoredTextBox(new TerminalSize(100, 100), selectedSide == Side.LEFT ? Side.LEFT : Side.RIGHT);
         ColoredTextBox rightTextBox = new ColoredTextBox(new TerminalSize(100, 100), selectedSide == Side.LEFT ? Side.RIGHT : Side.LEFT);
 
-        for (String line : leftLines) {
-            leftTextBox.addLine(line);
-        }
-
-        for (String line : rightLines) {
-            rightTextBox.addLine(line);
-        }
-
-        if (!lineChanges.isEmpty()) {
-            leftTextBox.setSpecificLineChanges(lineChanges);
-            rightTextBox.setSpecificLineChanges(lineChanges);
-        }
-
         leftTextBox.setReadOnly(true);
         rightTextBox.setReadOnly(true);
+
+        leftTextBox.setText("Lade Daten...");
+        rightTextBox.setText("Lade Daten...");
+
+
+        //noinspection rawtypes
+        SwingWorker worker = new SwingWorker() {
+            @Override
+            protected Object doInBackground() {
+                if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
+                    leftLines = FileUtils.readFile(leftFile);
+                    rightLines = leftLines;
+                }
+
+                if (leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
+                    rightLines = FileUtils.readFile(rightFile);
+                    leftLines = rightLines;
+                }
+
+                if (!leftFile.equals(rightFile)) {
+                    FileUtils.LineResult result = FileUtils.compareFiles(leftFile, rightFile);
+
+                    if(selectedSide == Side.LEFT) {
+                        leftLines = result.left();
+                        rightLines = result.right();
+                    } else {
+                        leftLines = result.right();
+                        rightLines = result.left();
+                    }
+
+                    lineChanges = result.specificLineChanges();
+                }
+
+                leftTextBox.setText("");
+
+                for (String line : leftLines) {
+                    leftTextBox.addLine(line);
+                }
+
+                rightTextBox.setText("");
+
+                for (String line : rightLines) {
+                    rightTextBox.addLine(line);
+                }
+
+                if (!lineChanges.isEmpty()) {
+                    leftTextBox.setSpecificLineChanges(lineChanges);
+                    rightTextBox.setSpecificLineChanges(lineChanges);
+                }
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                super.done();
+            }
+        };
+
+        worker.execute();
 
         leftPanel.addComponent(leftTextBox);
         rightPanel.addComponent(rightTextBox);
