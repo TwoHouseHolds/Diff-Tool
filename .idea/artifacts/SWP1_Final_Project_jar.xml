@@ -5,6 +5,7 @@
       <element id="module-output" name="SWP1_Final_Project" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/gnu/getopt/java-getopt/1.0.13/java-getopt-1.0.13.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/googlecode/lanterna/lanterna/3.1.1/lanterna-3.1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/formdev/flatlaf/3.5.4/flatlaf-3.5.4.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
