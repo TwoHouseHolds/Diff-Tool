@@ -2,6 +2,7 @@ package lanterna;
 
 import algorithms.FileUtils;
 import algorithms.FileUtils.SpecificLineChange;
+import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
 import swing.SwingInterface;
@@ -88,8 +89,12 @@ public class LanternaInterface {
 
             getInput(List.of("Erstes Verzeichnis", "Zweites Verzeichnis"), this::compareDirectories);
 
-            textGUI.addWindowAndWait(window);
+            TerminalSize screenSize = textGUI.getScreen().getTerminalSize();
+            int x = (screenSize.getColumns() / 2);
+            int y = (screenSize.getRows() ) / 2;
+            window.setPosition(new TerminalPosition(x, y));
 
+            textGUI.addWindowAndWait(window);
         } catch (Exception e) {
             System.out.println("Initialization of Lanterna Interface has failed. Please try again and check the Error message");
             System.out.println(e.getMessage());
@@ -272,19 +277,24 @@ public class LanternaInterface {
         CheckBox leftReverseBox = new CheckBox("Umgekehrte Reihenfolge");
         CheckBox rightReverseBox = new CheckBox("Umgekehrte Reihenfolge");
 
+        TextBox leftSearchBox = new TextBox(new TerminalSize(30, 1));
+        TextBox rightSearchBox = new TextBox(new TerminalSize(30, 1));
+
         leftReverseBox.setChecked(interfaceState.isSortLeftReversed());
         rightReverseBox.setChecked(interfaceState.isSortRightReversed());
 
-        manageSortingBox(leftComboBox, leftListBox, leftFiles, rightFiles, Side.LEFT, leftReverseBox);
-        manageSortingBox(rightComboBox, rightListBox, rightFiles, leftFiles, Side.RIGHT, rightReverseBox);
+        manageSortingBox(leftComboBox, leftListBox, leftFiles, rightFiles, Side.LEFT, leftReverseBox, leftSearchBox);
+        manageSortingBox(rightComboBox, rightListBox, rightFiles, leftFiles, Side.RIGHT, rightReverseBox, rightSearchBox);
 
         leftComboBox.setSelectedIndex(interfaceState.getSortTypeLeft());
         rightComboBox.setSelectedIndex(interfaceState.getSortTypeRight());
 
         leftPanel.addComponent(leftComboBox);
         leftPanel.addComponent(leftReverseBox);
+        leftPanel.addComponent(leftSearchBox);
         rightPanel.addComponent(rightComboBox);
         rightPanel.addComponent(rightReverseBox);
+        rightPanel.addComponent(rightSearchBox);
         leftPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         rightPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         leftPanel.addComponent(leftListBox);
@@ -296,6 +306,20 @@ public class LanternaInterface {
         menuPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         menuPanel.addComponent(outterPanel);
         window.setComponent(menuPanel);
+
+        leftSearchBox.setTextChangeListener((s, s1) -> {
+            leftListBox.clearItems();
+            String search = leftSearchBox.getText().toLowerCase();
+            List<File> filteredFiles = leftFiles.stream().filter(f -> f.getName().toLowerCase().contains(search)).toList();
+            displayList(filteredFiles, rightFiles, Side.LEFT, leftListBox, leftSearchBox);
+        });
+
+        rightSearchBox.setTextChangeListener((s, s1) -> {
+            rightListBox.clearItems();
+            String search = rightSearchBox.getText().toLowerCase();
+            List<File> filteredFiles = rightFiles.stream().filter(f -> f.getName().toLowerCase().contains(search)).toList();
+            displayList(filteredFiles, rightFiles, Side.RIGHT, rightListBox, rightSearchBox);
+        });
 
         WindowListenerAdapter listener = new WindowListenerAdapter() {
             @Override
@@ -323,7 +347,7 @@ public class LanternaInterface {
         window.addWindowListener(listener);
     }
 
-    private void manageSortingBox(ComboBox<String> comboBox, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side, CheckBox reverseBox) {
+    private void manageSortingBox(ComboBox<String> comboBox, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side, CheckBox reverseBox, TextBox searchBox) {
         comboBox.addListener((i, i2, i3) -> {
             listBox.clearItems();
             listBox.addItem("Lade Daten...", () -> {});
@@ -336,7 +360,7 @@ public class LanternaInterface {
                             if(side == Side.LEFT) interfaceState.setSortTypeLeft(SortType.UNSORTED);
                             else interfaceState.setSortTypeRight(SortType.UNSORTED);
                             listBox.clearItems();
-                            displayList(firstFiles, secondFiles, side, listBox);
+                            displayList(firstFiles, secondFiles, side, listBox, searchBox);
                             break;
                         }
                         case 1: {
@@ -344,9 +368,9 @@ public class LanternaInterface {
                             else interfaceState.setSortTypeRight(SortType.ALPHABETICAL);
                             boolean reverse = reverseBox.isChecked();
                             if(reverse) {
-                                manageSortedList(Comparator.comparing(File::getName).reversed(), listBox, firstFiles, secondFiles, side);
+                                manageSortedList(Comparator.comparing(File::getName).reversed(), listBox, firstFiles, secondFiles, side, searchBox);
                             } else {
-                                manageSortedList(Comparator.comparing(File::getName), listBox, firstFiles, secondFiles, side);
+                                manageSortedList(Comparator.comparing(File::getName), listBox, firstFiles, secondFiles, side, searchBox);
                             }
                             break;
                         }
@@ -355,9 +379,9 @@ public class LanternaInterface {
                             else interfaceState.setSortTypeRight(SortType.SIZE);
                             boolean reverse = reverseBox.isChecked();
                             if(reverse) {
-                                manageSortedList(Comparator.comparing(File::length).reversed(), listBox, firstFiles, secondFiles, side);
+                                manageSortedList(Comparator.comparing(File::length).reversed(), listBox, firstFiles, secondFiles, side, searchBox);
                             } else {
-                                manageSortedList(Comparator.comparing(File::length), listBox, firstFiles, secondFiles, side);
+                                manageSortedList(Comparator.comparing(File::length), listBox, firstFiles, secondFiles, side, searchBox);
                             }
                             break;
                         }
@@ -366,9 +390,9 @@ public class LanternaInterface {
                             else interfaceState.setSortTypeRight(SortType.DATE);
                             boolean reverse = reverseBox.isChecked();
                             if(reverse) {
-                                manageSortedList(Comparator.comparing(File::lastModified).reversed(), listBox, firstFiles, secondFiles, side);
+                                manageSortedList(Comparator.comparing(File::lastModified).reversed(), listBox, firstFiles, secondFiles, side,searchBox);
                             } else {
-                                manageSortedList(Comparator.comparing(File::lastModified), listBox, firstFiles, secondFiles, side);
+                                manageSortedList(Comparator.comparing(File::lastModified), listBox, firstFiles, secondFiles, side, searchBox);
                             }
                             break;
                         }
@@ -388,9 +412,13 @@ public class LanternaInterface {
         });
     }
 
-    private void displayList(List<File> firstFiles, List<File> secondFiles, Side side, ActionListBox listBox) {
+    private void displayList(List<File> firstFiles, List<File> secondFiles, Side side, ActionListBox listBox, TextBox searchBox) {
         for(File file : firstFiles) {
             String fileName = file.getName();
+            String search = searchBox.getText().toLowerCase();
+            if(!search.isEmpty() && !fileName.toLowerCase().contains(search)) {
+                continue;
+            }
             boolean inBoth = secondFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
             File rightFile = inBoth ? secondFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
             if (inBoth) {
@@ -403,11 +431,11 @@ public class LanternaInterface {
         tryScreenUpdate();
     }
 
-    private void manageSortedList(Comparator<File> comparing, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side) {
+    private void manageSortedList(Comparator<File> comparing, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side, TextBox searchBox) {
         listBox.clearItems();
         List<File> sortedFiles = new ArrayList<>(firstFiles);
         sortedFiles.sort(comparing);
-        displayList(sortedFiles, secondFiles, side, listBox);
+        displayList(sortedFiles, secondFiles, side, listBox, searchBox);
     }
 
     private String getFormattedFileName(File leftFile, String fileName, File rightFile) {
@@ -454,12 +482,12 @@ public class LanternaInterface {
 
         if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
             leftLines = FileUtils.readFile(leftFile);
-            rightLines = new ArrayList<>();
+            rightLines = leftLines;
         }
 
         if (leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
             rightLines = FileUtils.readFile(rightFile);
-            leftLines = new ArrayList<>();
+            leftLines = rightLines;
         }
 
         if (!leftFile.equals(rightFile)) {
