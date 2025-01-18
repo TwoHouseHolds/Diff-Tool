@@ -606,6 +606,39 @@ public class SwingInterface {
                     Arrays.stream(leftJSP.getHorizontalScrollBar().getAdjustmentListeners()).forEach(leftJSP.getHorizontalScrollBar()::removeAdjustmentListener);
                 }
             });
+
+            JButton saveBtn = new JButton("Differenz exportieren");
+            gbc.gridy = 2;
+            gbc.weighty = 0;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.anchor = GridBagConstraints.CENTER;
+            add(saveBtn, gbc);
+
+            saveBtn.addActionListener(click -> {
+                Object[] options = {"Textdatei", "HTML", "Abbrechen"};
+                int optionPaneResult = JOptionPane.showOptionDialog(this, //
+                        "Als HTML oder als Textdatei speichern?", "Differenz Speichern", //
+                        JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
+                if (optionPaneResult == JOptionPane.YES_OPTION || optionPaneResult == JOptionPane.NO_OPTION) {
+                    JFileChooser jfc = new JFileChooser();
+                    jfc.setCurrentDirectory(new File("."));
+                    jfc.setDialogTitle("Datei Speichern");
+                    int result = jfc.showSaveDialog(this);
+                    if (result == JFileChooser.APPROVE_OPTION) {
+                        File fileToSaveIn = jfc.getSelectedFile();
+                        if (optionPaneResult == JOptionPane.YES_OPTION) {
+                            boolean savedSuccessfully = FileUtils.saveDiffAsText(null, null, fileToSaveIn, //
+                                    new FileUtils.LineResult(leftLines, rightLines, lineChanges));
+                            if(!savedSuccessfully) JOptionPane.showMessageDialog(this, "Konnte nicht gespeichert werden!", "Fehler", JOptionPane.ERROR_MESSAGE);
+                        } else {
+                            boolean savedSuccessfully = FileUtils.saveDiffAsHTML(null, null, fileToSaveIn, //
+                                    new FileUtils.LineResult(leftLines, rightLines, lineChanges));
+                            if(!savedSuccessfully) JOptionPane.showMessageDialog(this, "Konnte nicht gespeichert werden!", "Fehler", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }
+
+            });
         }
 
         private void changeColor(JTextPane textPane, List<FileUtils.SpecificLineChange> lineChanges, Side side) {
@@ -733,9 +766,7 @@ public class SwingInterface {
     private void switchThemeTo(SwingTheme theme) {
         try {
             UIManager.setLookAndFeel(theme.laf);
-            String[] components = {"Panel", "OptionPane", "Label", "Button", "TextField", "TextPane", "CheckBox",
-                    "ComboBox", "List", "MenuBar", "Menu", "MenuItem", "SplitPane", "Frame", "FileChooser", "ScrollBar",
-                    "ScrollPane"};
+            String[] components = {"Panel", "OptionPane", "Label", "Button", "TextField", "TextPane", "CheckBox", "ComboBox", "List", "MenuBar", "Menu", "MenuItem", "SplitPane", "Frame", "FileChooser", "ScrollBar", "ScrollPane"};
             Arrays.stream(components).forEach(component -> UIManager.put(component + ".foreground", theme.textColor));
             SwingUtilities.updateComponentTreeUI(frame);
             Preferences preferences = Preferences.userNodeForPackage(SwingInterface.class);
