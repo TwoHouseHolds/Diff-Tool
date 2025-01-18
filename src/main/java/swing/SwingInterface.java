@@ -5,6 +5,7 @@ import lanterna.LanternaInterface;
 import utils.Side;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -45,7 +46,7 @@ public class SwingInterface {
             Preferences prefs = Preferences.userNodeForPackage(SwingInterface.class);
             String themeString = prefs.get("theme", SwingTheme.DARK.toString());
             SwingTheme startTheme = null;
-            for(SwingTheme theme : SwingTheme.values()) if (theme.toString().equals(themeString)) startTheme = theme;
+            for (SwingTheme theme : SwingTheme.values()) if (theme.toString().equals(themeString)) startTheme = theme;
             switchThemeTo(startTheme);
 
             SwingUtilities.updateComponentTreeUI(frame);
@@ -56,12 +57,12 @@ public class SwingInterface {
     //TODO translate to german and correct the information in menu
     private final class Menu extends JMenuBar {
         JButton back = new JButton("⬅");
+        JMenuItem ticTacToe = new JMenuItem("TicTacToe Minispiel");
 
         public Menu(JFrame frame) {
             back.setVisible(false);
             add(back);
 
-            JMenuItem ticTacToe = new JMenuItem("TicTacToe Minispiel");
             ticTacToe.addActionListener(e -> {
                 ticTacToe.setEnabled(false);
                 JPanel parent = level1UI.isVisible() ? level1UI : level2UI != null && level2UI.isVisible() ? level2UI : level3UI;
@@ -146,7 +147,7 @@ public class SwingInterface {
 
             JMenu settingsMenu = new JMenu("Einstellungen");
             JMenu themeItem = new JMenu("Theme");
-            for(SwingTheme theme : SwingTheme.values()) {
+            for (SwingTheme theme : SwingTheme.values()) {
                 JMenuItem mi = new JMenuItem(theme.toString());
                 mi.addActionListener(e -> {
                     switchThemeTo(theme);
@@ -171,6 +172,17 @@ public class SwingInterface {
             }
         }
 
+        public void deactivate() {
+            backButton.setEnabled(false);
+            forwardButton.setEnabled(false);
+            ticTacToe.setEnabled(false);
+        }
+
+        public void activate() {
+            backButton.setEnabled(true);
+            forwardButton.setEnabled(true);
+            ticTacToe.setEnabled(true);
+        }
 
     }
 
@@ -293,6 +305,9 @@ public class SwingInterface {
 
     private final class Level2UI extends JPanel {
 
+        private FileUtils.LineResult lr;
+        JList<String> leftList;
+        JList<String> rightList;
 
         public Level2UI(List<File> leftFiles, List<File> rightFiles) {
             super(new GridBagLayout());
@@ -307,10 +322,10 @@ public class SwingInterface {
             gbc.fill = GridBagConstraints.BOTH;
             gbc.insets = new Insets(1, 1, 1, 1);
 
-            JList<String> leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, Side.LEFT));
+            leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, Side.LEFT));
             applyListSelectionListener(leftList, leftFiles, rightFiles, Side.LEFT);
 
-            JList<String> rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, Side.RIGHT));
+            rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, Side.RIGHT));
             applyListSelectionListener(rightList, rightFiles, leftFiles, Side.RIGHT);
 
             JScrollPane leftScrollPane = new JScrollPane(leftList);
@@ -399,23 +414,53 @@ public class SwingInterface {
                     //Stream findet in den right Files die left File mit gleichem Namen, falls diese vorhanden ist, falls nicht, wird ein leeres Optional zurückgegeben
                     Optional<File> rightFile = rightFiles.stream().filter(f -> f.getName().equals(leftFile.getName())).findFirst();
 
-                    if (sideInformation.equals(Side.LEFT)) {
-                        if (rightFile.isEmpty()) level3UI = new Level3UI(FileUtils.readFile(leftFile), null, null);
-                        else {
-                            FileUtils.LineResult lr = FileUtils.compareFiles(leftFile, rightFile.get());
-                            level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges());
+                    deactivate();
+                    menu.deactivate();
+
+                    // noinspection rawtypes
+                    SwingWorker worker = new SwingWorker() {
+                        @Override
+                        protected Object doInBackground() throws Exception {
+                            if (sideInformation.equals(Side.LEFT)) {
+                                if (rightFile.isEmpty())
+                                    level3UI = new Level3UI(FileUtils.readFile(leftFile), null, null);
+                                else {
+                                    lr = FileUtils.compareFiles(leftFile, rightFile.get());
+                                    level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges());
+                                }
+                            } else { // called from right side
+                                if (rightFile.isEmpty())
+                                    level3UI = new Level3UI(null, FileUtils.readFile(leftFile), null);
+                                else {
+                                    FileUtils.LineResult lr = FileUtils.compareFiles(rightFile.get(), leftFile);
+                                    level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges());
+                                }
+                            }
+                            frame.add(level3UI);
+                            changeActivePanelFromTo(level2UI, level3UI);
+                            return null;
                         }
-                    } else { // called from right side
-                        if (rightFile.isEmpty()) level3UI = new Level3UI(null, FileUtils.readFile(leftFile), null);
-                        else {
-                            FileUtils.LineResult lr = FileUtils.compareFiles(rightFile.get(), leftFile);
-                            level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges());
+
+                        @Override
+                        protected void done() {
+                            super.done();
+                            activate();
+                            menu.activate();
                         }
-                    }
-                    frame.add(level3UI);
-                    changeActivePanelFromTo(level2UI, level3UI);
+                    };
+                    worker.execute();
                 }
             });
+        }
+
+        public void deactivate() {
+            leftList.setEnabled(false);
+            rightList.setEnabled(false);
+        }
+
+        public void activate() {
+            leftList.setEnabled(true);
+            rightList.setEnabled(true);
         }
     }
 
