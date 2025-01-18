@@ -77,8 +77,7 @@ public class HuntMcIlroy {
             int oldRow = row;
             int currentEntry = getMatrixData(hmiMatrix, row, col);
             // replacement for leftLines.get(row).equals(rightLines.get(col)) (expensive)
-            boolean leftDiagonalTopAllLower = currentEntry > max(
-                    getMatrixData(hmiMatrix, row, col - 1), // left
+            boolean leftDiagonalTopAllLower = currentEntry > max(getMatrixData(hmiMatrix, row, col - 1), // left
                     getMatrixData(hmiMatrix, row - 1, col), // above
                     getMatrixData(hmiMatrix, row - 1, col - 1) // diagonal
             );
@@ -118,49 +117,24 @@ public class HuntMcIlroy {
      * @param s2 Second string to compare
      */
     public static String compareString(String s1, String s2) {
-        int[][] lcs = HuntMcIlroy.huntMcIllroyMatrixString(s1, s2);
-        List<Integer> diff = HuntMcIlroy.buildDiffString(s1, s2, lcs);
-        StringBuilder sb = new StringBuilder(s1.length());
-        int matchPos = 0;
-        for (int i = 0; i < s1.length(); i++) {
-            if (matchPos < diff.size() && diff.get(matchPos) == i) {
-                sb.append('O');
-                matchPos++;
-            } else {
-                sb.append('!');
-            }
-        }
-        return sb.toString();
-    }
+        int[][] hmiMatrix = HuntMcIlroy.huntMcIllroyMatrixString(s1, s2);
 
-    /**
-     * Build a list of indices of matching characters between two strings
-     *
-     * @param s1 First string to compare
-     * @param s2 Second string to compare
-     * @param c  Longest Common Subsequence matrix
-     */
-    private static List<Integer> buildDiffString(String s1, String s2, int[][] c) {
-        int row = c.length - 1;
-        int col = c[0].length - 1;
-
-        List<Integer> matchedIndices = new ArrayList<>();
+        int row = hmiMatrix.length - 1;
+        int col = hmiMatrix[0].length - 1;
+        StringBuilder result = new StringBuilder(s1.length());
 
         while (row > 0 && col > 0) {
             if (s1.charAt(row - 1) == s2.charAt(col - 1)) {
-                matchedIndices.add(row - 1);
+                result.insert(0, "O");
                 row--;
                 col--;
             } else {
-                if (c[row - 1][col] > c[row][col - 1]) {
-                    row--;
-                } else {
-                    col--;
-                }
+                if (hmiMatrix[row - 1][col] > hmiMatrix[row][col - 1]) row--;
+                else col--;
+                result.insert(0, "!");
             }
         }
-        java.util.Collections.reverse(matchedIndices);
-        return matchedIndices;
+        return result.toString();
     }
 
     /**
@@ -171,16 +145,16 @@ public class HuntMcIlroy {
      * @return Longest Common Subsequence matrix
      */
     private static int[][] huntMcIllroyMatrixString(String s1, String s2) {
-        int[][] lcs = new int[s1.length() + 1][s2.length() + 1];
-        for (int row = 1; row <= lcs.length - 1; row++) {
-            for (int col = 1; col <= lcs[0].length - 1; col++) {
+        int[][] hmiMatrix = new int[s1.length() + 1][s2.length() + 1];
+        for (int row = 1; row <= hmiMatrix.length - 1; row++) {
+            for (int col = 1; col <= hmiMatrix[0].length - 1; col++) {
                 if (s1.charAt(row - 1) == s2.charAt(col - 1)) {
-                    lcs[row][col] = lcs[row - 1][col - 1] + 1;
+                    hmiMatrix[row][col] = hmiMatrix[row - 1][col - 1] + 1;
                 } else {
-                    lcs[row][col] = Math.max(lcs[row - 1][col], lcs[row][col - 1]);
+                    hmiMatrix[row][col] = Math.max(hmiMatrix[row - 1][col], hmiMatrix[row][col - 1]);
                 }
             }
         }
-        return lcs;
+        return hmiMatrix;
     }
 }

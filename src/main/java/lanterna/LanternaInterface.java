@@ -560,10 +560,10 @@ public class LanternaInterface {
             if(linkedCheckBox.isChecked()) {
                 leftTextBox.setScrollSlave(rightTextBox);
                 rightTextBox.setEnabled(false);
-            } else {
-                leftTextBox.setScrollSlave(null);
-                rightTextBox.setEnabled(true);
+                return;
             }
+            leftTextBox.setScrollSlave(null);
+            rightTextBox.setEnabled(true);
         });
 
         addMenu(menuPanel);
