@@ -535,7 +535,6 @@ public class SwingInterface {
 
     private static final class Level3UI extends JPanel {
 
-        private final JSplitPane splitPane;
         private final boolean swapLineChanges;
 
         public Level3UI(List<String> leftLines, List<String> rightLines, List<FileUtils.SpecificLineChange> lineChanges, boolean swapLineChanges) {
@@ -571,15 +570,42 @@ public class SwingInterface {
             rightJSP.getVerticalScrollBar().setUnitIncrement(20);
 
 
-            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftJSP, rightJSP);
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftJSP, rightJSP);
             splitPane.setResizeWeight(0.5);
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.gridx = 0;
-            gbc.gridy = 0;
+            gbc.gridy = 1;
             gbc.weighty = 1;
             gbc.weightx = 1;
+            gbc.gridwidth = 3;
             add(splitPane, gbc);
+
+
+            JCheckBox synchronizedScrolling = new JCheckBox("Synchrones Scrollen");
+            gbc.gridy = 0;
+            gbc.weighty = 0;
+            gbc.fill = GridBagConstraints.NONE;
+            gbc.anchor = GridBagConstraints.CENTER;
+            add(synchronizedScrolling, gbc);
+
+            synchronizedScrolling.addActionListener(e -> {
+                if (synchronizedScrolling.isSelected()) {
+                    rightJSP.getHorizontalScrollBar().setEnabled(false);
+                    rightJSP.getVerticalScrollBar().setEnabled(false);
+                    leftJSP.getVerticalScrollBar().addAdjustmentListener(e1 -> {
+                        rightJSP.getVerticalScrollBar().setValue(leftJSP.getVerticalScrollBar().getValue());
+                    });
+                    leftJSP.getHorizontalScrollBar().addAdjustmentListener(e2 -> {
+                        rightJSP.getHorizontalScrollBar().setValue(leftJSP.getHorizontalScrollBar().getValue());
+                    });
+                } else {
+                    rightJSP.getHorizontalScrollBar().setEnabled(true);
+                    rightJSP.getVerticalScrollBar().setEnabled(true);
+                    Arrays.stream(leftJSP.getVerticalScrollBar().getAdjustmentListeners()).forEach(leftJSP.getVerticalScrollBar()::removeAdjustmentListener);
+                    Arrays.stream(leftJSP.getHorizontalScrollBar().getAdjustmentListeners()).forEach(leftJSP.getHorizontalScrollBar()::removeAdjustmentListener);
+                }
+            });
         }
 
         private void changeColor(JTextPane textPane, List<FileUtils.SpecificLineChange> lineChanges, Side side) {
