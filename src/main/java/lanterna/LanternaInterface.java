@@ -825,9 +825,7 @@ public class LanternaInterface {
                 .build()
                 .showDialog(textGUI);
 
-        if (file1 != null && file2 != null) {
-            FileUtils.LineResult result = FileUtils.compareFiles(file1, file2);
-
+        if(file1 != null && file2 != null) {
             File file =  new FileDialogBuilder()
                     .setTitle("Speichere die Differenz")
                     .setDescription("Wähle einen Speicherort")
@@ -835,20 +833,16 @@ public class LanternaInterface {
                     .build()
                     .showDialog(textGUI);
 
-            if(file != null) {
-                if(file.exists()) {
-                    MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei existiert bereits", MessageDialogButton.OK);
-                    return;
-                }
-                try {
-                    Files.write(file.toPath(), result.left());
-                    Files.write(file.toPath(), result.right());
-                    MessageDialog.showMessageDialog(textGUI, "Erfolg", "Die Datei wurde erfolgreich gespeichert", MessageDialogButton.OK);
-                } catch (IOException e) {
-                    MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
-                }
+            boolean saveSuccessfull = FileUtils.saveDiffAsText(file1, file2, file, null);
+            if(!saveSuccessfull) {
+                MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
+                return;
             }
+
+            MessageDialog.showMessageDialog(textGUI, "Erfolg", "Die Datei wurde erfolgreich gespeichert", MessageDialogButton.OK);
         }
+
+        MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
     }
 
     /**
@@ -923,9 +917,7 @@ public class LanternaInterface {
                 .build()
                 .showDialog(textGUI);
 
-        if (file1 != null && file2 != null) {
-            FileUtils.LineResult result = FileUtils.compareFiles(file1, file2);
-
+        if(file1 != null && file2 != null) {
             File file =  new FileDialogBuilder()
                     .setTitle("Speichere die Differenz")
                     .setDescription("Wähle einen Speicherort")
@@ -933,52 +925,16 @@ public class LanternaInterface {
                     .build()
                     .showDialog(textGUI);
 
-            if(file != null) {
-
-                file = new File(file.getAbsolutePath() + ".html");
-
-                if(file.exists()) {
-                    MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei existiert bereits", MessageDialogButton.OK);
-                    return;
-                }
-                try {
-                    StringBuilder html = new StringBuilder();
-                    html.append("<html><head><style>table {border-collapse: collapse;} td {border: 1px solid black; padding: 5px;} .yellow {background-color: yellow;} .green {background-color: lightgreen;} .red {background-color: lightcoral;}</style></head><body><table>");
-                    html.append("<tr><td>").append(file1.getName()).append("</td><td>").append(file2.getName()).append("</td></tr>");
-                    html.append("<tr><td>").append(file1.getAbsolutePath()).append("</td><td>").append(file2.getAbsolutePath()).append("</td></tr>");
-                    for (int i = 0; i < result.left().size(); i++) {
-                        String leftLine = escapeHtml(result.left().get(i));
-                        String rightLine = escapeHtml(result.right().get(i));
-                        int lineIndex = i + 1;
-                        if (leftLine.contains("!") && leftLine.indexOf("!") < String.valueOf(lineIndex).length() + 4) {
-                            html.append("<tr><td class=\"yellow\">").append(leftLine).append("</td><td class=\"yellow\">").append(rightLine).append("</td></tr>");
-                        } else if (leftLine.contains("+") && leftLine.indexOf("+") < String.valueOf(lineIndex).length() + 4) {
-                            html.append("<tr><td class=\"green\">").append(leftLine).append("</td><td class=\"green\">").append(rightLine).append("</td></tr>");
-                        } else if (leftLine.contains("-") && leftLine.indexOf("-") < String.valueOf(lineIndex).length() + 4) {
-                            html.append("<tr><td class=\"red\">").append(leftLine).append("</td><td class=\"red\">").append(rightLine).append("</td></tr>");
-                        } else {
-                            html.append("<tr><td>").append(leftLine).append("</td><td>").append(rightLine).append("</td></tr>");
-                        }
-                    }
-                    html.append("</table></body></html>");
-
-
-                    Files.write(file.toPath(), html.toString().getBytes());
-                    MessageDialog.showMessageDialog(textGUI, "Erfolg", "Die Datei wurde erfolgreich gespeichert", MessageDialogButton.OK);
-                } catch (IOException e) {
-                    MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
-                }
+            boolean saveSuccessfull = FileUtils.saveDiffAsHTML(file1, file2, file, null);
+            if(!saveSuccessfull) {
+                MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
+                return;
             }
-        }
-    }
 
-    /**
-     * Escape HTML characters: < and > so they are not interpreted as HTML tags
-     * @param str String to escape
-     * @return Escaped string
-     */
-    private String escapeHtml(String str) {
-        return str.replace("<", "&lt;").replace(">", "&gt;");
+            MessageDialog.showMessageDialog(textGUI, "Erfolg", "Die Datei wurde erfolgreich gespeichert", MessageDialogButton.OK);
+        }
+
+        MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
     }
 
     /**

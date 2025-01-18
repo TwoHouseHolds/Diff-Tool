@@ -1,5 +1,7 @@
 package algorithms;
 
+import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import utils.Side;
 
 import java.io.File;
@@ -209,5 +211,92 @@ public class FileUtils {
 
         return new LineResult(leftLines, rightLines, specificLineChanges);
 
+    }
+
+    /**
+     * Saves the diff of {@link firstFile} and {@link secondFile} as a .txt File at the Location Path of {@link saveFile}.
+     * If a {@link lineResult} is passed in as the last Parameter the first 2 Parameters should be set to null.
+     * Then another Diff won't be executed but the existing one will be used instead.
+     * @param firstFile First file to be used.
+     * @param secondFile Second file to be used.
+     * @param saveFile "File" as a representation of the Save-Location
+     * @param lineResult Optional: Null if not used. If used firstFile and secondFile should be null
+      * @return false if save was unsuccessful. true if successful
+     */
+    public static boolean saveDiffAsText(File firstFile, File secondFile, File saveFile, LineResult lineResult) {
+        if (lineResult != null || (firstFile != null && secondFile != null)) {
+            FileUtils.LineResult result = (lineResult == null) ? FileUtils.compareFiles(firstFile, secondFile) : lineResult;
+
+            if (saveFile != null) {
+                saveFile = new File(saveFile.getAbsolutePath() + ".txt");
+                if (saveFile.exists()) {
+                    return false;
+                }
+                try {
+                    List<String> res = result.left();
+                    res.add("\n\n\n==============================================================\n\n\n");
+                    res.addAll(result.right());
+
+                    Files.write(saveFile.toPath(), res);
+                    return true;
+                } catch (IOException e) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean saveDiffAsHTML(File firstFile, File secondFile, File saveFile, LineResult lineResult) {
+        if (lineResult != null || (firstFile != null && secondFile != null)) {
+            FileUtils.LineResult result = (lineResult == null) ? FileUtils.compareFiles(firstFile, secondFile) : lineResult;
+
+            if (saveFile != null) {
+                saveFile = new File(saveFile.getAbsolutePath() + ".html");
+                if (saveFile.exists()) {
+                    return false;
+                }
+                try {
+
+                    StringBuilder html = new StringBuilder();
+                    html.append("<html><head><style>table {border-collapse: collapse;} td {border: 1px solid black; padding: 5px;} .yellow {background-color: yellow;} .green {background-color: lightgreen;} .red {background-color: lightcoral;}</style></head><body><table>");
+                    if(firstFile != null && secondFile != null) {
+                        html.append("<tr><td>").append(firstFile.getName()).append("</td><td>").append(secondFile.getName()).append("</td></tr>");
+                        html.append("<tr><td>").append(firstFile.getAbsolutePath()).append("</td><td>").append(secondFile.getAbsolutePath()).append("</td></tr>");
+                    }
+                    for (int i = 0; i < result.left().size(); i++) {
+                        String leftLine = escapeHtml(result.left().get(i));
+                        String rightLine = escapeHtml(result.right().get(i));
+                        int lineIndex = i + 1;
+                        if (leftLine.contains("!") && leftLine.indexOf("!") < String.valueOf(lineIndex).length() + 4) {
+                            html.append("<tr><td class=\"yellow\">").append(leftLine).append("</td><td class=\"yellow\">").append(rightLine).append("</td></tr>");
+                        } else if (leftLine.contains("+") && leftLine.indexOf("+") < String.valueOf(lineIndex).length() + 4) {
+                            html.append("<tr><td class=\"green\">").append(leftLine).append("</td><td class=\"green\">").append(rightLine).append("</td></tr>");
+                        } else if (leftLine.contains("-") && leftLine.indexOf("-") < String.valueOf(lineIndex).length() + 4) {
+                            html.append("<tr><td class=\"red\">").append(leftLine).append("</td><td class=\"red\">").append(rightLine).append("</td></tr>");
+                        } else {
+                            html.append("<tr><td>").append(leftLine).append("</td><td>").append(rightLine).append("</td></tr>");
+                        }
+                    }
+                    html.append("</table></body></html>");
+
+
+                    Files.write(saveFile.toPath(), html.toString().getBytes());
+                    return true;
+                } catch (IOException e) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Escape HTML characters: < and > so they are not interpreted as HTML tags
+     * @param str String to escape
+     * @return Escaped string
+     */
+    public static String escapeHtml(String str) {
+        return str.replace("<", "&lt;").replace(">", "&gt;");
     }
 }
