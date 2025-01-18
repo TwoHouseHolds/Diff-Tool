@@ -74,11 +74,11 @@ public class FileUtils {
      * Compare two files using the Hunt-McIlroy algorithm
      * @param fileLeft First file to compare
      * @param fileRight Second file to compare
-     * @return Result of the comparison as a List<HuntMcIlroy.StringPair> object
+     * @return Result of the comparison as a List<HuntMcIlroy.LineTuple> object
      * @see HuntMcIlroy
      * @see java.io.File
      */
-    private static List<HuntMcIlroy.StringPair> huntCompare(File fileLeft, File fileRight) {
+    private static List<HuntMcIlroy.LineTuple> huntCompare(File fileLeft, File fileRight) {
         try {
             return HuntMcIlroy.compare(fileLeft, fileRight);
         } catch (IOException e) {
@@ -112,7 +112,7 @@ public class FileUtils {
      * Compare two files line by line
      * Lines come pre-modified with a line-number
      * They also come pre-modified with a + or - to represent if the line is present in the left or right file
-     * If the files are the same, the lines will be present in both List<String> objects
+     * If the files are the sameLine, the lines will be present in both List<String> objects
      * @param leftFile First file to compare
      * @param rightFile Second file to compare
      * @return Result of the comparison as a LineResult object
@@ -121,7 +121,7 @@ public class FileUtils {
      * @see java.util.List
      */
     public static LineResult compareFiles(File leftFile, File rightFile) {
-        List<HuntMcIlroy.StringPair> stringPairs = huntCompare(leftFile, rightFile);
+        List<HuntMcIlroy.LineTuple> lineTuples = huntCompare(leftFile, rightFile);
         List<String> leftLines = new ArrayList<>();
         List<String> rightLines = new ArrayList<>();
         List<SpecificLineChange> specificLineChanges = new ArrayList<>();
@@ -131,7 +131,7 @@ public class FileUtils {
 
         int lineNumber = 1;
 
-        if(stringPairs == null) {
+        if(lineTuples == null) {
             if(fileTypeLeft  == FileType.ERROR) {
                 leftLines.add("Fehler beim Lesen der Datei");
             } else if(fileTypeRight == FileType.ERROR) {
@@ -145,40 +145,40 @@ public class FileUtils {
 
         int lineCounterLeft = 1;
 
-        for (HuntMcIlroy.StringPair pair : stringPairs) {
-            if(pair.leftText() == null) {
+        for (HuntMcIlroy.LineTuple tuple : lineTuples) {
+            if(tuple.leftLine() == null) {
                 String emptySpaces = " ".repeat(String.valueOf(lineCounterLeft).length());
                 leftLines.add(emptySpaces + "  - ");
-                rightLines.add(emptySpaces + "    " + pair.rightText());
+                rightLines.add(emptySpaces + "    " + tuple.rightLine());
                 lineNumber++;
                 continue;
             }
 
-            if(pair.rightText() == null) {
-                leftLines.add(lineCounterLeft + ": + " + pair.leftText());
+            if(tuple.rightLine() == null) {
+                leftLines.add(lineCounterLeft + ": + " + tuple.leftLine());
                 rightLines.add(lineCounterLeft + ":   ");
                 lineCounterLeft++;
                 lineNumber++;
                 continue;
             }
 
-            if(!pair.leftText().equals(pair.rightText())) {
-                String[] leftText = pair.leftText().split("");
-                String[] rightText = pair.rightText().split("");
+            if(!tuple.sameLine()) {
+                String[] leftText = tuple.leftLine().split("");
+                String[] rightText = tuple.rightLine().split("");
 
-                String leftString = pair.leftText();
-                String rightString = pair.rightText();
+                String leftString = tuple.leftLine();
+                String rightString = tuple.rightLine();
 
                 Side longerSide = leftText.length > rightText.length ? Side.LEFT : Side.RIGHT;
 
-                String longerString = longerSide == Side.LEFT ? pair.leftText() : pair.rightText();
-                String shorterString = longerSide == Side.LEFT ? pair.rightText() : pair.leftText();
+                String longerString = longerSide == Side.LEFT ? tuple.leftLine() : tuple.rightLine();
+                String shorterString = longerSide == Side.LEFT ? tuple.rightLine() : tuple.leftLine();
 
                 int distance = LevenshteinDistance.of(leftString, rightString);
 
                 if(distance < leftString.length() * 0.3 || distance < rightString.length() * 0.3) {
 
-                    String diffString = compareString(longerString, shorterString);
+                    String diffString = HuntMcIlroy.compareString(longerString, shorterString);
 
                     for (int i = 0; i < diffString.length(); i++) {
                         if (diffString.charAt(i) == '!') {
@@ -197,106 +197,20 @@ public class FileUtils {
                     }
 
                 }
-                leftLines.add(lineCounterLeft + ": ! " + pair.leftText());
-                rightLines.add(lineCounterLeft + ": ! " + pair.rightText());
+                leftLines.add(lineCounterLeft + ": ! " + tuple.leftLine());
+                rightLines.add(lineCounterLeft + ": ! " + tuple.rightLine());
                 lineCounterLeft++;
                 lineNumber++;
                 continue;
             }
 
-            leftLines.add(lineCounterLeft + ":   " + pair.leftText());
-            rightLines.add(lineCounterLeft  + ":   " + pair.rightText());
+            leftLines.add(lineCounterLeft + ":   " + tuple.leftLine());
+            rightLines.add(lineCounterLeft  + ":   " + tuple.rightLine());
             lineNumber++;
             lineCounterLeft++;
         }
 
         return new LineResult(leftLines, rightLines, specificLineChanges);
 
-    }
-
-    /**
-     * Compare two strings and return a string with differences marked with '!' and matches marked with 'O'
-     * Using the Longest Common Subsequence algorithm / Hunt-McIlroy algorithm
-     * @param s1 First string to compare
-     * @param s2 Second string to compare
-     */
-    public static String compareString(String s1, String s2) {
-        int[][] lcs = buildLcs(s1, s2);
-        List<Integer> diff = buildDiff(s1, s2, lcs);
-        return diffString(s1, diff);
-    }
-
-    /**
-     * Build a string with differences marked with '!' and matches marked with 'O'
-     * Using the Longest Common Subsequence algorithm / Hunt-McIlroy algorithm
-     * @param s1 First string to compare
-     * @param matches List of matching indices
-     */
-    private static String diffString(String s1, List<Integer> matches) {
-        StringBuilder sb = new StringBuilder(s1.length());
-
-        int matchPos = 0;
-        for (int i = 0; i < s1.length(); i++) {
-            if (matchPos < matches.size() && matches.get(matchPos) == i) {
-                sb.append('O');
-                matchPos++;
-            } else {
-                sb.append('!');
-            }
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Build a list of indices of matching characters between two strings
-     * @param s1 First string to compare
-     * @param s2 Second string to compare
-     * @param c Longest Common Subsequence matrix
-     */
-    private static List<Integer> buildDiff(String s1, String s2, int[][] c) {
-        int i = s1.length();
-        int j = s2.length();
-
-        List<Integer> matchedIndices = new ArrayList<>();
-
-        while (i > 0 && j > 0) {
-            if (s1.charAt(i-1) == s2.charAt(j-1)) {
-                matchedIndices.add(i-1);
-                i--;
-                j--;
-            } else {
-                if (c[i-1][j] > c[i][j-1]) {
-                    i--;
-                } else {
-                    j--;
-                }
-            }
-        }
-
-        java.util.Collections.reverse(matchedIndices);
-        return matchedIndices;
-    }
-
-    /**
-     * Build the Longest Common Subsequence matrix for two strings
-     * @param s1 First string to compare
-     * @param s2 Second string to compare
-     * @return Longest Common Subsequence matrix
-     */
-    private static int[][] buildLcs(String s1, String s2) {
-        int m = s1.length();
-        int n = s2.length();
-        int[][] c = new int[m+1][n+1];
-
-        for (int i = 1; i <= m; i++) {
-            for (int j = 1; j <= n; j++) {
-                if (s1.charAt(i-1) == s2.charAt(j-1)) {
-                    c[i][j] = c[i-1][j-1] + 1;
-                } else {
-                    c[i][j] = Math.max(c[i-1][j], c[i][j-1]);
-                }
-            }
-        }
-        return c;
     }
 }

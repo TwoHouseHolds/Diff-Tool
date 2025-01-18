@@ -1,8 +1,6 @@
 package swing;
 
 import algorithms.FileUtils;
-import com.googlecode.lanterna.gui2.ActionListBox;
-import com.googlecode.lanterna.gui2.ComboBox;
 import lanterna.LanternaInterface;
 import utils.Side;
 
@@ -17,12 +15,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 public class SwingInterface {
 
     //TODO LVUI doesnt resize correctly after going back
-
-    private static final Dimension defaultTextFieldDimension = new Dimension(300, 25);
+    private static final Dimension defaultTextFieldDimension = new Dimension(400, 25);
     private final JFrame frame = new JFrame("Swing Oberfläche");
     private final JButton backButton = new JButton("⬅");
     private final JButton forwardButton = new JButton("➡");
@@ -37,13 +35,20 @@ public class SwingInterface {
             initializeEscFocus();
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            int width = (int) (screenSize.width * 0.5);
-            int height = (int) (screenSize.height * 0.5);
+            int width = (int) (screenSize.width * 0.7);
+            int height = (int) (screenSize.height * 0.7);
             frame.setSize(width, height);
 
             frame.setJMenuBar(menu);
             frame.add(level1UI);
 
+            Preferences prefs = Preferences.userNodeForPackage(SwingInterface.class);
+            String themeString = prefs.get("theme", SwingTheme.DARK.toString());
+            SwingTheme startTheme = null;
+            for(SwingTheme theme : SwingTheme.values()) if (theme.toString().equals(themeString)) startTheme = theme;
+            switchThemeTo(startTheme);
+
+            SwingUtilities.updateComponentTreeUI(frame);
             frame.setVisible(true);
         });
     }
@@ -53,7 +58,7 @@ public class SwingInterface {
         JButton back = new JButton("⬅");
 
         public Menu(JFrame frame) {
-            this.back.setVisible(false);
+            back.setVisible(false);
             add(back);
 
             JMenuItem ticTacToe = new JMenuItem("TicTacToe Minispiel");
@@ -72,9 +77,7 @@ public class SwingInterface {
                 back.setVisible(true);
                 back.addActionListener(b -> {
                     ticTacToeGameUI.getCustomParent().setVisible(true);
-                    SwingUtilities.invokeLater(() -> {
-                        frame.setSize(ticTacToeGameUI.getOldSize());
-                    });
+                    SwingUtilities.invokeLater(() -> frame.setSize(ticTacToeGameUI.getOldSize()));
                     frame.getContentPane().remove(ticTacToeGameUI);
                     back.setVisible(false);
                     frame.setResizable(true);
@@ -120,9 +123,7 @@ public class SwingInterface {
                     - Um Informationen über die Entwickler zu erhalten, wählen Sie im Menü "Hilfe" -> "Über uns".
                     - Um das Programm zu beenden, wählen Sie im Menü "Beenden" -> "Beende Programm".
                     - Use the menu to view help or exit the application.""", frame, "Help");
-            MenuItem aboutItem = new MenuItem("Über uns",
-                    "Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.\n" +
-                            "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "About Us");
+            MenuItem aboutItem = new MenuItem("Über uns", "Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.\n" + "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "About Us");
 
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
             switchItem.addActionListener(e -> {
@@ -143,13 +144,23 @@ public class SwingInterface {
             zusaetzliches.add(ticTacToe);
             add(zusaetzliches);
 
+            JMenu settingsMenu = new JMenu("Einstellungen");
+            JMenu themeItem = new JMenu("Theme");
+            for(SwingTheme theme : SwingTheme.values()) {
+                JMenuItem mi = new JMenuItem(theme.toString());
+                mi.addActionListener(e -> {
+                    switchThemeTo(theme);
+                });
+                themeItem.add(mi);
+            }
+            settingsMenu.add(themeItem);
+            add(settingsMenu);
+
             JMenu exitMenu = new JMenu("Beenden");
             JMenuItem exitItem = new JMenuItem("Programm beenden");
             exitItem.addActionListener(e -> System.exit(0));
             exitMenu.add(exitItem);
             add(exitMenu);
-
-
         }
 
 
@@ -162,8 +173,6 @@ public class SwingInterface {
 
 
     }
-
-
 
     private final class Level1UI extends JPanel {
         private final GridBagConstraints gbc = new GridBagConstraints();
@@ -201,9 +210,9 @@ public class SwingInterface {
                 String pathLeft = leftPanel.getDirectory();
                 String pathRight = rightPanel.getDirectory();
                 if (!new File(pathLeft).exists()) {
-                    JOptionPane.showMessageDialog(this, "'" + pathLeft + "' (links) ist kein valider Pfad!", "Fehler", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "\"" + pathLeft + "\" (links) ist kein valider Pfad!", "Fehler", JOptionPane.ERROR_MESSAGE);
                 } else if (!new File(pathRight).exists()) {
-                    JOptionPane.showMessageDialog(this, "'" + pathRight + "' (rechts) ist kein valider Pfad!", "Fehler", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "\"" + pathRight + "\" (rechts) ist kein valider Pfad!", "Fehler", JOptionPane.ERROR_MESSAGE);
                 } else {
                     List<File> leftFiles = FileUtils.getFiles(pathLeft);
                     List<File> rightFiles = FileUtils.getFiles(pathRight);
@@ -241,6 +250,7 @@ public class SwingInterface {
 
                 textField.setEditable(true);
                 textField.setPreferredSize(defaultTextFieldDimension);
+                textField.setMinimumSize(defaultTextFieldDimension);
 
                 gbc.gridx = 0;
                 gbc.gridy = 2;
@@ -332,7 +342,7 @@ public class SwingInterface {
             ActionListener leftActionListener = e -> {
                 int selected = leftComboBox.getSelectedIndex();
                 Boolean isReversed = checkBoxReverseLeft.isSelected();
-                manageSortingBox(leftComboBox, leftList, leftFiles, rightFiles, Side.LEFT, selected, isReversed);
+                manageSortingBox(leftList, leftFiles, rightFiles, Side.LEFT, selected, isReversed);
             };
 
             leftComboBox.addActionListener(leftActionListener);
@@ -341,7 +351,7 @@ public class SwingInterface {
             ActionListener rightActionListener = e -> {
                 int selected = rightComboBox.getSelectedIndex();
                 Boolean isReversed = checkBoxReverseRight.isSelected();
-                manageSortingBox(rightComboBox, rightList, rightFiles, leftFiles, Side.RIGHT, selected, isReversed);
+                manageSortingBox(rightList, rightFiles, leftFiles, Side.RIGHT, selected, isReversed);
             };
 
             rightComboBox.addActionListener(rightActionListener);
@@ -409,60 +419,59 @@ public class SwingInterface {
         }
     }
 
-    private void manageSortingBox(JComboBox<String> comboBox, JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed){
-            //Lade Daten message
-            @SuppressWarnings("rawtypes")
-            SwingWorker worker = new SwingWorker() {
-                @Override
-                protected Object doInBackground() {
+    private void manageSortingBox(JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed) {
+        //Lade Daten message
+        @SuppressWarnings("rawtypes") SwingWorker worker = new SwingWorker() {
+            @Override
+            protected Object doInBackground() {
 
-                    if(selected != -1) {
-                        switch (selected) {
-                            case 0: {
-                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
-                                break;
+                if (selected != -1) {
+                    switch (selected) {
+                        case 0: {
+                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                            break;
+                        }
+                        case 1: {
+                            if (isReversed) {
+                                firstFiles.sort(Comparator.comparing(File::getName).reversed());
+                            } else {
+                                firstFiles.sort(Comparator.comparing(File::getName));
                             }
-                            case 1: {
-                                if(isReversed){
-                                    firstFiles.sort(Comparator.comparing(File::getName).reversed());
-                                }else{
-                                    firstFiles.sort(Comparator.comparing(File::getName));
-                                }
-                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
-                                break;
-                            }
-
-                            case 2: {
-                                if(isReversed){
-                                    firstFiles.sort(Comparator.comparingLong(File::length).reversed());
-                                }else{
-                                    firstFiles.sort(Comparator.comparingLong(File::length));
-                                }
-                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
-                                break;
-                            }
-                            case 3: {
-                                if(isReversed){
-                                    firstFiles.sort(Comparator.comparingLong(File::lastModified).reversed());
-                                }else{
-                                    firstFiles.sort(Comparator.comparingLong(File::lastModified));
-                                }
-                                listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
-                                break;
-                            }
+                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                            break;
                         }
 
+                        case 2: {
+                            if (isReversed) {
+                                firstFiles.sort(Comparator.comparingLong(File::length).reversed());
+                            } else {
+                                firstFiles.sort(Comparator.comparingLong(File::length));
+                            }
+                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                            break;
+                        }
+                        case 3: {
+                            if (isReversed) {
+                                firstFiles.sort(Comparator.comparingLong(File::lastModified).reversed());
+                            } else {
+                                firstFiles.sort(Comparator.comparingLong(File::lastModified));
+                            }
+                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                            break;
+                        }
                     }
-                    return null;
-                }
 
-                    protected void done() {
-
-                    frame.invalidate();
-                    frame.revalidate();
-                    frame.repaint();
                 }
-            };
+                return null;
+            }
+
+            protected void done() {
+
+                frame.invalidate();
+                frame.revalidate();
+                frame.repaint();
+            }
+        };
         worker.execute();
     }
 
@@ -475,25 +484,23 @@ public class SwingInterface {
 
             JTextPane leftTextPane = new JTextPane();
             leftTextPane.setEditable(false);
-            leftTextPane.setFont(new Font(Font.MONOSPACED,Font.PLAIN,12));
+            leftTextPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
             JTextPane rightTextPane = new JTextPane();
             rightTextPane.setEditable(false);
-            rightTextPane.setFont(new Font(Font.MONOSPACED,Font.PLAIN,12));
+            rightTextPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
             if (leftLines != null) leftLines.forEach(s -> leftTextPane.setText(leftTextPane.getText() + s + "\n"));
             if (rightLines != null) rightLines.forEach(s -> rightTextPane.setText(rightTextPane.getText() + s + "\n"));
 
-            changeColor(leftTextPane,lineChanges,Side.LEFT);
-            changeColor(rightTextPane,lineChanges,Side.RIGHT);
+            changeColor(leftTextPane, lineChanges, Side.LEFT);
+            changeColor(rightTextPane, lineChanges, Side.RIGHT);
 
             leftTextPane.setCaretPosition(0);
             rightTextPane.setCaretPosition(0);
 
             JPanel leftTextArea = new JPanel();
             leftTextArea.add(leftTextPane);
-            leftTextArea.setBackground(Color.WHITE);
             JPanel rightTextArea = new JPanel();
-            rightTextArea.setBackground(Color.WHITE);
             rightTextArea.add(rightTextPane);
 
             JScrollPane leftJSP = new JScrollPane(leftTextArea);
@@ -514,7 +521,7 @@ public class SwingInterface {
         }
     }
 
-    private static void changeColor(JTextPane textPane,List<FileUtils.SpecificLineChange> lineChanges,Side side){
+    private static void changeColor(JTextPane textPane, List<FileUtils.SpecificLineChange> lineChanges, Side side) {
         MutableAttributeSet attrs = textPane.getInputAttributes();
         StyledDocument doc = textPane.getStyledDocument();
 
@@ -522,13 +529,14 @@ public class SwingInterface {
         int offset = 0;
 
         //Change color of every added + to green
-        for(int i = 0; i < lines.length; i++){
+        for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
             int space = String.valueOf(i).length() + 4;
             int indexOfPlus = line.indexOf("+");
 
-            if(indexOfPlus >= 0 && indexOfPlus <= space){
+            if (indexOfPlus >= 0 && indexOfPlus <= space) {
                 StyleConstants.setBackground(attrs, Color.GREEN);
+                StyleConstants.setForeground(attrs, Color.BLACK);
                 doc.setCharacterAttributes(offset + indexOfPlus, 1, attrs, false);
             }
             offset += line.length() + 1;
@@ -537,13 +545,14 @@ public class SwingInterface {
         offset = 0;
 
         //Change color of every added - to red
-        for(int i = 0; i < lines.length; i++){
+        for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
             int space = String.valueOf(i).length() + 4;
             int indexOfMinus = line.indexOf("-");
 
-            if(indexOfMinus >= 0 && indexOfMinus <= space){
+            if (indexOfMinus >= 0 && indexOfMinus <= space) {
                 StyleConstants.setBackground(attrs, Color.RED);
+                StyleConstants.setForeground(attrs, Color.BLACK);
                 doc.setCharacterAttributes(offset + indexOfMinus, 1, attrs, false);
             }
             offset += line.length() + 1;
@@ -552,30 +561,32 @@ public class SwingInterface {
         offset = 0;
 
         //Change color of every added ! to orange
-        for(int i = 0; i < lines.length; i++){
+        for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
             int space = String.valueOf(i).length() + 4;
             int indexOfExclationMark = line.indexOf("!");
 
-            if(indexOfExclationMark >= 0 && indexOfExclationMark <= space){
+            if (indexOfExclationMark >= 0 && indexOfExclationMark <= space) {
                 StyleConstants.setBackground(attrs, Color.ORANGE);
+                StyleConstants.setForeground(attrs, Color.BLACK);
                 doc.setCharacterAttributes(offset + indexOfExclationMark, 1, attrs, false);
             }
             offset += line.length() + 1;
         }
 
-         if(lineChanges != null){
-            for(FileUtils.SpecificLineChange change : lineChanges){
-                if(change.displaySide() == side){
+        if (lineChanges != null) {
+            for (FileUtils.SpecificLineChange change : lineChanges) {
+                if (change.displaySide() == side) {
                     offset = 0;
                     int lineNumber = change.lineNumber();
                     int index = change.index();
 
-                    for(int i = 0; i < lineNumber - 1; i++){
+                    for (int i = 0; i < lineNumber - 1; i++) {
                         offset += lines[i].length() + 1;
                     }
                     int indexOfMarked = offset + index;
                     StyleConstants.setBackground(attrs, Color.ORANGE);
+                    StyleConstants.setForeground(attrs, Color.BLACK);
                     doc.setCharacterAttributes(indexOfMarked, 1, attrs, false);
                 }
             }
@@ -612,5 +623,20 @@ public class SwingInterface {
         /*frame.invalidate();
         frame.revalidate();
         frame.repaint();*/
+    }
+
+    private void switchThemeTo(SwingTheme theme) {
+        try {
+            UIManager.setLookAndFeel(theme.laf);
+        } catch (Exception e) {
+            // ignored
+        }
+        String[] components = {"Panel", "OptionPane", "Label", "Button", "TextField", "TextPane", "CheckBox",
+                "ComboBox", "List", "MenuBar", "Menu", "MenuItem", "SplitPane", "Frame", "FileChooser", "ScrollBar",
+                "ScrollPane"};
+        Arrays.stream(components).forEach(component -> UIManager.put(component + ".foreground", theme.textColor));
+        SwingUtilities.updateComponentTreeUI(frame);
+        Preferences prefs = Preferences.userNodeForPackage(SwingInterface.class);
+        prefs.put("theme", theme.toString());
     }
 }
