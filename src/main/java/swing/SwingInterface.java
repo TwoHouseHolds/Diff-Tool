@@ -5,7 +5,6 @@ import lanterna.LanternaInterface;
 import utils.Side;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -20,7 +19,7 @@ import java.util.prefs.Preferences;
 
 public class SwingInterface {
 
-    //TODO LVUI doesnt resize correctly after going back
+    //TODO level 1 & 2 don't resize correctly after going back
     private static final Dimension defaultTextFieldDimension = new Dimension(400, 25);
     private final JFrame frame = new JFrame("Swing Oberfläche");
     private final JButton backButton = new JButton("⬅");
@@ -29,7 +28,7 @@ public class SwingInterface {
     private final Level1UI level1UI = new Level1UI();
     private Level2UI level2UI = null;
     private Level3UI level3UI = null;
-    private SwingTicTacToeMinigame ticTacToeGameUI = null;
+    private SwingTicTacToeMinigaming ticTacToeGameUI = null;
 
     public void start() {
         SwingUtilities.invokeLater(() -> {
@@ -43,8 +42,8 @@ public class SwingInterface {
             frame.setJMenuBar(menu);
             frame.add(level1UI);
 
-            Preferences prefs = Preferences.userNodeForPackage(SwingInterface.class);
-            String themeString = prefs.get("theme", SwingTheme.DARK.toString());
+            Preferences preferences = Preferences.userNodeForPackage(SwingInterface.class);
+            String themeString = preferences.get("theme", SwingTheme.DARK.toString());
             SwingTheme startTheme = null;
             for (SwingTheme theme : SwingTheme.values()) if (theme.toString().equals(themeString)) startTheme = theme;
             switchThemeTo(startTheme);
@@ -66,7 +65,7 @@ public class SwingInterface {
             ticTacToe.addActionListener(e -> {
                 ticTacToe.setEnabled(false);
                 JPanel parent = level1UI.isVisible() ? level1UI : level2UI != null && level2UI.isVisible() ? level2UI : level3UI;
-                ticTacToeGameUI = new SwingTicTacToeMinigame();
+                ticTacToeGameUI = new SwingTicTacToeMinigaming();
                 ticTacToeGameUI.setParent(parent);
                 ticTacToeGameUI.setOldSize(frame.getSize());
                 frame.add(ticTacToeGameUI);
@@ -111,6 +110,31 @@ public class SwingInterface {
             });
             add(forwardButton);
 
+            JMenu helpMenu = getHelpMenu(frame);
+            add(helpMenu);
+
+            JMenu additionalStuff = new JMenu("Zusätzliches");
+            additionalStuff.add(ticTacToe);
+            add(additionalStuff);
+
+            JMenu settingsMenu = new JMenu("Einstellungen");
+            JMenu themeItem = new JMenu("Theme");
+            for (SwingTheme theme : SwingTheme.values()) {
+                JMenuItem mi = new JMenuItem(theme.toString());
+                mi.addActionListener(e -> switchThemeTo(theme));
+                themeItem.add(mi);
+            }
+            settingsMenu.add(themeItem);
+            add(settingsMenu);
+
+            JMenu exitMenu = new JMenu("Beenden");
+            JMenuItem exitItem = new JMenuItem("Programm beenden");
+            exitItem.addActionListener(e -> System.exit(0));
+            exitMenu.add(exitItem);
+            add(exitMenu);
+        }
+
+        private static JMenu getHelpMenu(JFrame frame) {
             JMenu helpMenu = new JMenu("Hilfe");
             MenuItem guideItem = new MenuItem("Guide", """
                     - Wählen Sie die Verzeichnisse aus, die Sie vergleichen möchten.
@@ -139,29 +163,7 @@ public class SwingInterface {
             helpMenu.add(guideItem);
             helpMenu.add(aboutItem);
             helpMenu.add(switchItem);
-            add(helpMenu);
-
-            JMenu zusaetzliches = new JMenu("Zusätzliches");
-            zusaetzliches.add(ticTacToe);
-            add(zusaetzliches);
-
-            JMenu settingsMenu = new JMenu("Einstellungen");
-            JMenu themeItem = new JMenu("Theme");
-            for (SwingTheme theme : SwingTheme.values()) {
-                JMenuItem mi = new JMenuItem(theme.toString());
-                mi.addActionListener(e -> {
-                    switchThemeTo(theme);
-                });
-                themeItem.add(mi);
-            }
-            settingsMenu.add(themeItem);
-            add(settingsMenu);
-
-            JMenu exitMenu = new JMenu("Beenden");
-            JMenuItem exitItem = new JMenuItem("Programm beenden");
-            exitItem.addActionListener(e -> System.exit(0));
-            exitMenu.add(exitItem);
-            add(exitMenu);
+            return helpMenu;
         }
 
 
@@ -337,14 +339,13 @@ public class SwingInterface {
             JCheckBox checkBoxReverseLeft = new JCheckBox("Umgekehrte Sortierung");
             JCheckBox checkBoxReverseRight = new JCheckBox("Umgekehrte Sortierung");
 
-
             JPanel left = new JPanel(new BorderLayout());
             JPanel leftNorthPanel = new JPanel();
             leftNorthPanel.setLayout(new BoxLayout(leftNorthPanel, BoxLayout.Y_AXIS));
             leftNorthPanel.add(checkBoxReverseLeft);
             leftNorthPanel.add(leftComboBox);
-            left.add(leftNorthPanel, BorderLayout.NORTH);
             left.add(leftScrollPane, BorderLayout.CENTER);
+            left.add(leftNorthPanel, BorderLayout.NORTH);
 
             JPanel right = new JPanel(new BorderLayout());
             JPanel rightNorthPanel = new JPanel();
@@ -377,8 +378,8 @@ public class SwingInterface {
             splitPane.setResizeWeight(0.5);
             gbc.gridx = 0;
             gbc.gridy = 0;
-            gbc.weighty = 1;
             gbc.weightx = 1;
+            gbc.weighty = 1;
 
             add(splitPane, gbc);
 
@@ -395,7 +396,8 @@ public class SwingInterface {
                         boolean identical = Files.mismatch(leftFile.toPath(), rightFile.get().toPath()) == -1;
                         if (identical) result.add(leftFileName + " (in L&R identisch)");
                         else result.add(leftFileName + " (in L&R verschieden)");
-                    } catch (IOException ignored) {
+                    } catch (IOException e) {
+                        throw new RuntimeException(e.getMessage());
                     }
                 } else {
                     result.add(leftFileName + String.format(" (in %s)", sideInformation.toString()));
@@ -420,7 +422,7 @@ public class SwingInterface {
                     // noinspection rawtypes
                     SwingWorker worker = new SwingWorker() {
                         @Override
-                        protected Object doInBackground() throws Exception {
+                        protected Object doInBackground() {
                             if (sideInformation.equals(Side.LEFT)) {
                                 if (rightFile.isEmpty())
                                     level3UI = new Level3UI(FileUtils.readFile(leftFile), null, null);
@@ -609,12 +611,12 @@ public class SwingInterface {
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
             int space = String.valueOf(i).length() + 4;
-            int indexOfExclationMark = line.indexOf("!");
+            int indexOfExclamationMark = line.indexOf("!");
 
-            if (indexOfExclationMark >= 0 && indexOfExclationMark <= space) {
+            if (indexOfExclamationMark >= 0 && indexOfExclamationMark <= space) {
                 StyleConstants.setBackground(attrs, Color.ORANGE);
                 StyleConstants.setForeground(attrs, Color.BLACK);
-                doc.setCharacterAttributes(offset + indexOfExclationMark, 1, attrs, false);
+                doc.setCharacterAttributes(offset + indexOfExclamationMark, 1, attrs, false);
             }
             offset += line.length() + 1;
         }
@@ -674,14 +676,14 @@ public class SwingInterface {
         try {
             UIManager.setLookAndFeel(theme.laf);
         } catch (Exception e) {
-            // ignored
+            throw new RuntimeException(e.getMessage());
         }
         String[] components = {"Panel", "OptionPane", "Label", "Button", "TextField", "TextPane", "CheckBox",
                 "ComboBox", "List", "MenuBar", "Menu", "MenuItem", "SplitPane", "Frame", "FileChooser", "ScrollBar",
                 "ScrollPane"};
         Arrays.stream(components).forEach(component -> UIManager.put(component + ".foreground", theme.textColor));
         SwingUtilities.updateComponentTreeUI(frame);
-        Preferences prefs = Preferences.userNodeForPackage(SwingInterface.class);
-        prefs.put("theme", theme.toString());
+        Preferences preferences = Preferences.userNodeForPackage(SwingInterface.class);
+        preferences.put("theme", theme.toString());
     }
 }

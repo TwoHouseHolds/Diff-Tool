@@ -6,7 +6,7 @@ import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.Theme;
 import swing.SwingInterface;
-import swing.SwingTicTacToeMinigame;
+import swing.SwingTicTacToeMinigaming;
 
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
@@ -87,7 +87,6 @@ public class LanternaInterface {
             String theme = prefs.get("theme", "default");
             Theme lanternaTheme = LanternaThemes.getRegisteredTheme(theme);
             textGUI.setTheme(lanternaTheme);
-
 
             window = new BasicWindow();
             window.setHints(Set.of(Window.Hint.FIT_TERMINAL_WINDOW, Window.Hint.CENTERED));
@@ -688,16 +687,16 @@ public class LanternaInterface {
         Menu additionalMenu = new Menu("Zusätzliches");
         menuBar.add(additionalMenu);
 
-        additionalMenu.add(new MenuItem("Blackjack", () -> new BlackjackMinigame(textGUI)));
+        additionalMenu.add(new MenuItem("Blackjack", () -> new BlackjackMinigaming(textGUI)));
 
-        additionalMenu.add(new MenuItem("TicTacToe", () -> new LanternaTicTacToeMinigame(textGUI)));
+        additionalMenu.add(new MenuItem("TicTacToe", () -> new LanternaTicTacToeMinigaming(textGUI)));
 
         additionalMenu.add(new MenuItem("GUI-TicTacToe", () -> {
             if(GraphicsEnvironment.isHeadless()) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Das Spiel kann nicht in einer GUI-Umgebung ausgeführt werden.\nDas System läuft im Headless Modus", MessageDialogButton.OK);
                 return;
             }
-            SwingTicTacToeMinigame swingTicTacToeMinigame = new SwingTicTacToeMinigame();
+            SwingTicTacToeMinigaming swingTicTacToeMinigame = new SwingTicTacToeMinigaming();
             JFrame frame = new JFrame("GUI - TicTacToe");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.add(swingTicTacToeMinigame);

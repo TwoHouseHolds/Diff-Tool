@@ -10,7 +10,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class BlackjackMinigame {
+public class BlackjackMinigaming {
 
     private final Window window;
     private final Random random;
@@ -23,7 +23,7 @@ public class BlackjackMinigame {
      * Just a simple text based badly implemented Blackjack game
      * @param textGUI TextGUI to add the window to
      */
-    public BlackjackMinigame(WindowBasedTextGUI textGUI) {
+    public BlackjackMinigaming(WindowBasedTextGUI textGUI) {
         this.random = new Random();
         window = new BasicWindow("Blackjack Minigame");
         window.setHints(Set.of(Window.Hint.CENTERED));
