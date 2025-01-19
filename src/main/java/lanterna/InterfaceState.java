@@ -1,5 +1,6 @@
 package lanterna;
 
+import algorithms.FileUtils;
 import com.googlecode.lanterna.gui2.WindowListenerAdapter;
 
 import java.io.File;
@@ -17,6 +18,7 @@ import utils.SortType;
  */
 public class InterfaceState {
     private static InterfaceState INSTANCE;
+    private FileUtils.LineResult currentLineResult;
     private LanternaState state;
     private File currentLeftFile;
     private File currentRightFile;
@@ -160,5 +162,13 @@ public class InterfaceState {
 
     public void setSortRightReversed(boolean sortRightReversed) {
         this.sortRightReversed = sortRightReversed;
+    }
+
+    public FileUtils.LineResult getCurrentLineResult() {
+        return currentLineResult;
+    }
+
+    public void setCurrentLineResult(FileUtils.LineResult currentLineResult) {
+        this.currentLineResult = currentLineResult;
     }
 }
