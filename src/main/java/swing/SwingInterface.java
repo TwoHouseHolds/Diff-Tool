@@ -33,8 +33,8 @@ public class SwingInterface {
             initializeEscFocus();
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            int width = (int) (screenSize.width * 0.7);
-            int height = (int) (screenSize.height * 0.7);
+            int width = (int) (screenSize.width * 0.8);
+            int height = (int) (screenSize.height * 0.8);
             frame.setSize(width, height);
             frame.setLayout(new GridBagLayout());
             frame.setJMenuBar(menu);
@@ -352,12 +352,12 @@ public class SwingInterface {
 
         // variable names for left side, but the class can also be used for the right side
         private class Level2UISide extends JPanel {
-            private Level2UISide(List<File> leftFiles, List<File> rightFiles, Side side) {
+            private Level2UISide(List<File> firstFiles, List<File> secondSide, Side side) {
                 super(new BorderLayout());
 
                 // scrollPane
                 JList<String> thisSideList = (side == Side.LEFT) ? leftList : rightList;
-                applyListSelectionListener(thisSideList, leftFiles, rightFiles, side);
+                applyListSelectionListener(thisSideList, firstFiles, secondSide, side);
                 JScrollPane scrollPane = new JScrollPane(thisSideList);
                 add(scrollPane, BorderLayout.CENTER);
 
@@ -379,9 +379,9 @@ public class SwingInterface {
                     @Override
                     public void keyReleased(KeyEvent e) {
                         String search = searchTextField.getText();
-                        List<File> searchResult = filterFilesByName(leftFiles, search);
+                        List<File> searchResult = filterFilesByName(firstFiles, search);
                         sortingChooser.setSelectedIndex(sortingChooser.getSelectedIndex());
-                        thisSideList.setListData(getFormatFileNames(searchResult, rightFiles, side));
+                        thisSideList.setListData(getFormatFileNames(searchResult, secondSide, side));
                     }
                 });
 
@@ -389,7 +389,7 @@ public class SwingInterface {
                 sortingChooser.addActionListener(e -> {
                     int selected = sortingChooser.getSelectedIndex();
                     Boolean isReversed = reverseCheckBox.isSelected();
-                    manageSortingBox(thisSideList, leftFiles, rightFiles, side, selected, isReversed, searchTextField.getText());
+                    manageSortingBox(thisSideList, firstFiles, secondSide, side, selected, isReversed, searchTextField.getText());
                 });
                 reverseCheckBox.addActionListener((e) -> sortingChooser.setSelectedIndex(sortingChooser.getSelectedIndex()));
             }
@@ -435,7 +435,6 @@ public class SwingInterface {
                         protected Object doInBackground() {
                             if (sideInformation.equals(Side.LEFT)) {
                                 if (otherFile.isEmpty()) {
-                                    System.out.println("Ich bin hier");
                                     level3UI = new Level3UI(FileUtils.readFile(thisFile), null, null, false);
                                 } else {
                                     lr = FileUtils.compareFiles(thisFile, otherFile.get());
@@ -469,21 +468,21 @@ public class SwingInterface {
         public static List<File> filterFilesByName(List<File> files, String searchString) {
             List<File> filteredFiles = new ArrayList<>();
             for (File file : files) {
-                if (file.getName().contains(searchString)) {
+                if (file.getName().toLowerCase().contains(searchString.toLowerCase())) {
                     filteredFiles.add(file);
                 }
             }
             return filteredFiles;
         }
 
-        private void manageSortingBox(JList<String> listBox,List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed, String search) {
+        private void manageSortingBox(JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed, String search) {
             // noinspection rawtypes
             SwingWorker worker = new SwingWorker() {
                 @Override
                 protected Object doInBackground() {
 
                     List<File> firstFilesCopy = new ArrayList<>(firstFiles);
-                    if(!search.isEmpty()){
+                    if (!search.isEmpty()) {
                         firstFilesCopy = filterFilesByName(firstFilesCopy, search);
                     }
 
@@ -496,7 +495,7 @@ public class SwingInterface {
                             case 1: {
                                 if (isReversed) {
                                     firstFilesCopy.sort(Comparator.comparing(File::getName).reversed());
-                                } else{
+                                } else {
                                     firstFilesCopy.sort(Comparator.comparing(File::getName));
                                 }
                                 listBox.setListData(getFormatFileNames(firstFilesCopy, secondFiles, side));
@@ -506,7 +505,7 @@ public class SwingInterface {
                             case 2: {
                                 if (isReversed) {
                                     firstFilesCopy.sort(Comparator.comparingLong(File::length).reversed());
-                                }else {
+                                } else {
                                     firstFilesCopy.sort(Comparator.comparingLong(File::length));
                                 }
                                 listBox.setListData(getFormatFileNames(firstFilesCopy, secondFiles, side));
@@ -515,7 +514,7 @@ public class SwingInterface {
                             case 3: {
                                 if (isReversed) {
                                     firstFilesCopy.sort(Comparator.comparingLong(File::lastModified).reversed());
-                                }else {
+                                } else {
                                     firstFilesCopy.sort(Comparator.comparingLong(File::lastModified));
                                 }
                                 listBox.setListData(getFormatFileNames(firstFilesCopy, secondFiles, side));
@@ -568,7 +567,7 @@ public class SwingInterface {
             if (leftLines != null) leftLines.forEach(s -> leftTextPane.setText(leftTextPane.getText() + s + "\n"));
             if (rightLines != null) rightLines.forEach(s -> rightTextPane.setText(rightTextPane.getText() + s + "\n"));
 
-            if(rightLines != null && leftLines != null) {
+            if (rightLines != null && leftLines != null) {
                 changeColor(leftTextPane, lineChanges, Side.LEFT);
                 changeColor(rightTextPane, lineChanges, Side.RIGHT);
             }
@@ -668,7 +667,7 @@ public class SwingInterface {
                 String line = lines[i];
                 int indexOfSymbol = String.valueOf(i).length() + 2;
                 char symbol = line.charAt(indexOfSymbol);
-                if (symbol == '+' || symbol == '-' || symbol == '!') { // make + green, - red, ! orange
+                if (symbol != ' ') { // make + green, - red, ! orange
                     Color colorOfSymbol = (symbol == '+') ? Color.GREEN : (symbol == '-') ? Color.RED : Color.ORANGE;
                     StyleConstants.setBackground(attrs, colorOfSymbol);
                     StyleConstants.setForeground(attrs, Color.BLACK);

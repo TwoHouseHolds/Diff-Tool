@@ -311,13 +311,9 @@ public class LanternaInterface {
         menuPanel.addComponent(outterPanel);
         window.setComponent(menuPanel);
 
-        leftSearchBox.setTextChangeListener((s, s1) -> {
-            leftComboBox.setSelectedIndex(leftComboBox.getSelectedIndex());
-        });
+        leftSearchBox.setTextChangeListener((s, s1) -> leftComboBox.setSelectedIndex(leftComboBox.getSelectedIndex()));
 
-        rightSearchBox.setTextChangeListener((s, s1) -> {
-            rightComboBox.setSelectedIndex(rightComboBox.getSelectedIndex());
-        });
+        rightSearchBox.setTextChangeListener((s, s1) -> rightComboBox.setSelectedIndex(rightComboBox.getSelectedIndex()));
 
         WindowListenerAdapter listener = new WindowListenerAdapter() {
             @Override
@@ -441,7 +437,7 @@ public class LanternaInterface {
         } catch(IOException ignored) {
         }
         if(!identical) {
-            fileName += " (in L&R nicht identisch)";
+            fileName += " (in L&R verschieden)";
         } else {
             fileName += " (in L&R identisch)";
         }
@@ -773,10 +769,10 @@ public class LanternaInterface {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Das Spiel kann nicht in einer GUI-Umgebung ausgeführt werden.\nDas System läuft im Headless Modus", MessageDialogButton.OK);
                 return;
             }
-            SwingTicTacToeMinigaming swingTicTacToeMinigame = new SwingTicTacToeMinigaming();
+            SwingTicTacToeMinigaming swingTicTacToeMinigaming = new SwingTicTacToeMinigaming();
             JFrame frame = new JFrame("GUI - TicTacToe");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            frame.add(swingTicTacToeMinigame);
+            frame.add(swingTicTacToeMinigaming);
             frame.pack();
             frame.setVisible(true);
         }));
@@ -910,8 +906,8 @@ public class LanternaInterface {
                     .build()
                     .showDialog(textGUI);
 
-            boolean saveSuccessfull = FileUtils.saveDiffAsText(file1, file2, file, null);
-            if(!saveSuccessfull) {
+            boolean saveSuccessful = FileUtils.saveDiffAsText(file1, file2, file, null);
+            if(!saveSuccessful) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
                 return;
             }
@@ -1002,8 +998,8 @@ public class LanternaInterface {
                     .build()
                     .showDialog(textGUI);
 
-            boolean saveSuccessfull = FileUtils.saveDiffAsHTML(file1, file2, file, null);
-            if(!saveSuccessfull) {
+            boolean saveSuccessful = FileUtils.saveDiffAsHTML(file1, file2, file, null);
+            if(!saveSuccessful) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
                 return;
             }
