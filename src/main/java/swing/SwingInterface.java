@@ -100,9 +100,7 @@ public class SwingInterface {
             });
 
             backButton.addActionListener(e -> {
-                //noinspection StatementWithEmptyBody
-                if (level1UI.isVisible()) {
-                } else if (level2UI.isVisible()) {
+                if (level2UI.isVisible()) {
                     changeActivePanelFromTo(level2UI, level1UI);
                 } else if (level3UI.isVisible()) {
                     changeActivePanelFromTo(level3UI, level2UI);
@@ -111,9 +109,7 @@ public class SwingInterface {
             add(backButton);
 
             forwardButton.addActionListener(e -> {
-                //noinspection StatementWithEmptyBody
-                if (level3UI != null && level3UI.isVisible()) {
-                } else if (level2UI != null && level2UI.isVisible() && level3UI != null) {
+                if (level2UI != null && level2UI.isVisible() && level3UI != null) {
                     changeActivePanelFromTo(level2UI, level3UI);
                 } else if (level1UI.isVisible() && level2UI != null) {
                     changeActivePanelFromTo(level1UI, level2UI);
@@ -320,7 +316,6 @@ public class SwingInterface {
         private FileUtils.LineResult lr;
         private JList<String> leftList;
         private JList<String> rightList;
-        private JSplitPane splitPane;
 
         public Level2UI(List<File> leftFiles, List<File> rightFiles) {
             super(new GridBagLayout());
@@ -385,7 +380,7 @@ public class SwingInterface {
             checkBoxReverseRight.addActionListener((e) -> rightComboBox.setSelectedIndex(rightComboBox.getSelectedIndex()));
 
 
-            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
             splitPane.setResizeWeight(0.5);
             gbc.gridx = 0;
             gbc.gridy = 0;
@@ -478,8 +473,8 @@ public class SwingInterface {
     }
 
     private void manageSortingBox(JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed) {
-        //Lade Daten message
-        @SuppressWarnings("rawtypes") SwingWorker worker = new SwingWorker() {
+        // noinspection rawtypes
+        SwingWorker worker = new SwingWorker() {
             @Override
             protected Object doInBackground() {
 
@@ -593,12 +588,10 @@ public class SwingInterface {
                 if (synchronizedScrolling.isSelected()) {
                     rightJSP.getHorizontalScrollBar().setEnabled(false);
                     rightJSP.getVerticalScrollBar().setEnabled(false);
-                    leftJSP.getVerticalScrollBar().addAdjustmentListener(e1 -> {
-                        rightJSP.getVerticalScrollBar().setValue(leftJSP.getVerticalScrollBar().getValue());
-                    });
-                    leftJSP.getHorizontalScrollBar().addAdjustmentListener(e2 -> {
-                        rightJSP.getHorizontalScrollBar().setValue(leftJSP.getHorizontalScrollBar().getValue());
-                    });
+                    leftJSP.getVerticalScrollBar().addAdjustmentListener(e1 -> //
+                            rightJSP.getVerticalScrollBar().setValue(leftJSP.getVerticalScrollBar().getValue()));
+                    leftJSP.getHorizontalScrollBar().addAdjustmentListener(e2 -> //
+                            rightJSP.getHorizontalScrollBar().setValue(leftJSP.getHorizontalScrollBar().getValue()));
                 } else {
                     rightJSP.getHorizontalScrollBar().setEnabled(true);
                     rightJSP.getVerticalScrollBar().setEnabled(true);
@@ -626,15 +619,16 @@ public class SwingInterface {
                     int result = jfc.showSaveDialog(this);
                     if (result == JFileChooser.APPROVE_OPTION) {
                         File fileToSaveIn = jfc.getSelectedFile();
+                        boolean savedSuccessfully;
                         if (optionPaneResult == JOptionPane.YES_OPTION) {
-                            boolean savedSuccessfully = FileUtils.saveDiffAsText(null, null, fileToSaveIn, //
+                            savedSuccessfully = FileUtils.saveDiffAsText(null, null, fileToSaveIn, //
                                     new FileUtils.LineResult(leftLines, rightLines, lineChanges));
-                            if(!savedSuccessfully) JOptionPane.showMessageDialog(this, "Konnte nicht gespeichert werden!", "Fehler", JOptionPane.ERROR_MESSAGE);
                         } else {
-                            boolean savedSuccessfully = FileUtils.saveDiffAsHTML(null, null, fileToSaveIn, //
+                            savedSuccessfully = FileUtils.saveDiffAsHTML(null, null, fileToSaveIn, //
                                     new FileUtils.LineResult(leftLines, rightLines, lineChanges));
-                            if(!savedSuccessfully) JOptionPane.showMessageDialog(this, "Konnte nicht gespeichert werden!", "Fehler", JOptionPane.ERROR_MESSAGE);
                         }
+                        if (!savedSuccessfully)
+                            JOptionPane.showMessageDialog(this, "Konnte nicht gespeichert werden!", "Fehler", JOptionPane.ERROR_MESSAGE);
                     }
                 }
 
@@ -648,86 +642,31 @@ public class SwingInterface {
             String[] lines = textPane.getText().split("\n");
             int offset = 0;
 
-            //Change color of every added + to green
             for (int i = 0; i < lines.length; i++) {
                 String line = lines[i];
-                int space = String.valueOf(i).length() + 4;
-                int indexOfPlus = line.indexOf("+");
-
-                if (indexOfPlus >= 0 && indexOfPlus < space) {
-                    StyleConstants.setBackground(attrs, Color.GREEN);
+                int indexOfSymbol = String.valueOf(i).length() + 2;
+                char symbol = line.charAt(indexOfSymbol);
+                if (symbol == '+' || symbol == '-' || symbol == '!') { // make + green, - red, ! orange
+                    Color colorOfSymbol = (symbol == '+') ? Color.GREEN : (symbol == '-') ? Color.RED : Color.ORANGE;
+                    StyleConstants.setBackground(attrs, colorOfSymbol);
                     StyleConstants.setForeground(attrs, Color.BLACK);
-                    doc.setCharacterAttributes(offset + indexOfPlus, 1, attrs, false);
-                }
-                offset += line.length() + 1;
-            }
-
-            offset = 0;
-
-            //Change color of every added - to red
-            for (int i = 0; i < lines.length; i++) {
-                String line = lines[i];
-                int space = String.valueOf(i).length() + 4;
-                int indexOfMinus = line.indexOf("-");
-
-                if (indexOfMinus >= 0 && indexOfMinus < space) {
-                    StyleConstants.setBackground(attrs, Color.RED);
-                    StyleConstants.setForeground(attrs, Color.BLACK);
-                    doc.setCharacterAttributes(offset + indexOfMinus, 1, attrs, false);
-                }
-                offset += line.length() + 1;
-            }
-
-            offset = 0;
-
-            //Change color of every added ! to orange
-            for (int i = 0; i < lines.length; i++) {
-                String line = lines[i];
-                int space = String.valueOf(i).length() + 4;
-                int indexOfExclamationMark = line.indexOf("!");
-
-                if (indexOfExclamationMark >= 0 && indexOfExclamationMark < space) {
-                    StyleConstants.setBackground(attrs, Color.ORANGE);
-                    StyleConstants.setForeground(attrs, Color.BLACK);
-                    doc.setCharacterAttributes(offset + indexOfExclamationMark, 1, attrs, false);
+                    doc.setCharacterAttributes(offset + indexOfSymbol, 1, attrs, false);
                 }
                 offset += line.length() + 1;
             }
 
             if (lineChanges != null) {
                 for (FileUtils.SpecificLineChange change : lineChanges) {
-                    if (!swapLineChanges) {
-                        if (side == change.displaySide()) {
+                    if (!swapLineChanges && side == change.displaySide() || swapLineChanges && side != change.displaySide()) {
+                        offset = 0;
 
-                            offset = 0;
-                            int lineNumber = change.lineNumber();
-                            int index = change.index();
-
-                            for (int i = 0; i < lineNumber - 1; i++) {
-                                offset += lines[i].length() + 1;
-                            }
-
-                            int indexOfMarked = offset + index;
-                            StyleConstants.setBackground(attrs, Color.ORANGE);
-                            StyleConstants.setForeground(attrs, Color.BLACK);
-                            doc.setCharacterAttributes(indexOfMarked, 1, attrs, false);
+                        for (int i = 0; i < change.lineNumber() - 1; i++) {
+                            offset += lines[i].length() + 1;
                         }
-                    } else {
-                        if (side != change.displaySide()) {
 
-                            offset = 0;
-                            int lineNumber = change.lineNumber();
-                            int index = change.index();
-
-                            for (int i = 0; i < lineNumber - 1; i++) {
-                                offset += lines[i].length() + 1;
-                            }
-
-                            int indexOfMarked = offset + index;
-                            StyleConstants.setBackground(attrs, Color.ORANGE);
-                            StyleConstants.setForeground(attrs, Color.BLACK);
-                            doc.setCharacterAttributes(indexOfMarked, 1, attrs, false);
-                        }
+                        StyleConstants.setBackground(attrs, Color.ORANGE);
+                        StyleConstants.setForeground(attrs, Color.BLACK);
+                        doc.setCharacterAttributes(offset + change.index(), 1, attrs, false);
                     }
                 }
             }
@@ -745,9 +684,7 @@ public class SwingInterface {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    //noinspection StatementWithEmptyBody
-                    if (level1UI.isVisible()) {
-                    } else if (level2UI != null && level2UI.isVisible()) {
+                    if (level2UI != null && level2UI.isVisible()) {
                         changeActivePanelFromTo(level2UI, level1UI);
                     } else if (level3UI != null && level3UI.isVisible()) {
                         changeActivePanelFromTo(level3UI, level2UI);
@@ -761,7 +698,6 @@ public class SwingInterface {
         oldPanel.setVisible(false);
         newPanel.setVisible(true);
     }
-
 
     private void switchThemeTo(SwingTheme theme) {
         try {

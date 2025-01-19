@@ -36,11 +36,11 @@ public class BinaryHeuristics {
                     if (magicNumbersMatch(actual8FirstMN, amn)) return fileType;
                 }
             } else { // if magic numbers have offset
-                for (FileType.MagicNumberWithOffset mnwo : fileType.magicNumbersWithOffset) {
+                for (FileType.MagicNumberWithOffset mnWithOffset : fileType.magicNumbersWithOffset) {
                     FileInputStream fis2 = new FileInputStream(file);
-                    if(mnwo.offsetFromLeft()) fis2.skipNBytes(mnwo.offset()); // skip to location of magic number
-                    else fis2.skipNBytes(file.length() - mnwo.offset()); // skip to location of magic number (offset from right)
-                    int[] currentMN = mnwo.magicNumber();
+                    if(mnWithOffset.offsetFromLeft()) fis2.skipNBytes(mnWithOffset.offset()); // skip to location of magic number
+                    else fis2.skipNBytes(file.length() - mnWithOffset.offset()); // skip to location of magic number (offset from right)
+                    int[] currentMN = mnWithOffset.magicNumber();
                     int[] actualMN = nextNMagicNumbers(fis2, currentMN.length);
                     fis2.close();
                     if(magicNumbersMatch(actualMN, currentMN)) return fileType;
