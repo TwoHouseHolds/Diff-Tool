@@ -507,7 +507,8 @@ public class LanternaInterface {
                 }
 
                 if (!leftFile.equals(rightFile)) {
-                    FileUtils.LineResult result = FileUtils.compareFiles(leftFile, rightFile);
+                    interfaceState.setCurrentLineResult(FileUtils.compareFiles(leftFile, rightFile));
+                    FileUtils.LineResult result = interfaceState.getCurrentLineResult();
 
                     if(selectedSide == Side.LEFT) {
                         leftLines = result.left();
@@ -568,8 +569,90 @@ public class LanternaInterface {
 
         addMenu(menuPanel);
         menuPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
-        menuPanel.addComponent(linkedCheckBox);
+        menuPanel.addComponent(linkedCheckBox, LinearLayout.createLayoutData(LinearLayout.Alignment.Center));
+        menuPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         menuPanel.addComponent(outterPanel);
+
+        Button saveButton = new Button("Differenz speichern", () -> {
+            Window saveWindow = new BasicWindow("Speichern");
+            saveWindow.setHints(Set.of(Window.Hint.CENTERED));
+            Panel savePanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
+            Button saveLeftButton = new Button("Textdatei");
+            Button saveRightButton = new Button("HTML-Datei");
+            Button cancelButton = new Button("Abbrechen");
+
+            savePanel.addComponent(saveLeftButton);
+            savePanel.addComponent(saveRightButton);
+            savePanel.addComponent(cancelButton);
+
+            saveLeftButton.addListener((b) -> {
+                File saveFile = new FileDialogBuilder()
+                        .setTitle("Speichern")
+                        .setDescription("Speichern der Differenz")
+                        .setActionLabel("Speichern")
+                        .build()
+                        .showDialog(textGUI);
+
+                if(saveFile == null) {
+                    MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
+                    saveWindow.close();
+                    return;
+                }
+
+                boolean success;
+                if(interfaceState.getCurrentLineResult() == null) {
+                    success = FileUtils.saveDiffAsText(interfaceState.getCurrentLeftFile(), interfaceState.getCurrentRightFile(), saveFile, null);
+                } else {
+                    success = FileUtils.saveDiffAsText(null, null, saveFile, interfaceState.getCurrentLineResult());
+                }
+
+                if(!success) {
+                    MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
+                    saveWindow.close();
+                    return;
+                }
+                MessageDialog.showMessageDialog(textGUI, "Speichern", "Differenz wurde gespeichert", MessageDialogButton.OK);
+                saveWindow.close();
+            });
+
+            saveRightButton.addListener((b) -> {
+                File saveFile = new FileDialogBuilder()
+                        .setTitle("Speichern")
+                        .setDescription("Speichern der Differenz")
+                        .setActionLabel("Speichern")
+                        .build()
+                        .showDialog(textGUI);
+
+                if(saveFile == null) {
+                    MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
+                    saveWindow.close();
+                    return;
+                }
+
+                boolean success;
+                if(interfaceState.getCurrentLineResult() == null) {
+                    success = FileUtils.saveDiffAsHTML(interfaceState.getCurrentLeftFile(), interfaceState.getCurrentRightFile(), saveFile, null);
+                } else {
+                    success = FileUtils.saveDiffAsHTML(null, null, saveFile, interfaceState.getCurrentLineResult());
+                }
+
+                if(!success) {
+                    MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
+                    saveWindow.close();
+                    return;
+                }
+                MessageDialog.showMessageDialog(textGUI, "Speichern", "Differenz wurde gespeichert", MessageDialogButton.OK);
+                saveWindow.close();
+            });
+
+            cancelButton.addListener((b) -> saveWindow.close());
+
+            saveWindow.setComponent(savePanel);
+            textGUI.addWindow(saveWindow);
+        });
+
+        menuPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+        menuPanel.addComponent(saveButton, LinearLayout.createLayoutData(LinearLayout.Alignment.Center));
 
         window.setComponent(menuPanel);
         WindowListenerAdapter listener = new WindowListenerAdapter() {
