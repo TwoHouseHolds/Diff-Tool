@@ -5,6 +5,8 @@ import algorithms.FileUtils.SpecificLineChange;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
 
+import java.awt.*;
+
 /**
  * A custom renderer for {@link TextBox} that colorizes the text based on the characters in it
  * (e.g. '+' will be green, '-' will be red)
@@ -28,65 +30,37 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
         int yScrollOffset = getViewTopLeft().getRow();
 
         for (int i = yScrollOffset; i < yScrollOffset + textBox.getSize().getRows() - 1; i++) {
-            if (i >= lines.length) {
-                break;
-            }
+            if (i >= lines.length) break;
             String line = lines[i];
+            if(line.isEmpty()) continue;
             int yPos = i - yScrollOffset;
-            int xPos = line.indexOf("+");
-            xPos = xPos - xScrollOffset;
+            int symbolLocation = String.valueOf(i).length() + 2;
+            int xPos = symbolLocation - xScrollOffset;
+            char symbol = line.charAt(symbolLocation);
 
-            if(xPos < String.valueOf(i).length() + 4) {
-                graphics.setBackgroundColor(TextColor.ANSI.GREEN);
+            if(symbol != ' ') {
+                TextColor.ANSI colorOfSymbol = (symbol == '+') ? TextColor.ANSI.GREEN //
+                        : (symbol == '-') ? TextColor.ANSI.RED : TextColor.ANSI.YELLOW;
+                graphics.setBackgroundColor(colorOfSymbol);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                graphics.putString(xPos, yPos, "+");
+                graphics.putString(xPos, yPos, String.valueOf(symbol));
 
                 graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
             }
 
-            xPos = line.indexOf("-");
-            xPos = xPos - xScrollOffset;
-
-            if(xPos < String.valueOf(i).length() + 4) {
-                graphics.setBackgroundColor(TextColor.ANSI.RED);
-                graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                graphics.putString(xPos, yPos, "-");
-
-                graphics.setBackgroundColor(TextColor.ANSI.BLUE);
-                graphics.setForegroundColor(TextColor.ANSI.WHITE);
-            }
-
-            xPos = line.indexOf("!");
-            xPos = xPos - xScrollOffset;
-
-            if(xPos < String.valueOf(i).length() + 4) {
-                graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
-                graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                graphics.putString(xPos, yPos, "!");
-
-                graphics.setBackgroundColor(TextColor.ANSI.BLUE);
-                graphics.setForegroundColor(TextColor.ANSI.WHITE);
-            }
-
-            if(coloredTextBox.getSpecificLineChanges() == null) {
-                continue;
-            }
-
-            for(SpecificLineChange c : coloredTextBox.getSpecificLineChanges()) {
-
-                if(coloredTextBox.getSide() != c.displaySide()) {
-                    continue;
-                }
-
-                xPos = c.index() - xScrollOffset;
-
-                if(c.lineNumber() == i) {
-                    graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
-                    graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                    graphics.putString(xPos, yPos, String.valueOf(c.character()));
-                    graphics.setBackgroundColor(TextColor.ANSI.BLUE);
-                    graphics.setForegroundColor(TextColor.ANSI.WHITE);
+            if(coloredTextBox.getSpecificLineChanges() != null) {
+                for(SpecificLineChange c : coloredTextBox.getSpecificLineChanges()) {
+                    if(coloredTextBox.getSide() == c.displaySide()) {
+                        xPos = c.index() - xScrollOffset;
+                        if(c.lineNumber() == i) {
+                            graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
+                            graphics.setForegroundColor(TextColor.ANSI.BLACK);
+                            graphics.putString(xPos, yPos, String.valueOf(c.character()));
+                            graphics.setBackgroundColor(TextColor.ANSI.BLUE);
+                            graphics.setForegroundColor(TextColor.ANSI.WHITE);
+                        }
+                    }
                 }
             }
         }
