@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.List;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 public class SwingInterface {
 
@@ -380,17 +381,14 @@ public class SwingInterface {
                     public void keyReleased(KeyEvent e) {
                         String search = searchTextField.getText();
                         List<File> searchResult = filterFilesByName(firstFiles, search);
-                        sortingChooser.setSelectedIndex(sortingChooser.getSelectedIndex());
-                        thisSideList.setListData(getFormatFileNames(searchResult, secondSide, side));
+                        manageSortingBox(thisSideList, searchResult, secondSide, side, sortingChooser.getSelectedIndex(), reverseCheckBox.isSelected(), searchTextField.getText());
                     }
                 });
 
                 // implement sorting
-                sortingChooser.addActionListener(e -> {
-                    int selected = sortingChooser.getSelectedIndex();
-                    Boolean isReversed = reverseCheckBox.isSelected();
-                    manageSortingBox(thisSideList, firstFiles, secondSide, side, selected, isReversed, searchTextField.getText());
-                });
+                sortingChooser.addActionListener(e -> manageSortingBox(thisSideList, firstFiles, secondSide, //
+                        side, sortingChooser.getSelectedIndex(), reverseCheckBox.isSelected(), searchTextField.getText()));
+
                 reverseCheckBox.addActionListener((e) -> sortingChooser.setSelectedIndex(sortingChooser.getSelectedIndex()));
             }
         }
@@ -466,63 +464,30 @@ public class SwingInterface {
         }
 
         public static List<File> filterFilesByName(List<File> files, String searchString) {
-            List<File> filteredFiles = new ArrayList<>();
-            for (File file : files) {
-                if (file.getName().toLowerCase().contains(searchString.toLowerCase())) {
-                    filteredFiles.add(file);
-                }
-            }
-            return filteredFiles;
+            return files.stream().filter(f -> f.getName().toLowerCase().contains(searchString)).collect(Collectors.toList());
         }
 
         private void manageSortingBox(JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed, String search) {
             // noinspection rawtypes
             SwingWorker worker = new SwingWorker() {
                 @Override
-                protected Object doInBackground() {
-
-                    List<File> firstFilesCopy = new ArrayList<>(firstFiles);
+                protected Object doInBackground() throws InterruptedException {
+                    List<File> sorted = new ArrayList<>(firstFiles);
                     if (!search.isEmpty()) {
-                        firstFilesCopy = filterFilesByName(firstFilesCopy, search);
+                        sorted = filterFilesByName(sorted, search);
                     }
 
-                    if (selected != -1) {
-                        switch (selected) {
-                            case 0: {
-                                listBox.setListData(getFormatFileNames(firstFilesCopy, secondFiles, side));
-                                break;
-                            }
-                            case 1: {
-                                if (isReversed) {
-                                    firstFilesCopy.sort(Comparator.comparing(File::getName).reversed());
-                                } else {
-                                    firstFilesCopy.sort(Comparator.comparing(File::getName));
-                                }
-                                listBox.setListData(getFormatFileNames(firstFilesCopy, secondFiles, side));
-                                break;
-                            }
+                    Comparator<File> doNothing = (x,y) -> 0; // all files are equal
+                    Comparator<File> comp = switch (selected) {
+                        case 1 -> Comparator.comparing(File::getName);
+                        case 2 -> Comparator.comparing(File::length);
+                        case 3 -> Comparator.comparing(File::lastModified);
+                        default -> doNothing;
+                    };
+                    if(isReversed) comp = comp.reversed();
+                    if (comp != doNothing) sorted.sort(comp);
 
-                            case 2: {
-                                if (isReversed) {
-                                    firstFilesCopy.sort(Comparator.comparingLong(File::length).reversed());
-                                } else {
-                                    firstFilesCopy.sort(Comparator.comparingLong(File::length));
-                                }
-                                listBox.setListData(getFormatFileNames(firstFilesCopy, secondFiles, side));
-                                break;
-                            }
-                            case 3: {
-                                if (isReversed) {
-                                    firstFilesCopy.sort(Comparator.comparingLong(File::lastModified).reversed());
-                                } else {
-                                    firstFilesCopy.sort(Comparator.comparingLong(File::lastModified));
-                                }
-                                listBox.setListData(getFormatFileNames(firstFilesCopy, secondFiles, side));
-                                break;
-                            }
-                        }
-
-                    }
+                    listBox.setListData(getFormatFileNames(sorted, secondFiles, side));
                     return null;
                 }
 
@@ -596,7 +561,6 @@ public class SwingInterface {
             gbc.weightx = 1;
             gbc.gridwidth = 3;
             add(splitPane, gbc);
-
 
             JCheckBox synchronizedScrolling = new JCheckBox("Synchrones Scrollen");
             gbc.gridy = 0;
