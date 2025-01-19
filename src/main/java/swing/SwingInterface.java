@@ -359,9 +359,6 @@ public class SwingInterface {
             leftSearchTextField.setPreferredSize(new Dimension(300, 25));
             leftNorthPanel.add(leftSearchTextField);
 
-            JButton leftSearchButton = new JButton("Search");
-            leftNorthPanel.add(leftSearchButton);
-
 
             left.add(leftScrollPane, BorderLayout.CENTER);
             left.add(leftNorthPanel, BorderLayout.NORTH);
@@ -376,8 +373,6 @@ public class SwingInterface {
             rightSearchTextField.setPreferredSize(new Dimension(300, 25));
             rightNorthPanel.add(rightSearchTextField);
 
-            JButton rightSearchButton = new JButton("Search");
-            rightNorthPanel.add(rightSearchButton);
 
             right.add(rightNorthPanel, BorderLayout.NORTH);
             right.add(rightScrollPane, BorderLayout.CENTER);
@@ -391,27 +386,14 @@ public class SwingInterface {
                 frame.repaint();
             };
 
-            leftSearchButton.addActionListener(searchleftActionListener);
-            leftSearchTextField.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyReleased(KeyEvent e) {
-                    if(e.getKeyCode()== KeyEvent.VK_ENTER){
-                        searchleftActionListener.actionPerformed(null);
-                    }
 
-                }
-            });
-
-
-
-
-             /*leftSearchTextField.addKeyListener(new KeyAdapter() {
+             leftSearchTextField.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyReleased(KeyEvent e) {
                     searchleftActionListener.actionPerformed(null);
                 }
             });
-             */
+
 
             ActionListener leftActionListener = e -> {
                 int selected = leftComboBox.getSelectedIndex();
@@ -431,16 +413,13 @@ public class SwingInterface {
                 frame.repaint();
             };
 
-            rightSearchButton.addActionListener(searchrightActionListener);
             rightSearchTextField.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyReleased(KeyEvent e) {
-                    if(e.getKeyCode()== KeyEvent.VK_ENTER){
-                        searchrightActionListener.actionPerformed(null);
-                    }
-
+                    searchrightActionListener.actionPerformed(null);
                 }
             });
+
 
             ActionListener rightActionListener = e -> {
                 int selected = rightComboBox.getSelectedIndex();
