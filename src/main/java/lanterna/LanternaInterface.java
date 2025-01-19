@@ -498,12 +498,12 @@ public class LanternaInterface {
             protected Object doInBackground() {
                 if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
                     leftLines = FileUtils.readFile(leftFile);
-                    rightLines = leftLines;
+                    rightLines = List.of("Nur links vorhanden");
                 }
 
                 if (leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
                     rightLines = FileUtils.readFile(rightFile);
-                    leftLines = rightLines;
+                    leftLines = List.of("Nur rechts vorhanden");
                 }
 
                 if (!leftFile.equals(rightFile)) {

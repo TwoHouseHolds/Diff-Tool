@@ -26,6 +26,7 @@ public class SwingInterface {
     private Level2UI level2UI = null;
     private Level3UI level3UI = null;
     private SwingTicTacToeMinigaming ticTacToeGameUI = null;
+    private final GridBagConstraints globalGbc = new GridBagConstraints();
 
     public void start() {
         SwingUtilities.invokeLater(() -> {
@@ -35,9 +36,14 @@ public class SwingInterface {
             int width = (int) (screenSize.width * 0.7);
             int height = (int) (screenSize.height * 0.7);
             frame.setSize(width, height);
-
+            frame.setLayout(new GridBagLayout());
             frame.setJMenuBar(menu);
-            frame.add(level1UI);
+            globalGbc.anchor = GridBagConstraints.CENTER;
+            globalGbc.fill = GridBagConstraints.BOTH;
+            globalGbc.weighty = 1;
+            globalGbc.weightx = 1;
+
+            frame.add(level1UI, globalGbc);
 
             frame.addComponentListener(new ComponentAdapter() {
                 @Override
@@ -54,14 +60,21 @@ public class SwingInterface {
             switchThemeTo(startTheme);
 
             SwingUtilities.updateComponentTreeUI(frame);
+            resizeAll();
             frame.setVisible(true);
         });
     }
 
     private void resizeAll() {
+        Dimension frameDimension = new Dimension();
+        frameDimension.setSize(frame.getWidth() * 0.95, frame.getHeight() * 0.95);
         level1UI.setSize(frame.getSize());
-        if (level2UI != null) level2UI.setSize(frame.getSize());
-        if (level3UI != null) level3UI.setSize(frame.getSize());
+        if (level2UI != null) {
+            level2UI.setSize(frame.getSize());
+        }
+        if (level3UI != null) {
+            level3UI.setSize(frame.getSize());
+        }
     }
 
     //TODO translate to german and correct the information in menu
@@ -105,6 +118,7 @@ public class SwingInterface {
                 } else if (level3UI.isVisible()) {
                     changeActivePanelFromTo(level3UI, level2UI);
                 }
+                resizeAll();
             });
             add(backButton);
 
@@ -114,6 +128,7 @@ public class SwingInterface {
                 } else if (level1UI.isVisible() && level2UI != null) {
                     changeActivePanelFromTo(level1UI, level2UI);
                 }
+                resizeAll();
             });
             add(forwardButton);
 
@@ -218,13 +233,6 @@ public class SwingInterface {
         private void addLowerMenu() {
             JPanel bottomPanel = new JPanel(new FlowLayout());
 
-            JButton cancelButton = new JButton("Abbrechen");
-            cancelButton.addActionListener(click -> {
-                leftPanel.clearInput();
-                rightPanel.clearInput();
-            });
-            bottomPanel.add(cancelButton);
-
             JButton okButton = new JButton("Bestätigen");
             okButton.addActionListener(click -> {
                 String pathLeft = leftPanel.getDirectory();
@@ -238,7 +246,7 @@ public class SwingInterface {
                     List<File> rightFiles = FileUtils.getFiles(pathRight);
                     setVisible(false);
                     level2UI = new Level2UI(leftFiles, rightFiles);
-                    frame.add(level2UI);
+                    frame.add(level2UI, globalGbc);
                 }
             });
             bottomPanel.add(okButton);
@@ -304,10 +312,6 @@ public class SwingInterface {
             public String getDirectory() {
                 return textField.getText();
             }
-
-            public void clearInput() {
-                textField.setText("");
-            }
         }
     }
 
@@ -322,7 +326,7 @@ public class SwingInterface {
             setFocusable(false);
             if (leftFiles == null || rightFiles == null) {
                 JOptionPane.showMessageDialog(frame, (leftFiles == null ? "Linkes" : "Rechtes") + " Verzeichnis ist leer!", "Fehler", JOptionPane.ERROR_MESSAGE);
-                level1UI.setVisible(true);
+                changeActivePanelFromTo(this, level1UI);
                 return;
             }
 
@@ -430,21 +434,22 @@ public class SwingInterface {
                         @Override
                         protected Object doInBackground() {
                             if (sideInformation.equals(Side.LEFT)) {
-                                if (otherFile.isEmpty())
+                                if (otherFile.isEmpty()) {
+                                    System.out.println("Ich bin hier");
                                     level3UI = new Level3UI(FileUtils.readFile(thisFile), null, null, false);
-                                else {
+                                } else {
                                     lr = FileUtils.compareFiles(thisFile, otherFile.get());
                                     level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges(), false);
                                 }
                             } else { // called from right side
-                                if (otherFile.isEmpty())
+                                if (otherFile.isEmpty()) {
                                     level3UI = new Level3UI(null, FileUtils.readFile(thisFile), null, false);
-                                else {
+                                } else {
                                     lr = FileUtils.compareFiles(thisFile, otherFile.get());
                                     level3UI = new Level3UI(lr.right(), lr.left(), lr.specificLineChanges(), true);
                                 }
                             }
-                            frame.add(level3UI);
+                            frame.add(level3UI, globalGbc);
                             changeActivePanelFromTo(level2UI, level3UI);
                             return null;
                         }
@@ -548,8 +553,10 @@ public class SwingInterface {
             if (leftLines != null) leftLines.forEach(s -> leftTextPane.setText(leftTextPane.getText() + s + "\n"));
             if (rightLines != null) rightLines.forEach(s -> rightTextPane.setText(rightTextPane.getText() + s + "\n"));
 
-            changeColor(leftTextPane, lineChanges, Side.LEFT);
-            changeColor(rightTextPane, lineChanges, Side.RIGHT);
+            if(rightLines != null && leftLines != null) {
+                changeColor(leftTextPane, lineChanges, Side.LEFT);
+                changeColor(rightTextPane, lineChanges, Side.RIGHT);
+            }
 
             leftTextPane.setCaretPosition(0);
             rightTextPane.setCaretPosition(0);
