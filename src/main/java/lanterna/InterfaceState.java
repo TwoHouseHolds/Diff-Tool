@@ -26,6 +26,8 @@ public class InterfaceState {
     private List<File> leftDir;
     private List<File> rightDir;
     private List<String> currentDirectorys;
+    private List<String> leftLines;
+    private List<String> rightLines;
     private WindowListenerAdapter currentListener;
     private SortType sortTypeLeft;
     private SortType sortTypeRight;
@@ -170,5 +172,21 @@ public class InterfaceState {
 
     public void setCurrentLineResult(FileUtils.LineResult currentLineResult) {
         this.currentLineResult = currentLineResult;
+    }
+
+    public void setLeftLines(List<String> leftLines) {
+        this.leftLines = leftLines;
+    }
+
+    public void setRightLines(List<String> rightLines) {
+        this.rightLines = rightLines;
+    }
+
+    public List<String> getLeftLines() {
+        return leftLines;
+    }
+
+    public List<String> getRightLines() {
+        return rightLines;
     }
 }

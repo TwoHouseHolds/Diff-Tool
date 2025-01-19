@@ -1,8 +1,13 @@
 package utils;
 
 public enum SortType {
-    UNSORTED,
-    ALPHABETICAL,
-    SIZE,
-    DATE,
+    UNSORTED(0),
+    ALPHABETICAL(1),
+    SIZE(2),
+    DATE(3);
+
+    public final int value;
+    SortType(int value) {
+        this.value = value;
+    }
 }
