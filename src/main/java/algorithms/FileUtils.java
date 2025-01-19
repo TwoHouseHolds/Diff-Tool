@@ -29,26 +29,13 @@ public class FileUtils {
     }
 
     /**
-     * Check which FileType a file is
-     *
-     * @param file      File to check
-     * @param extensive If true, check the entire file. If false, check the first 1MB (1048576 bytes). If possible only check the magic number
-     * @return FileType of the file
-     * @see java.io.File
-     * @see BinaryHeuristics
-     */
-    public static FileType getFileType(File file, boolean extensive) {
-        return BinaryHeuristics.fileTypeOf(file, extensive);
-    }
-
-    /**
      * Read a file and return its lines with line numbers
      *
      * @param file File to read
      * @return List of lines in the file
      */
     public static List<String> readFile(File file) {
-        FileType fileType = getFileType(file, false);
+        FileType fileType = BinaryHeuristics.fileTypeOf(file, false);
         if (fileType == FileType.ERROR) {
             return List.of("Fehler beim Lesen der Datei");
         }
@@ -59,31 +46,13 @@ public class FileUtils {
             List<String> lines = Files.readAllLines(Paths.get(file.toURI()));
             int lineNumber = 1;
             for (String line : lines) {
-                String prefix = lineNumber + ":   ";
-                line = prefix + line;
+                line = lineNumber + ":   " + line;
                 lines.set(lineNumber - 1, line);
                 lineNumber++;
             }
             return lines;
         } catch (IOException e) {
             return List.of("Fehler beim Lesen der Datei");
-        }
-    }
-
-    /**
-     * Compare two files using the Hunt-McIlroy algorithm
-     *
-     * @param fileLeft  First file to compare
-     * @param fileRight Second file to compare
-     * @return Result of the comparison as a List<HuntMcIlroy.LineTuple> object
-     * @see HuntMcIlroy
-     * @see java.io.File
-     */
-    private static List<HuntMcIlroy.LineTuple> huntCompare(File fileLeft, File fileRight) {
-        try {
-            return HuntMcIlroy.compare(fileLeft, fileRight);
-        } catch (IOException e) {
-            return null;
         }
     }
 
@@ -101,7 +70,7 @@ public class FileUtils {
      * The lineNumber is the number of the line that has been changed e.g. 5 for the 5th line
      * The index is the index of the character that has been changed e.g. 5 for the 5th character
      * The character is the character that has been changed e.g. 'a' for the character 'a'
-     * The longerSide is the side that has the longer line e.g. utils.Side.LEFT if the left line is longer
+     * The displaySide is the side that has the longer line e.g. utils.Side.LEFT if the left line is longer
      *
      * @param lineNumber
      * @param index
@@ -125,17 +94,20 @@ public class FileUtils {
      * @see java.util.List
      */
     public static LineResult compareFiles(File leftFile, File rightFile) {
-        List<HuntMcIlroy.LineTuple> lineTuples = huntCompare(leftFile, rightFile);
+
         List<String> leftLines = new ArrayList<>();
         List<String> rightLines = new ArrayList<>();
         List<SpecificLineChange> specificLineChanges = new ArrayList<>();
 
-        FileType fileTypeLeft = getFileType(leftFile, false);
-        FileType fileTypeRight = getFileType(rightFile, false);
+        FileType fileTypeLeft = BinaryHeuristics.fileTypeOf(leftFile, false);
+        FileType fileTypeRight = BinaryHeuristics.fileTypeOf(rightFile, false);
 
         int lineNumber = 1;
 
-        if (lineTuples == null) {
+        List<HuntMcIlroy.LineTuple> lineTuples;
+        try {
+            lineTuples = HuntMcIlroy.compare(leftFile, rightFile);
+        } catch (IOException e) {
             if (fileTypeLeft == FileType.ERROR) {
                 leftLines.add("Fehler beim Lesen der Datei");
             } else if (fileTypeRight == FileType.ERROR) {
@@ -301,7 +273,7 @@ public class FileUtils {
      * @param str String to escape
      * @return Escaped string
      */
-    public static String escapeHtml(String str) {
+    private static String escapeHtml(String str) {
         return str.replace("<", "&lt;").replace(">", "&gt;");
     }
 }
