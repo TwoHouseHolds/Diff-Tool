@@ -95,97 +95,93 @@ public class FileUtils {
      */
     public static LineResult compareFiles(File leftFile, File rightFile) {
 
-        List<String> leftLines = new ArrayList<>();
-        List<String> rightLines = new ArrayList<>();
-        List<SpecificLineChange> specificLineChanges = new ArrayList<>();
-
-        FileType fileTypeLeft = BinaryHeuristics.fileTypeOf(leftFile, false);
-        FileType fileTypeRight = BinaryHeuristics.fileTypeOf(rightFile, false);
-
-        int lineNumber = 1;
-
-        List<HuntMcIlroy.LineTuple> lineTuples;
-        try {
-            lineTuples = HuntMcIlroy.compare(leftFile, rightFile);
-        } catch (IOException e) {
-            if (fileTypeLeft == FileType.ERROR) {
-                leftLines.add("Fehler beim Lesen der Datei");
-            } else if (fileTypeRight == FileType.ERROR) {
-                rightLines.add("Fehler beim Lesen der Datei");
-            } else {
-                leftLines.add((fileTypeLeft == FileType.BINARY ? "Binäre " : fileTypeLeft) + " Dateien können (noch) nicht verglichen werden.");
-                rightLines.add((fileTypeRight == FileType.BINARY ? "Binäre " : fileTypeRight) + " Dateien können (noch) nicht verglichen werden.");
+        // make sure file type is text (BinaryHeuristics)
+        FileType leftFileType = BinaryHeuristics.fileTypeOf(leftFile, false);
+        FileType rightFileType = BinaryHeuristics.fileTypeOf(rightFile, false);
+        if (leftFileType != FileType.TEXT || rightFileType != FileType.TEXT) {
+            List<String> leftLines = new ArrayList<>();
+            List<String> rightLines = new ArrayList<>();
+            if (leftFileType == FileType.ERROR) leftLines.add("Fehler beim Lesen der Datei");
+            else if (rightFileType == FileType.ERROR) rightLines.add("Fehler beim Lesen der Datei");
+            else {
+                leftLines.add((leftFileType == FileType.BINARY ? "Binäre " : leftFileType) + " Dateien können (noch) nicht verglichen werden.");
+                rightLines.add((rightFileType == FileType.BINARY ? "Binäre " : rightFileType) + " Dateien können (noch) nicht verglichen werden.");
             }
             return new LineResult(leftLines, rightLines, null);
         }
 
-        int lineCounterLeft = 1;
-
-        for (HuntMcIlroy.LineTuple tuple : lineTuples) {
-            if (tuple.leftLine() == null) {
-                String emptySpaces = " ".repeat(String.valueOf(lineCounterLeft).length());
-                leftLines.add(emptySpaces + "  - ");
-                rightLines.add(emptySpaces + "    " + tuple.rightLine());
-                lineNumber++;
-                continue;
-            }
-
-            if (tuple.rightLine() == null) {
-                leftLines.add(lineCounterLeft + ": + " + tuple.leftLine());
-                rightLines.add(lineCounterLeft + ":   ");
-                lineCounterLeft++;
-                lineNumber++;
-                continue;
-            }
-
-            if (!tuple.sameLine()) {
-                String[] leftText = tuple.leftLine().split("");
-                String[] rightText = tuple.rightLine().split("");
-
-                String leftString = tuple.leftLine();
-                String rightString = tuple.rightLine();
-
-                Side longerSide = leftText.length > rightText.length ? Side.LEFT : Side.RIGHT;
-
-                String longerString = longerSide == Side.LEFT ? tuple.leftLine() : tuple.rightLine();
-                String shorterString = longerSide == Side.LEFT ? tuple.rightLine() : tuple.leftLine();
-
-                int distance = LevenshteinDistance.of(leftString, rightString);
-
-                if (distance < Math.max(leftString.length(),rightString.length()) * 0.3) {
-
-                    String diffString = HuntMcIlroy.compareString(longerString, shorterString);
-
-                    for (int i = 0; i < diffString.length(); i++) {
-                        if (diffString.charAt(i) == '!') {
-                            specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longerString.charAt(i), longerSide));
-                        }
-                    }
-
-                } else {
-                    for (int i = 0; i < leftString.length(); i++) {
-                        specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, leftString.charAt(i), Side.LEFT));
-                    }
-                    for (int i = 0; i < rightString.length(); i++) {
-                        specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, rightString.charAt(i), Side.RIGHT));
-                    }
-                }
-
-                leftLines.add(lineCounterLeft + ": ! " + tuple.leftLine());
-                rightLines.add(lineCounterLeft + ": ! " + tuple.rightLine());
-                lineCounterLeft++;
-                lineNumber++;
-                continue;
-            }
-
-            leftLines.add(lineCounterLeft + ":   " + tuple.leftLine());
-            rightLines.add(lineCounterLeft + ":   " + tuple.rightLine());
-            lineNumber++;
-            lineCounterLeft++;
+        // get LineTuples (HuntMcIlroy)
+        List<HuntMcIlroy.StringTuple> stringTuples;
+        try {
+            stringTuples = HuntMcIlroy.compare(leftFile, rightFile);
+        } catch (IOException e) {
+            List<String> errorList = List.of("Fehler beim Lesen einer Datei");
+            return new LineResult(errorList, errorList, null);
         }
 
-        return new LineResult(leftLines, rightLines, specificLineChanges);
+        return createLineResultFrom(stringTuples);
+    }
 
+    private static LineResult createLineResultFrom(List<HuntMcIlroy.StringTuple> stringTuples) {
+        // inputs for "return LineResult"
+        List<String> leftLines = new ArrayList<>();
+        List<String> rightLines = new ArrayList<>();
+        List<SpecificLineChange> specificLineChanges = new ArrayList<>();
+
+        int lineNumber = 1;
+        int leftLineCounter = 1;
+        for (HuntMcIlroy.StringTuple tuple : stringTuples) {
+            if (tuple.leftLine() == null) { // line removed => -
+                String emptySpaces = " ".repeat(String.valueOf(leftLineCounter).length());
+                leftLines.add(emptySpaces + "  - ");
+                rightLines.add(emptySpaces + "    " + tuple.rightLine());
+            } else if (tuple.rightLine() == null) { // line added => +
+                leftLines.add(leftLineCounter + ": + " + tuple.leftLine());
+                rightLines.add(leftLineCounter + ":   ");
+                leftLineCounter++;
+            } else if (!tuple.sameLine()) { // lines differ => !
+                specificLineChanges.addAll(getSpecificLineChanges(tuple, lineNumber, leftLineCounter));
+                leftLines.add(leftLineCounter + ": ! " + tuple.leftLine());
+                rightLines.add(leftLineCounter + ": ! " + tuple.rightLine());
+                leftLineCounter++;
+            } else { // same line => " "
+                leftLines.add(leftLineCounter + ":   " + tuple.leftLine());
+                rightLines.add(leftLineCounter + ":   " + tuple.rightLine());
+                leftLineCounter++;
+            }
+            lineNumber++;
+        }
+        return new LineResult(leftLines, rightLines, specificLineChanges);
+    }
+
+    private static List<SpecificLineChange> getSpecificLineChanges(HuntMcIlroy.StringTuple tuple, int lineNumber, int lineCounterLeft) {
+        List<SpecificLineChange> newSpecificLineChanges = new ArrayList<>();
+        String leftString = tuple.leftLine();
+        String rightString = tuple.rightLine();
+        String[] leftArray = leftString.split("");
+        String[] rightArray = rightString.split("");
+
+        Side longerSide = leftArray.length > rightArray.length ? Side.LEFT : Side.RIGHT;
+        String longerString = longerSide == Side.LEFT ? leftString : rightString;
+        String shorterString = longerSide == Side.LEFT ? rightString : leftString;
+
+        // check if Strings should be compared character by character (LevenshteinDistance)
+        if (LevenshteinDistance.of(leftString, rightString) < longerString.length() * 0.3) {
+            String diffString = HuntMcIlroy.compareString(longerString, shorterString);
+            for (int i = 0; i < diffString.length(); i++) {
+                if (diffString.charAt(i) == '!') {
+                    newSpecificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longerString.charAt(i), longerSide));
+                }
+            }
+        } else {
+            for (int i = 0; i < leftString.length(); i++) {
+                newSpecificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, leftString.charAt(i), Side.LEFT));
+            }
+            for (int i = 0; i < rightString.length(); i++) {
+                newSpecificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, rightString.charAt(i), Side.RIGHT));
+            }
+        }
+        return newSpecificLineChanges;
     }
 
     /**
@@ -268,7 +264,7 @@ public class FileUtils {
     }
 
     /**
-     * Escape HTML characters: < and > so they are not interpreted as HTML tags
+     * Escape HTML characters (< and >) so they are not interpreted as HTML tags
      *
      * @param str String to escape
      * @return Escaped string

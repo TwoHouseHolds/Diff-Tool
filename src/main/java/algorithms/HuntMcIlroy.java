@@ -12,14 +12,14 @@ public class HuntMcIlroy {
     private static List<String> leftLines;
     private static List<String> rightLines;
 
-    public static List<LineTuple> compare(File leftFile, File rightFile) throws IOException {
+    public static List<StringTuple> compare(File leftFile, File rightFile) throws IOException {
         int[][] hmiMatrix = huntMcIlroyMatrix(leftFile, rightFile);
 
         List<MatchingLineSequence> matchingLineSequences = getMatchingLineSequences(hmiMatrix);
         Collections.reverse(matchingLineSequences); // sameLineSequences were read in reversed order
         matchingLineSequences.add(0, new MatchingLineSequence(-1, -1, 1)); // startmarker (place filler)
 
-        List<LineTuple> result = new ArrayList<>();
+        List<StringTuple> result = new ArrayList<>();
         for (int i = 0; i < matchingLineSequences.size() - 1; i++) { // iterate over subsequences
             MatchingLineSequence last = matchingLineSequences.get(i);
             MatchingLineSequence next = matchingLineSequences.get(i + 1);
@@ -28,26 +28,26 @@ public class HuntMcIlroy {
             int leftLimit = next.startLeft();
             int rightLimit = next.startRight();
             while (leftStart < leftLimit && rightStart < rightLimit) { // add DIFFERENT lines that are in both sides
-                result.add(new LineTuple(leftStart, leftLines.get(leftStart), rightStart, rightLines.get(rightStart), false));
+                result.add(new StringTuple(leftStart, leftLines.get(leftStart), rightStart, rightLines.get(rightStart), false));
                 leftStart++;
                 rightStart++;
             }
             while (leftStart < leftLimit) { // add remaining DIFFERENT lines (only in left)
-                result.add(new LineTuple(leftStart, leftLines.get(leftStart), -1, null, false));
+                result.add(new StringTuple(leftStart, leftLines.get(leftStart), -1, null, false));
                 leftStart++;
             }
             while (rightStart < rightLimit) { // OR add DIFFERENT remaining lines (only in right)
-                result.add(new LineTuple(-1, null, rightStart, rightLines.get(rightStart), false));
+                result.add(new StringTuple(-1, null, rightStart, rightLines.get(rightStart), false));
                 rightStart++;
             }
             for (int j = 0; j < next.length; j++) { // add SAME lines of next block
-                result.add(new LineTuple(leftStart + j, leftLines.get(leftStart + j), rightStart + j, rightLines.get(rightStart + j), true));
+                result.add(new StringTuple(leftStart + j, leftLines.get(leftStart + j), rightStart + j, rightLines.get(rightStart + j), true));
             }
         }
         return result;
     }
 
-    public record LineTuple(int leftIndex, String leftLine, int rightIndex, String rightLine, boolean sameLine) {
+    public record StringTuple(int leftIndex, String leftLine, int rightIndex, String rightLine, boolean sameLine) {
     }
 
     private static int[][] huntMcIlroyMatrix(File leftFile, File rightFile) throws IOException {
