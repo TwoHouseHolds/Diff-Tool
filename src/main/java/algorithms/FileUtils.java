@@ -1,7 +1,5 @@
 package algorithms;
 
-import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
-import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import utils.Side;
 
 import java.io.File;
@@ -17,6 +15,7 @@ public class FileUtils {
     /**
      * Get the files in a directory
      * Public Service Info: File Names can be obtained by calling the getName() method on the File object ;)
+     *
      * @param path Path of the directory
      * @return List of files in the directory or null if the directory is empty or does not exist
      * @see java.io.File
@@ -31,7 +30,8 @@ public class FileUtils {
 
     /**
      * Check which FileType a file is
-     * @param file File to check
+     *
+     * @param file      File to check
      * @param extensive If true, check the entire file. If false, check the first 1MB (1048576 bytes). If possible only check the magic number
      * @return FileType of the file
      * @see java.io.File
@@ -43,21 +43,22 @@ public class FileUtils {
 
     /**
      * Read a file and return its lines with line numbers
+     *
      * @param file File to read
      * @return List of lines in the file
-    */
+     */
     public static List<String> readFile(File file) {
         FileType fileType = getFileType(file, false);
-        if(fileType == FileType.ERROR) {
+        if (fileType == FileType.ERROR) {
             return List.of("Fehler beim Lesen der Datei");
         }
-        if(fileType != FileType.TEXT) {
+        if (fileType != FileType.TEXT) {
             return List.of((fileType == FileType.BINARY ? "Binäre " : fileType) + " Dateien können (noch) nicht verglichen werden.");
         }
         try {
             List<String> lines = Files.readAllLines(Paths.get(file.toURI()));
             int lineNumber = 1;
-            for(String line : lines) {
+            for (String line : lines) {
                 String prefix = lineNumber + ":   ";
                 line = prefix + line;
                 lines.set(lineNumber - 1, line);
@@ -71,7 +72,8 @@ public class FileUtils {
 
     /**
      * Compare two files using the Hunt-McIlroy algorithm
-     * @param fileLeft First file to compare
+     *
+     * @param fileLeft  First file to compare
      * @param fileRight Second file to compare
      * @return Result of the comparison as a List<HuntMcIlroy.LineTuple> object
      * @see HuntMcIlroy
@@ -88,6 +90,7 @@ public class FileUtils {
     /**
      * Represents the result of comparing two files line by line
      * Has a List<String> left and a List<String right to represent the lines of the files
+     *
      * @see java.util.List
      */
     public record LineResult(List<String> left, List<String> right, List<SpecificLineChange> specificLineChanges) {
@@ -99,6 +102,7 @@ public class FileUtils {
      * The index is the index of the character that has been changed e.g. 5 for the 5th character
      * The character is the character that has been changed e.g. 'a' for the character 'a'
      * The longerSide is the side that has the longer line e.g. utils.Side.LEFT if the left line is longer
+     *
      * @param lineNumber
      * @param index
      * @param character
@@ -112,7 +116,8 @@ public class FileUtils {
      * Lines come pre-modified with a line-number
      * They also come pre-modified with a + or - to represent if the line is present in the left or right file
      * If the files are the sameLine, the lines will be present in both List<String> objects
-     * @param leftFile First file to compare
+     *
+     * @param leftFile  First file to compare
      * @param rightFile Second file to compare
      * @return Result of the comparison as a LineResult object
      * @see java.io.File
@@ -130,10 +135,10 @@ public class FileUtils {
 
         int lineNumber = 1;
 
-        if(lineTuples == null) {
-            if(fileTypeLeft  == FileType.ERROR) {
+        if (lineTuples == null) {
+            if (fileTypeLeft == FileType.ERROR) {
                 leftLines.add("Fehler beim Lesen der Datei");
-            } else if(fileTypeRight == FileType.ERROR) {
+            } else if (fileTypeRight == FileType.ERROR) {
                 rightLines.add("Fehler beim Lesen der Datei");
             } else {
                 leftLines.add((fileTypeLeft == FileType.BINARY ? "Binäre " : fileTypeLeft) + " Dateien können (noch) nicht verglichen werden.");
@@ -145,7 +150,7 @@ public class FileUtils {
         int lineCounterLeft = 1;
 
         for (HuntMcIlroy.LineTuple tuple : lineTuples) {
-            if(tuple.leftLine() == null) {
+            if (tuple.leftLine() == null) {
                 String emptySpaces = " ".repeat(String.valueOf(lineCounterLeft).length());
                 leftLines.add(emptySpaces + "  - ");
                 rightLines.add(emptySpaces + "    " + tuple.rightLine());
@@ -153,7 +158,7 @@ public class FileUtils {
                 continue;
             }
 
-            if(tuple.rightLine() == null) {
+            if (tuple.rightLine() == null) {
                 leftLines.add(lineCounterLeft + ": + " + tuple.leftLine());
                 rightLines.add(lineCounterLeft + ":   ");
                 lineCounterLeft++;
@@ -161,7 +166,7 @@ public class FileUtils {
                 continue;
             }
 
-            if(!tuple.sameLine()) {
+            if (!tuple.sameLine()) {
                 String[] leftText = tuple.leftLine().split("");
                 String[] rightText = tuple.rightLine().split("");
 
@@ -175,7 +180,7 @@ public class FileUtils {
 
                 int distance = LevenshteinDistance.of(leftString, rightString);
 
-                if(distance < leftString.length() * 0.3 || distance < rightString.length() * 0.3) {
+                if (distance < Math.max(leftString.length(),rightString.length()) * 0.3) {
 
                     String diffString = HuntMcIlroy.compareString(longerString, shorterString);
 
@@ -186,16 +191,14 @@ public class FileUtils {
                     }
 
                 } else {
-
-                    for(int i = 0; i < leftString.length(); i++) {
+                    for (int i = 0; i < leftString.length(); i++) {
                         specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, leftString.charAt(i), Side.LEFT));
                     }
-
-                    for(int i = 0; i < rightString.length(); i++) {
+                    for (int i = 0; i < rightString.length(); i++) {
                         specificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, rightString.charAt(i), Side.RIGHT));
                     }
-
                 }
+
                 leftLines.add(lineCounterLeft + ": ! " + tuple.leftLine());
                 rightLines.add(lineCounterLeft + ": ! " + tuple.rightLine());
                 lineCounterLeft++;
@@ -204,7 +207,7 @@ public class FileUtils {
             }
 
             leftLines.add(lineCounterLeft + ":   " + tuple.leftLine());
-            rightLines.add(lineCounterLeft  + ":   " + tuple.rightLine());
+            rightLines.add(lineCounterLeft + ":   " + tuple.rightLine());
             lineNumber++;
             lineCounterLeft++;
         }
@@ -214,14 +217,15 @@ public class FileUtils {
     }
 
     /**
-     * Saves the diff of {@link firstFile} and {@link secondFile} as a .txt File at the Location Path of {@link saveFile}.
-     * If a {@link lineResult} is passed in as the last Parameter the first 2 Parameters should be set to null.
+     * Saves the diff of firstFile and secondFile as a .txt File at the Location Path of saveFile.
+     * If a lineResult is passed in as the last Parameter the first 2 Parameters should be set to null.
      * Then another Diff won't be executed but the existing one will be used instead.
-     * @param firstFile First file to be used.
+     *
+     * @param firstFile  First file to be used.
      * @param secondFile Second file to be used.
-     * @param saveFile "File" as a representation of the Save-Location
+     * @param saveFile   "File" as a representation of the Save-Location
      * @param lineResult Optional: Null if not used. If used firstFile and secondFile should be null
-      * @return false if save was unsuccessful. true if successful
+     * @return false if save was unsuccessful. true if successful
      */
     public static boolean saveDiffAsText(File firstFile, File secondFile, File saveFile, LineResult lineResult) {
         if (lineResult != null || (firstFile != null && secondFile != null)) {
@@ -260,7 +264,7 @@ public class FileUtils {
 
                     StringBuilder html = new StringBuilder();
                     html.append("<html><head><style>table {border-collapse: collapse;} td {border: 1px solid black; padding: 5px;} .yellow {background-color: yellow;} .green {background-color: lightgreen;} .red {background-color: lightcoral;}</style></head><body><table>");
-                    if(firstFile != null && secondFile != null) {
+                    if (firstFile != null && secondFile != null) {
                         html.append("<tr><td>").append(firstFile.getName()).append("</td><td>").append(secondFile.getName()).append("</td></tr>");
                         html.append("<tr><td>").append(firstFile.getAbsolutePath()).append("</td><td>").append(secondFile.getAbsolutePath()).append("</td></tr>");
                     }
@@ -293,6 +297,7 @@ public class FileUtils {
 
     /**
      * Escape HTML characters: < and > so they are not interpreted as HTML tags
+     *
      * @param str String to escape
      * @return Escaped string
      */

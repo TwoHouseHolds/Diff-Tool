@@ -13,7 +13,7 @@ public class HuntMcIlroy {
     private static List<String> rightLines;
 
     public static List<LineTuple> compare(File leftFile, File rightFile) throws IOException {
-        int[][] hmiMatrix = huntMcIllroyMatrix(leftFile, rightFile);
+        int[][] hmiMatrix = huntMcIlroyMatrix(leftFile, rightFile);
 
         List<MatchingLineSequence> matchingLineSequences = getMatchingLineSequences(hmiMatrix);
         Collections.reverse(matchingLineSequences); // sameLineSequences were read in reversed order
@@ -50,7 +50,7 @@ public class HuntMcIlroy {
     public record LineTuple(int leftIndex, String leftLine, int rightIndex, String rightLine, boolean sameLine) {
     }
 
-    private static int[][] huntMcIllroyMatrix(File leftFile, File rightFile) throws IOException {
+    private static int[][] huntMcIlroyMatrix(File leftFile, File rightFile) throws IOException {
         leftLines = Files.readAllLines(leftFile.toPath());
         rightLines = Files.readAllLines(rightFile.toPath());
         int[][] hmiMatrix = new int[leftLines.size()][rightLines.size()];
@@ -60,7 +60,7 @@ public class HuntMcIlroy {
             for (int col = 0; col < rightLines.size(); col++) {
                 hmiMatrix[row][col] = leftLines.get(row).equals(rightLines.get(col)) ? // lines are equal?
                         getMatrixData(hmiMatrix, row - 1, col - 1) + 1 :// ggZ wächst um 1
-                        max( // ggz bleibt bei einseitigem Anhängen eines Buchstaben gleich (=> größtmögl. Wert)
+                        max( // ggz bleibt bei einseitigem Anhängen eines Buchstaben gleich (→ größtmöglicher Wert)
                                 getMatrixData(hmiMatrix, row - 1, col), //
                                 getMatrixData(hmiMatrix, row, col - 1));
             }
@@ -117,7 +117,7 @@ public class HuntMcIlroy {
      * @param s2 Second string to compare
      */
     public static String compareString(String s1, String s2) {
-        int[][] hmiMatrix = HuntMcIlroy.huntMcIllroyMatrixString(s1, s2);
+        int[][] hmiMatrix = HuntMcIlroy.huntMcIlroyMatrixString(s1, s2);
 
         int row = hmiMatrix.length - 1;
         int col = hmiMatrix[0].length - 1;
@@ -144,7 +144,7 @@ public class HuntMcIlroy {
      * @param s2 Second string to compare
      * @return Longest Common Subsequence matrix
      */
-    private static int[][] huntMcIllroyMatrixString(String s1, String s2) {
+    private static int[][] huntMcIlroyMatrixString(String s1, String s2) {
         int[][] hmiMatrix = new int[s1.length() + 1][s2.length() + 1];
         for (int row = 1; row <= hmiMatrix.length - 1; row++) {
             for (int col = 1; col <= hmiMatrix[0].length - 1; col++) {
