@@ -312,17 +312,11 @@ public class LanternaInterface {
         window.setComponent(menuPanel);
 
         leftSearchBox.setTextChangeListener((s, s1) -> {
-            leftListBox.clearItems();
-            String search = leftSearchBox.getText().toLowerCase();
-            //List<File> filteredFiles = leftFiles.stream().filter(f -> f.getName().toLowerCase().contains(search)).toList();
-            displayList(leftFiles, rightFiles, Side.LEFT, leftListBox, leftSearchBox);
+            leftComboBox.setSelectedIndex(leftComboBox.getSelectedIndex());
         });
 
         rightSearchBox.setTextChangeListener((s, s1) -> {
-            rightListBox.clearItems();
-            String search = rightSearchBox.getText().toLowerCase();
-            //List<File> filteredFiles = rightFiles.stream().filter(f -> f.getName().toLowerCase().contains(search)).toList();
-            displayList(rightFiles, leftFiles, Side.RIGHT, rightListBox, rightSearchBox);
+            rightComboBox.setSelectedIndex(rightComboBox.getSelectedIndex());
         });
 
         WindowListenerAdapter listener = new WindowListenerAdapter() {
@@ -358,7 +352,7 @@ public class LanternaInterface {
             //tryScreenUpdate();
             comboBox.setEnabled(false);
             reverseBox.setEnabled(false);
-            searchBox.setEnabled(false);
+            //searchBox.setEnabled(false);
             //noinspection rawtypes
             SwingWorker worker = new SwingWorker() {
                 @Override
