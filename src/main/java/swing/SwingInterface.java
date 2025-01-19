@@ -351,33 +351,101 @@ public class SwingInterface {
 
             JPanel left = new JPanel(new BorderLayout());
             JPanel leftNorthPanel = new JPanel();
-            leftNorthPanel.setLayout(new BoxLayout(leftNorthPanel, BoxLayout.Y_AXIS));
+            leftNorthPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
             leftNorthPanel.add(checkBoxReverseLeft);
             leftNorthPanel.add(leftComboBox);
+
+            JTextField leftSearchTextField = new JTextField();
+            leftSearchTextField.setPreferredSize(new Dimension(300, 25));
+            leftNorthPanel.add(leftSearchTextField);
+
+            JButton leftSearchButton = new JButton("Search");
+            leftNorthPanel.add(leftSearchButton);
+
+
             left.add(leftScrollPane, BorderLayout.CENTER);
             left.add(leftNorthPanel, BorderLayout.NORTH);
 
             JPanel right = new JPanel(new BorderLayout());
             JPanel rightNorthPanel = new JPanel();
-            rightNorthPanel.setLayout(new BoxLayout(rightNorthPanel, BoxLayout.Y_AXIS));
+            rightNorthPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
             rightNorthPanel.add(checkBoxReverseRight);
             rightNorthPanel.add(rightComboBox);
+
+            JTextField rightSearchTextField = new JTextField();
+            rightSearchTextField.setPreferredSize(new Dimension(300, 25));
+            rightNorthPanel.add(rightSearchTextField);
+
+            JButton rightSearchButton = new JButton("Search");
+            rightNorthPanel.add(rightSearchButton);
+
             right.add(rightNorthPanel, BorderLayout.NORTH);
             right.add(rightScrollPane, BorderLayout.CENTER);
+
+            ActionListener searchleftActionListener = e -> {
+                String search = leftSearchTextField.getText();
+                List<File> searchResult = filterFilesByName(leftFiles, search);
+                leftList.setListData(getFormatFileNames(searchResult, rightFiles, Side.LEFT));
+                frame.invalidate();
+                frame.revalidate();
+                frame.repaint();
+            };
+
+            leftSearchButton.addActionListener(searchleftActionListener);
+            leftSearchTextField.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyReleased(KeyEvent e) {
+                    if(e.getKeyCode()== KeyEvent.VK_ENTER){
+                        searchleftActionListener.actionPerformed(null);
+                    }
+
+                }
+            });
+
+
+
+
+             /*leftSearchTextField.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyReleased(KeyEvent e) {
+                    searchleftActionListener.actionPerformed(null);
+                }
+            });
+             */
 
             ActionListener leftActionListener = e -> {
                 int selected = leftComboBox.getSelectedIndex();
                 Boolean isReversed = checkBoxReverseLeft.isSelected();
-                manageSortingBox(leftList, leftFiles, rightFiles, Side.LEFT, selected, isReversed);
+                manageSortingBox(leftList, leftFiles, rightFiles, Side.LEFT, selected, isReversed, leftSearchTextField.getText());
             };
 
             leftComboBox.addActionListener(leftActionListener);
             checkBoxReverseLeft.addActionListener((e) -> leftComboBox.setSelectedIndex(leftComboBox.getSelectedIndex()));
 
+            ActionListener searchrightActionListener = e -> {
+                String search = rightSearchTextField.getText();
+                List<File> searchResult = filterFilesByName(rightFiles, search);
+                rightList.setListData(getFormatFileNames(searchResult, rightFiles, Side.RIGHT));
+                frame.invalidate();
+                frame.revalidate();
+                frame.repaint();
+            };
+
+            rightSearchButton.addActionListener(searchrightActionListener);
+            rightSearchTextField.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyReleased(KeyEvent e) {
+                    if(e.getKeyCode()== KeyEvent.VK_ENTER){
+                        searchrightActionListener.actionPerformed(null);
+                    }
+
+                }
+            });
+
             ActionListener rightActionListener = e -> {
                 int selected = rightComboBox.getSelectedIndex();
                 Boolean isReversed = checkBoxReverseRight.isSelected();
-                manageSortingBox(rightList, rightFiles, leftFiles, Side.RIGHT, selected, isReversed);
+                manageSortingBox(rightList, rightFiles, leftFiles, Side.RIGHT, selected, isReversed, rightSearchTextField.getText());
             };
 
             rightComboBox.addActionListener(rightActionListener);
@@ -466,6 +534,16 @@ public class SwingInterface {
             });
         }
 
+        public static List<File> filterFilesByName(List<File> files, String searchString) {
+            List<File> filteredFiles = new ArrayList<>();
+            for (File file : files) {
+                if (file.getName().contains(searchString)) {
+                    filteredFiles.add(file);
+                }
+            }
+            return filteredFiles;
+        }
+
         public void deactivate() {
             leftList.setEnabled(false);
             rightList.setEnabled(false);
@@ -477,44 +555,73 @@ public class SwingInterface {
         }
     }
 
-    private void manageSortingBox(JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed) {
+    private void manageSortingBox(JList<String> listBox,List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed, String search) {
         // noinspection rawtypes
         SwingWorker worker = new SwingWorker() {
             @Override
             protected Object doInBackground() {
 
+                List<File> sortedFiles = new ArrayList<>(firstFiles);
                 if (selected != -1) {
                     switch (selected) {
                         case 0: {
-                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                            listBox.setListData(Level2UI.getFormatFileNames(sortedFiles, secondFiles, side));
+                            if(search != null && !search.isEmpty()){
+                                List<File> sortedFilesCopy = new ArrayList<>(sortedFiles);
+                                sortedFiles = Level2UI.filterFilesByName(sortedFilesCopy, search);
+                            }
                             break;
                         }
                         case 1: {
                             if (isReversed) {
-                                firstFiles.sort(Comparator.comparing(File::getName).reversed());
-                            } else {
-                                firstFiles.sort(Comparator.comparing(File::getName));
+                                sortedFiles.sort(Comparator.comparing(File::getName).reversed());
+                                if(search != null && !search.isEmpty()){
+                                    List<File> sortedFilesCopy = new ArrayList<>(sortedFiles);
+                                    sortedFiles = Level2UI.filterFilesByName(sortedFilesCopy, search);
+                                }
+                            } else{
+                                sortedFiles.sort(Comparator.comparing(File::getName));
+                                if(search != null && !search.isEmpty()){
+                                    List<File> sortedFilesCopy = new ArrayList<>(sortedFiles);
+                                    sortedFiles = Level2UI.filterFilesByName(sortedFilesCopy, search);
+                                }
                             }
-                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                            listBox.setListData(Level2UI.getFormatFileNames(sortedFiles, secondFiles, side));
                             break;
                         }
 
                         case 2: {
                             if (isReversed) {
-                                firstFiles.sort(Comparator.comparingLong(File::length).reversed());
-                            } else {
-                                firstFiles.sort(Comparator.comparingLong(File::length));
+                                sortedFiles.sort(Comparator.comparingLong(File::length).reversed());
+                                if(search != null && !search.isEmpty()){
+                                    List<File> sortedFilesCopy = new ArrayList<>(sortedFiles);
+                                    sortedFiles = Level2UI.filterFilesByName(sortedFilesCopy, search);
+                                }
+                            }else {
+                                sortedFiles.sort(Comparator.comparingLong(File::length));
+                                if(search != null && !search.isEmpty()){
+                                    List<File> sortedFilesCopy = new ArrayList<>(sortedFiles);
+                                    sortedFiles = Level2UI.filterFilesByName(sortedFilesCopy, search);
+                                }
                             }
-                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                            listBox.setListData(Level2UI.getFormatFileNames(sortedFiles, secondFiles, side));
                             break;
                         }
                         case 3: {
                             if (isReversed) {
-                                firstFiles.sort(Comparator.comparingLong(File::lastModified).reversed());
-                            } else {
-                                firstFiles.sort(Comparator.comparingLong(File::lastModified));
+                                sortedFiles.sort(Comparator.comparingLong(File::lastModified).reversed());
+                                if(search != null && !search.isEmpty()){
+                                    List<File> sortedFilesCopy = new ArrayList<>(sortedFiles);
+                                    sortedFiles = Level2UI.filterFilesByName(sortedFilesCopy, search);
+                                }
+                            }else {
+                                sortedFiles.sort(Comparator.comparingLong(File::lastModified));
+                                if(search != null && !search.isEmpty()){
+                                    List<File> sortedFilesCopy = new ArrayList<>(sortedFiles);
+                                    sortedFiles = Level2UI.filterFilesByName(sortedFilesCopy, search);
+                                }
                             }
-                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
+                            listBox.setListData(Level2UI.getFormatFileNames(sortedFiles, secondFiles, side));
                             break;
                         }
                     }
