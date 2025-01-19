@@ -329,60 +329,15 @@ public class SwingInterface {
                 changeActivePanelFromTo(this, level1UI);
                 return;
             }
+            leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, Side.LEFT));
+            rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, Side.RIGHT));
 
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
             gbc.insets = new Insets(1, 1, 1, 1);
 
-            leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, Side.LEFT));
-            applyListSelectionListener(leftList, leftFiles, rightFiles, Side.LEFT);
-
-            rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, Side.RIGHT));
-            applyListSelectionListener(rightList, rightFiles, leftFiles, Side.RIGHT);
-
-            JScrollPane leftScrollPane = new JScrollPane(leftList);
-            JScrollPane rightScrollPane = new JScrollPane(rightList);
-
-            JComboBox<String> leftComboBox = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
-            JComboBox<String> rightComboBox = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
-
-            JCheckBox checkBoxReverseLeft = new JCheckBox("Umgekehrte Sortierung");
-            JCheckBox checkBoxReverseRight = new JCheckBox("Umgekehrte Sortierung");
-
-            JPanel left = new JPanel(new BorderLayout());
-            JPanel leftNorthPanel = new JPanel();
-            leftNorthPanel.setLayout(new BoxLayout(leftNorthPanel, BoxLayout.Y_AXIS));
-            leftNorthPanel.add(checkBoxReverseLeft);
-            leftNorthPanel.add(leftComboBox);
-            left.add(leftScrollPane, BorderLayout.CENTER);
-            left.add(leftNorthPanel, BorderLayout.NORTH);
-
-            JPanel right = new JPanel(new BorderLayout());
-            JPanel rightNorthPanel = new JPanel();
-            rightNorthPanel.setLayout(new BoxLayout(rightNorthPanel, BoxLayout.Y_AXIS));
-            rightNorthPanel.add(checkBoxReverseRight);
-            rightNorthPanel.add(rightComboBox);
-            right.add(rightNorthPanel, BorderLayout.NORTH);
-            right.add(rightScrollPane, BorderLayout.CENTER);
-
-            ActionListener leftActionListener = e -> {
-                int selected = leftComboBox.getSelectedIndex();
-                Boolean isReversed = checkBoxReverseLeft.isSelected();
-                manageSortingBox(leftList, leftFiles, rightFiles, Side.LEFT, selected, isReversed);
-            };
-
-            leftComboBox.addActionListener(leftActionListener);
-            checkBoxReverseLeft.addActionListener((e) -> leftComboBox.setSelectedIndex(leftComboBox.getSelectedIndex()));
-
-            ActionListener rightActionListener = e -> {
-                int selected = rightComboBox.getSelectedIndex();
-                Boolean isReversed = checkBoxReverseRight.isSelected();
-                manageSortingBox(rightList, rightFiles, leftFiles, Side.RIGHT, selected, isReversed);
-            };
-
-            rightComboBox.addActionListener(rightActionListener);
-            checkBoxReverseRight.addActionListener((e) -> rightComboBox.setSelectedIndex(rightComboBox.getSelectedIndex()));
-
+            Level2UISide left = new Level2UISide(leftFiles, rightFiles, Side.LEFT);
+            Level2UISide right = new Level2UISide(rightFiles, leftFiles, Side.RIGHT);
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
             splitPane.setResizeWeight(0.5);
@@ -393,6 +348,51 @@ public class SwingInterface {
 
             add(splitPane, gbc);
 
+        }
+
+        // variable names for left side, but the class can also be used for the right side
+        private class Level2UISide extends JPanel {
+            private Level2UISide(List<File> leftFiles, List<File> rightFiles, Side side) {
+                super(new BorderLayout());
+
+                // scrollPane
+                JList<String> thisSideList = (side == Side.LEFT) ? leftList : rightList;
+                applyListSelectionListener(thisSideList, leftFiles, rightFiles, side);
+                JScrollPane scrollPane = new JScrollPane(thisSideList);
+                add(scrollPane, BorderLayout.CENTER);
+
+                // level2Menu
+                JPanel level2Menu = new JPanel(new FlowLayout(FlowLayout.LEFT));
+                JComboBox<String> sortingChooser = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
+                JCheckBox reverseCheckBox = new JCheckBox("Umgekehrte Sortierung");
+                JTextField searchTextField = new JTextField();
+                searchTextField.setPreferredSize(new Dimension(300, 25));
+                JLabel searchLabel = new JLabel("\uD83D\uDD0E");
+                level2Menu.add(reverseCheckBox);
+                level2Menu.add(sortingChooser);
+                level2Menu.add(searchTextField);
+                level2Menu.add(searchLabel);
+                add(level2Menu, BorderLayout.NORTH);
+
+                // implement searching
+                searchTextField.addKeyListener(new KeyAdapter() {
+                    @Override
+                    public void keyReleased(KeyEvent e) {
+                        String search = searchTextField.getText();
+                        List<File> searchResult = filterFilesByName(leftFiles, search);
+                        sortingChooser.setSelectedIndex(sortingChooser.getSelectedIndex());
+                        thisSideList.setListData(getFormatFileNames(searchResult, rightFiles, side));
+                    }
+                });
+
+                // implement sorting
+                sortingChooser.addActionListener(e -> {
+                    int selected = sortingChooser.getSelectedIndex();
+                    Boolean isReversed = reverseCheckBox.isSelected();
+                    manageSortingBox(thisSideList, leftFiles, rightFiles, side, selected, isReversed, searchTextField.getText());
+                });
+                reverseCheckBox.addActionListener((e) -> sortingChooser.setSelectedIndex(sortingChooser.getSelectedIndex()));
+            }
         }
 
         // variable names for left side, method can still be used for right side
@@ -466,6 +466,76 @@ public class SwingInterface {
             });
         }
 
+        public static List<File> filterFilesByName(List<File> files, String searchString) {
+            List<File> filteredFiles = new ArrayList<>();
+            for (File file : files) {
+                if (file.getName().contains(searchString)) {
+                    filteredFiles.add(file);
+                }
+            }
+            return filteredFiles;
+        }
+
+        private void manageSortingBox(JList<String> listBox,List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed, String search) {
+            // noinspection rawtypes
+            SwingWorker worker = new SwingWorker() {
+                @Override
+                protected Object doInBackground() {
+
+                    List<File> firstFilesCopy = new ArrayList<>(firstFiles);
+                    if(!search.isEmpty()){
+                        firstFilesCopy = filterFilesByName(firstFilesCopy, search);
+                    }
+
+                    if (selected != -1) {
+                        switch (selected) {
+                            case 0: {
+                                listBox.setListData(getFormatFileNames(firstFilesCopy, secondFiles, side));
+                                break;
+                            }
+                            case 1: {
+                                if (isReversed) {
+                                    firstFilesCopy.sort(Comparator.comparing(File::getName).reversed());
+                                } else{
+                                    firstFilesCopy.sort(Comparator.comparing(File::getName));
+                                }
+                                listBox.setListData(getFormatFileNames(firstFilesCopy, secondFiles, side));
+                                break;
+                            }
+
+                            case 2: {
+                                if (isReversed) {
+                                    firstFilesCopy.sort(Comparator.comparingLong(File::length).reversed());
+                                }else {
+                                    firstFilesCopy.sort(Comparator.comparingLong(File::length));
+                                }
+                                listBox.setListData(getFormatFileNames(firstFilesCopy, secondFiles, side));
+                                break;
+                            }
+                            case 3: {
+                                if (isReversed) {
+                                    firstFilesCopy.sort(Comparator.comparingLong(File::lastModified).reversed());
+                                }else {
+                                    firstFilesCopy.sort(Comparator.comparingLong(File::lastModified));
+                                }
+                                listBox.setListData(getFormatFileNames(firstFilesCopy, secondFiles, side));
+                                break;
+                            }
+                        }
+
+                    }
+                    return null;
+                }
+
+                protected void done() {
+                    frame.invalidate();
+                    frame.revalidate();
+                    frame.repaint();
+                }
+            };
+            worker.execute();
+        }
+
         public void deactivate() {
             leftList.setEnabled(false);
             rightList.setEnabled(false);
@@ -475,61 +545,6 @@ public class SwingInterface {
             leftList.setEnabled(true);
             rightList.setEnabled(true);
         }
-    }
-
-    private void manageSortingBox(JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed) {
-        // noinspection rawtypes
-        SwingWorker worker = new SwingWorker() {
-            @Override
-            protected Object doInBackground() {
-
-                if (selected != -1) {
-                    switch (selected) {
-                        case 0: {
-                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
-                            break;
-                        }
-                        case 1: {
-                            if (isReversed) {
-                                firstFiles.sort(Comparator.comparing(File::getName).reversed());
-                            } else {
-                                firstFiles.sort(Comparator.comparing(File::getName));
-                            }
-                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
-                            break;
-                        }
-
-                        case 2: {
-                            if (isReversed) {
-                                firstFiles.sort(Comparator.comparingLong(File::length).reversed());
-                            } else {
-                                firstFiles.sort(Comparator.comparingLong(File::length));
-                            }
-                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
-                            break;
-                        }
-                        case 3: {
-                            if (isReversed) {
-                                firstFiles.sort(Comparator.comparingLong(File::lastModified).reversed());
-                            } else {
-                                firstFiles.sort(Comparator.comparingLong(File::lastModified));
-                            }
-                            listBox.setListData(Level2UI.getFormatFileNames(firstFiles, secondFiles, side));
-                            break;
-                        }
-                    }
-
-                }
-                return null;
-            }
-
-            protected void done() {
-                frame.invalidate();
-                frame.revalidate();
-                frame.repaint();
-            }
-        };
-        worker.execute();
     }
 
 
