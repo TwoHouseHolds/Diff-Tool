@@ -314,15 +314,15 @@ public class LanternaInterface {
         leftSearchBox.setTextChangeListener((s, s1) -> {
             leftListBox.clearItems();
             String search = leftSearchBox.getText().toLowerCase();
-            List<File> filteredFiles = leftFiles.stream().filter(f -> f.getName().toLowerCase().contains(search)).toList();
-            displayList(filteredFiles, rightFiles, Side.LEFT, leftListBox, leftSearchBox);
+            //List<File> filteredFiles = leftFiles.stream().filter(f -> f.getName().toLowerCase().contains(search)).toList();
+            displayList(leftFiles, rightFiles, Side.LEFT, leftListBox, leftSearchBox);
         });
 
         rightSearchBox.setTextChangeListener((s, s1) -> {
             rightListBox.clearItems();
             String search = rightSearchBox.getText().toLowerCase();
-            List<File> filteredFiles = rightFiles.stream().filter(f -> f.getName().toLowerCase().contains(search)).toList();
-            displayList(filteredFiles, rightFiles, Side.RIGHT, rightListBox, rightSearchBox);
+            //List<File> filteredFiles = rightFiles.stream().filter(f -> f.getName().toLowerCase().contains(search)).toList();
+            displayList(rightFiles, leftFiles, Side.RIGHT, rightListBox, rightSearchBox);
         });
 
         WindowListenerAdapter listener = new WindowListenerAdapter() {
