@@ -353,43 +353,77 @@ public class SwingInterface {
 
         // variable names for left side, but the class can also be used for the right side
         private class Level2UISide extends JPanel {
-            private Level2UISide(List<File> firstFiles, List<File> secondSide, Side side) {
+            private Level2UISide(List<File> firstFiles, List<File> secondFiles, Side side) {
                 super(new BorderLayout());
 
                 // scrollPane
                 JList<String> thisSideList = (side == Side.LEFT) ? leftList : rightList;
-                applyListSelectionListener(thisSideList, firstFiles, secondSide, side);
+                applyListSelectionListener(thisSideList, firstFiles, secondFiles, side);
                 JScrollPane scrollPane = new JScrollPane(thisSideList);
                 add(scrollPane, BorderLayout.CENTER);
 
                 // level2Menu
                 JPanel level2Menu = new JPanel(new FlowLayout(FlowLayout.LEFT));
-                JComboBox<String> sortingChooser = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
+                JComboBox<String> sortingSelection = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
                 JCheckBox reverseCheckBox = new JCheckBox("Umgekehrte Sortierung");
                 JTextField searchTextField = new JTextField();
                 searchTextField.setPreferredSize(new Dimension(300, 25));
                 JLabel searchLabel = new JLabel("\uD83D\uDD0E");
                 level2Menu.add(reverseCheckBox);
-                level2Menu.add(sortingChooser);
+                level2Menu.add(sortingSelection);
                 level2Menu.add(searchTextField);
                 level2Menu.add(searchLabel);
                 add(level2Menu, BorderLayout.NORTH);
 
-                // implement searching
+                // SEARCH-FIELD: trigger searching and sorting (in actionListener of sortingSelection)
                 searchTextField.addKeyListener(new KeyAdapter() {
                     @Override
                     public void keyReleased(KeyEvent e) {
-                        String search = searchTextField.getText();
-                        List<File> searchResult = filterFilesByName(firstFiles, search);
-                        manageSortingBox(thisSideList, searchResult, secondSide, side, sortingChooser.getSelectedIndex(), reverseCheckBox.isSelected(), searchTextField.getText());
+                        sortingSelection.setSelectedItem(sortingSelection.getSelectedItem());
                     }
                 });
 
-                // implement sorting
-                sortingChooser.addActionListener(e -> manageSortingBox(thisSideList, firstFiles, secondSide, //
-                        side, sortingChooser.getSelectedIndex(), reverseCheckBox.isSelected(), searchTextField.getText()));
+                // SORTING-SELECTION: searching and sorting
+                sortingSelection.addActionListener(e -> {
+                    String search = searchTextField.getText();
+                    int selectedSorting = sortingSelection.getSelectedIndex();
+                    boolean isReversed = reverseCheckBox.isSelected();
 
-                reverseCheckBox.addActionListener((e) -> sortingChooser.setSelectedIndex(sortingChooser.getSelectedIndex()));
+                    // noinspection rawtypes
+                    SwingWorker worker = new SwingWorker() {
+                        @Override
+                        protected Object doInBackground() {
+                            List<File> filteredAndSorted = new ArrayList<>(firstFiles);
+                            // search
+                            if (!search.isEmpty()) {
+                                filteredAndSorted = filterFilesByName(filteredAndSorted, search);
+                            }
+                            // sort
+                            Comparator<File> comp = switch (selectedSorting) {
+                                case 1 -> Comparator.comparing(File::getName);
+                                case 2 -> Comparator.comparing(File::length);
+                                case 3 -> Comparator.comparing(File::lastModified);
+                                default -> null;
+                            };
+                            if (comp != null) {
+                                if (isReversed) comp = comp.reversed();
+                                filteredAndSorted.sort(comp);
+                            }
+
+                            thisSideList.setListData(getFormatFileNames(filteredAndSorted, secondFiles, side));
+                            return null;
+                        }
+
+                        protected void done() {
+                            frame.invalidate();
+                            frame.revalidate();
+                            frame.repaint();
+                        }
+                    };
+                    worker.execute();
+                });
+
+                reverseCheckBox.addActionListener((e) -> sortingSelection.setSelectedIndex(sortingSelection.getSelectedIndex()));
             }
         }
 
@@ -464,40 +498,9 @@ public class SwingInterface {
         }
 
         public static List<File> filterFilesByName(List<File> files, String searchString) {
-            return files.stream().filter(f -> f.getName().toLowerCase().contains(searchString)).collect(Collectors.toList());
-        }
-
-        private void manageSortingBox(JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed, String search) {
-            // noinspection rawtypes
-            SwingWorker worker = new SwingWorker() {
-                @Override
-                protected Object doInBackground() throws InterruptedException {
-                    List<File> sorted = new ArrayList<>(firstFiles);
-                    if (!search.isEmpty()) {
-                        sorted = filterFilesByName(sorted, search);
-                    }
-
-                    Comparator<File> doNothing = (x,y) -> 0; // all files are equal
-                    Comparator<File> comp = switch (selected) {
-                        case 1 -> Comparator.comparing(File::getName);
-                        case 2 -> Comparator.comparing(File::length);
-                        case 3 -> Comparator.comparing(File::lastModified);
-                        default -> doNothing;
-                    };
-                    if(isReversed) comp = comp.reversed();
-                    if (comp != doNothing) sorted.sort(comp);
-
-                    listBox.setListData(getFormatFileNames(sorted, secondFiles, side));
-                    return null;
-                }
-
-                protected void done() {
-                    frame.invalidate();
-                    frame.revalidate();
-                    frame.repaint();
-                }
-            };
-            worker.execute();
+            return files.stream() //
+                    .filter(f -> f.getName().toLowerCase().contains(searchString.toLowerCase())) //
+                    .collect(Collectors.toList());
         }
 
         public void deactivate() {
