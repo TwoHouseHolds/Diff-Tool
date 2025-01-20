@@ -353,12 +353,12 @@ public class SwingInterface {
 
         // variable names for left side, but the class can also be used for the right side
         private class Level2UISide extends JPanel {
-            private Level2UISide(List<File> firstFiles, List<File> secondSide, Side side) {
+            private Level2UISide(List<File> firstFiles, List<File> secondFiles, Side side) {
                 super(new BorderLayout());
 
                 // scrollPane
                 JList<String> thisSideList = (side == Side.LEFT) ? leftList : rightList;
-                applyListSelectionListener(thisSideList, firstFiles, secondSide, side);
+                applyListSelectionListener(thisSideList, firstFiles, secondFiles, side);
                 JScrollPane scrollPane = new JScrollPane(thisSideList);
                 add(scrollPane, BorderLayout.CENTER);
 
@@ -379,13 +379,50 @@ public class SwingInterface {
                 searchTextField.addKeyListener(new KeyAdapter() {
                     @Override
                     public void keyReleased(KeyEvent e) {
-                        searchAndSort(thisSideList, firstFiles, secondSide, side, sortingChooser.getSelectedIndex(), reverseCheckBox.isSelected(), searchTextField.getText());
+                        sortingChooser.setSelectedItem(sortingChooser.getSelectedItem());
                     }
                 });
 
-                // sorting
-                sortingChooser.addActionListener(e -> searchAndSort(thisSideList, firstFiles, secondSide, //
-                        side, sortingChooser.getSelectedIndex(), reverseCheckBox.isSelected(), searchTextField.getText()));
+                // searching and sorting
+                sortingChooser.addActionListener(e -> {
+                    String search = searchTextField.getText();
+                    int selected = sortingChooser.getSelectedIndex();
+                    boolean isReversed = reverseCheckBox.isSelected();
+
+                    // noinspection rawtypes
+                    SwingWorker worker = new SwingWorker() {
+                        @Override
+                        protected Object doInBackground() throws InterruptedException {
+                            List<File> sorted = new ArrayList<>(firstFiles);
+
+                            // search
+                            if (!search.isEmpty()) {
+                                sorted = filterFilesByName(sorted, search);
+                            }
+
+                            // sort
+                            Comparator<File> doNothing = (x, y) -> 0; // all files are equal
+                            Comparator<File> comp = switch (selected) {
+                                case 1 -> Comparator.comparing(File::getName);
+                                case 2 -> Comparator.comparing(File::length);
+                                case 3 -> Comparator.comparing(File::lastModified);
+                                default -> doNothing;
+                            };
+                            if (isReversed) comp = comp.reversed();
+                            if (comp != doNothing) sorted.sort(comp);
+
+                            thisSideList.setListData(getFormatFileNames(sorted, secondFiles, side));
+                            return null;
+                        }
+
+                        protected void done() {
+                            frame.invalidate();
+                            frame.revalidate();
+                            frame.repaint();
+                        }
+                    };
+                    worker.execute();
+                });
 
                 reverseCheckBox.addActionListener((e) -> sortingChooser.setSelectedIndex(sortingChooser.getSelectedIndex()));
             }
@@ -465,42 +502,6 @@ public class SwingInterface {
             return files.stream() //
                     .filter(f -> f.getName().toLowerCase().contains(searchString.toLowerCase())) //
                     .collect(Collectors.toList());
-        }
-
-        private void searchAndSort(JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed, String search) {
-            // noinspection rawtypes
-            SwingWorker worker = new SwingWorker() {
-                @Override
-                protected Object doInBackground() throws InterruptedException {
-                    List<File> sorted = new ArrayList<>(firstFiles);
-
-                    // search
-                    if (!search.isEmpty()) {
-                        sorted = filterFilesByName(sorted, search);
-                    }
-
-                    // sort
-                    Comparator<File> doNothing = (x,y) -> 0; // all files are equal
-                    Comparator<File> comp = switch (selected) {
-                        case 1 -> Comparator.comparing(File::getName);
-                        case 2 -> Comparator.comparing(File::length);
-                        case 3 -> Comparator.comparing(File::lastModified);
-                        default -> doNothing;
-                    };
-                    if(isReversed) comp = comp.reversed();
-                    if (comp != doNothing) sorted.sort(comp);
-
-                    listBox.setListData(getFormatFileNames(sorted, secondFiles, side));
-                    return null;
-                }
-
-                protected void done() {
-                    frame.invalidate();
-                    frame.revalidate();
-                    frame.repaint();
-                }
-            };
-            worker.execute();
         }
 
         public void deactivate() {
