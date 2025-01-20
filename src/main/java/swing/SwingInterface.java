@@ -375,18 +375,16 @@ public class SwingInterface {
                 level2Menu.add(searchLabel);
                 add(level2Menu, BorderLayout.NORTH);
 
-                // implement searching
+                // searching
                 searchTextField.addKeyListener(new KeyAdapter() {
                     @Override
                     public void keyReleased(KeyEvent e) {
-                        String search = searchTextField.getText();
-                        List<File> searchResult = filterFilesByName(firstFiles, search);
-                        manageSortingBox(thisSideList, searchResult, secondSide, side, sortingChooser.getSelectedIndex(), reverseCheckBox.isSelected(), searchTextField.getText());
+                        searchAndSort(thisSideList, firstFiles, secondSide, side, sortingChooser.getSelectedIndex(), reverseCheckBox.isSelected(), searchTextField.getText());
                     }
                 });
 
-                // implement sorting
-                sortingChooser.addActionListener(e -> manageSortingBox(thisSideList, firstFiles, secondSide, //
+                // sorting
+                sortingChooser.addActionListener(e -> searchAndSort(thisSideList, firstFiles, secondSide, //
                         side, sortingChooser.getSelectedIndex(), reverseCheckBox.isSelected(), searchTextField.getText()));
 
                 reverseCheckBox.addActionListener((e) -> sortingChooser.setSelectedIndex(sortingChooser.getSelectedIndex()));
@@ -464,19 +462,24 @@ public class SwingInterface {
         }
 
         public static List<File> filterFilesByName(List<File> files, String searchString) {
-            return files.stream().filter(f -> f.getName().toLowerCase().contains(searchString)).collect(Collectors.toList());
+            return files.stream() //
+                    .filter(f -> f.getName().toLowerCase().contains(searchString.toLowerCase())) //
+                    .collect(Collectors.toList());
         }
 
-        private void manageSortingBox(JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed, String search) {
+        private void searchAndSort(JList<String> listBox, List<File> firstFiles, List<File> secondFiles, Side side, int selected, Boolean isReversed, String search) {
             // noinspection rawtypes
             SwingWorker worker = new SwingWorker() {
                 @Override
                 protected Object doInBackground() throws InterruptedException {
                     List<File> sorted = new ArrayList<>(firstFiles);
+
+                    // search
                     if (!search.isEmpty()) {
                         sorted = filterFilesByName(sorted, search);
                     }
 
+                    // sort
                     Comparator<File> doNothing = (x,y) -> 0; // all files are equal
                     Comparator<File> comp = switch (selected) {
                         case 1 -> Comparator.comparing(File::getName);
