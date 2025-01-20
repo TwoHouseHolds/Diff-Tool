@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Set;
 
-// TODO UTF16 = Text? (wird oft falsch erkannt
 public class BinaryHeuristics {
 
     public static FileType fileTypeOf(File file, boolean extensive) {
