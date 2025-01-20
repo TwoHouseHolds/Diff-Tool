@@ -364,54 +364,53 @@ public class SwingInterface {
 
                 // level2Menu
                 JPanel level2Menu = new JPanel(new FlowLayout(FlowLayout.LEFT));
-                JComboBox<String> sortingChooser = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
+                JComboBox<String> sortingSelection = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
                 JCheckBox reverseCheckBox = new JCheckBox("Umgekehrte Sortierung");
                 JTextField searchTextField = new JTextField();
                 searchTextField.setPreferredSize(new Dimension(300, 25));
                 JLabel searchLabel = new JLabel("\uD83D\uDD0E");
                 level2Menu.add(reverseCheckBox);
-                level2Menu.add(sortingChooser);
+                level2Menu.add(sortingSelection);
                 level2Menu.add(searchTextField);
                 level2Menu.add(searchLabel);
                 add(level2Menu, BorderLayout.NORTH);
 
-                // searching
+                // SEARCH-FIELD: trigger searching and sorting (in actionListener of sortingSelection)
                 searchTextField.addKeyListener(new KeyAdapter() {
                     @Override
                     public void keyReleased(KeyEvent e) {
-                        sortingChooser.setSelectedItem(sortingChooser.getSelectedItem());
+                        sortingSelection.setSelectedItem(sortingSelection.getSelectedItem());
                     }
                 });
 
-                // searching and sorting
-                sortingChooser.addActionListener(e -> {
+                // SORTING-SELECTION: searching and sorting
+                sortingSelection.addActionListener(e -> {
                     String search = searchTextField.getText();
-                    int selected = sortingChooser.getSelectedIndex();
+                    int selectedSorting = sortingSelection.getSelectedIndex();
                     boolean isReversed = reverseCheckBox.isSelected();
 
                     // noinspection rawtypes
                     SwingWorker worker = new SwingWorker() {
                         @Override
-                        protected Object doInBackground() throws InterruptedException {
-                            List<File> sorted = new ArrayList<>(firstFiles);
-
+                        protected Object doInBackground() {
+                            List<File> filteredAndSorted = new ArrayList<>(firstFiles);
                             // search
                             if (!search.isEmpty()) {
-                                sorted = filterFilesByName(sorted, search);
+                                filteredAndSorted = filterFilesByName(filteredAndSorted, search);
                             }
-
                             // sort
-                            Comparator<File> doNothing = (x, y) -> 0; // all files are equal
-                            Comparator<File> comp = switch (selected) {
+                            Comparator<File> comp = switch (selectedSorting) {
                                 case 1 -> Comparator.comparing(File::getName);
                                 case 2 -> Comparator.comparing(File::length);
                                 case 3 -> Comparator.comparing(File::lastModified);
-                                default -> doNothing;
+                                default -> null;
                             };
-                            if (isReversed) comp = comp.reversed();
-                            if (comp != doNothing) sorted.sort(comp);
+                            if (comp != null) {
+                                if (isReversed) comp = comp.reversed();
+                                filteredAndSorted.sort(comp);
+                            }
 
-                            thisSideList.setListData(getFormatFileNames(sorted, secondFiles, side));
+                            thisSideList.setListData(getFormatFileNames(filteredAndSorted, secondFiles, side));
                             return null;
                         }
 
@@ -424,7 +423,7 @@ public class SwingInterface {
                     worker.execute();
                 });
 
-                reverseCheckBox.addActionListener((e) -> sortingChooser.setSelectedIndex(sortingChooser.getSelectedIndex()));
+                reverseCheckBox.addActionListener((e) -> sortingSelection.setSelectedIndex(sortingSelection.getSelectedIndex()));
             }
         }
 
