@@ -78,7 +78,6 @@ public class SwingInterface {
         }
     }
 
-    //TODO translate to german and correct the information in menu
     private final class Menu extends JMenuBar {
         JButton back = new JButton("⬅");
         JMenuItem ticTacToe = new JMenuItem("TicTacToe Minispiel");
@@ -169,12 +168,12 @@ public class SwingInterface {
                     - Die Anwendung zeigt die Unterschiede zwischen 2 Verzeichnissen an.
                       Zusätzlich können Sie die Unterschiede zwischen 2 Dateien anzeigen lassen.
                       Hierfür wählen Sie die Dateien aus, die Sie vergleichen möchten,\s
-                      indem Sie den Pfad in der TextBox eingeben oder das Verzeichnis\s
+                      indem Sie den Pfad in der Textbox eingeben oder das Verzeichnis\s
                       mit dem Button \uD83D\uDCC1 auswählen. Danach auf "Bestätigen" klicken.
                     - Jederzeit können Sie mit der Escape-Taste zum vorherigen Menü zurückkehren,
-                      alternativ können sie auch die Pfeilbuttons in der oberen linken ecke nutzen\s
+                      alternativ können Sie auch die Pfeilbuttons in der oberen linken Ecke nutzen\s
                       um zwischen den Menüs zu wechseln, sofern dies möglich ist.
-                    - Um die Differenz von 2 Dateien zu speichern, wählen sie den Button\s
+                    - Um die Differenz von 2 Dateien zu speichern, wählen Sie den Button\s
                       "Differenz Exportieren", welcher sich unterhalb des Textes mit den\s
                        Differenzen befindet.
                     - Um das Theme der Anwendung zu ändern, wählen Sie im Menü unter "Einstellungen"
@@ -187,13 +186,14 @@ public class SwingInterface {
             MenuItem aboutItem = new MenuItem("Über uns", "Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.\n" + "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "Über uns");
 
             MenuItem legendenItem = new MenuItem("Legende", """
-                    - Das grüne Plus erscheint bei Zeilen welche hinzugefügt wurden.
-                    - Das rote Minus erscheint bei Zeilen welche entfernt wurden.
-                    - Das orangene Ausrufezeichen erscheint bei Zeilen welche Veränderungen
+                    - Das grüne Plus erscheint bei Zeilen, welche hinzugefügt wurden.
+                    - Das rote Minus erscheint bei Zeilen, welche entfernt wurden.
+                    - Das orange Ausrufezeichen erscheint bei Zeilen, welche Veränderungen
                       enthalten.
-                      -> Die orange markierte Teile innerhalb der Zeilen sind die genauen Änderungen.
+                      -> Die orange markierten Teile innerhalb der Zeilen sind die genauen Änderungen.
                       -> Wenn zu viele unterschiede innerhalb der Zeilen auftreten, wird die gesamte Zeile
                          orange markiert.
+                    
                     """,frame,"Legende");
 
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
@@ -345,9 +345,13 @@ public class SwingInterface {
         private FileUtils.LineResult lr;
         private JList<String> leftList;
         private JList<String> rightList;
+        private List<File> leftFiles;
+        private List<File> rightFiles;
 
-        public Level2UI(List<File> leftFiles, List<File> rightFiles) {
+        public Level2UI(List<File> leftInput, List<File> rightInput) {
             super(new GridBagLayout());
+            this.leftFiles = leftInput;
+            this.rightFiles = rightInput;
             setFocusable(false);
             if (leftFiles == null || rightFiles == null) {
                 JOptionPane.showMessageDialog(frame, (leftFiles == null ? "Linkes" : "Rechtes") + " Verzeichnis ist leer!", "Fehler", JOptionPane.ERROR_MESSAGE);
@@ -388,7 +392,7 @@ public class SwingInterface {
 
                 // level2Menu
                 JPanel level2Menu = new JPanel(new FlowLayout(FlowLayout.LEFT));
-                JComboBox<String> sortingSelection = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
+                JComboBox<String> sortingSelection = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe (aufsteigend)", "Datum (aufsteigend)"});
                 JCheckBox reverseCheckBox = new JCheckBox("Umgekehrte Sortierung");
                 JTextField searchTextField = new JTextField();
                 searchTextField.setPreferredSize(new Dimension(300, 25));
@@ -432,6 +436,12 @@ public class SwingInterface {
                             if (comp != null) {
                                 if (isReversed) comp = comp.reversed();
                                 filteredAndSorted.sort(comp);
+                            }
+
+                            if(side == Side.LEFT) {
+                                leftFiles = filteredAndSorted;
+                            } else {
+                                rightFiles = filteredAndSorted;
                             }
 
                             thisSideList.setListData(getFormatFileNames(filteredAndSorted, secondFiles, side));
