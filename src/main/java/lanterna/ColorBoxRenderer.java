@@ -38,7 +38,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
 
             if(symbol != ' ') {
                 TextColor.ANSI colorOfSymbol = (symbol == '+') ? TextColor.ANSI.GREEN //
-                        : (symbol == '-') ? TextColor.ANSI.RED : TextColor.ANSI.YELLOW;
+                        : (symbol == '-') ? TextColor.ANSI.RED : (symbol == '!') ? TextColor.ANSI.YELLOW : TextColor.ANSI.DEFAULT;
                 graphics.setBackgroundColor(colorOfSymbol);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
                 graphics.putString(xPos, yPos, String.valueOf(symbol));
