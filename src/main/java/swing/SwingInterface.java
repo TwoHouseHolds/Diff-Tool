@@ -194,7 +194,7 @@ public class SwingInterface {
                       -> Wenn zu viele Unterschiede innerhalb der Zeilen auftreten, wird die gesamte Zeile
                          orange markiert.
                     
-                    """,frame,"Legende");
+                    """, frame, "Legende");
 
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
             switchItem.addActionListener(e -> {
@@ -449,7 +449,7 @@ public class SwingInterface {
                                 currentRightFiles = toBeFilteredAndSorted;
                             }
 
-                            List<File> otherSideFiles = (side == Side.LEFT) ? currentRightFiles : currentLeftFiles;
+                            List<File> otherSideFiles = (side == Side.LEFT) ? allRightFiles : allLeftFiles;
                             thisSideList.setListData(getFormatFileNames(toBeFilteredAndSorted, otherSideFiles, side));
                             return null;
                         }
@@ -497,7 +497,7 @@ public class SwingInterface {
                     thisList.clearSelection();
 
                     //Stream findet in den right Files die left File mit gleichem Namen, falls diese vorhanden ist, falls nicht, wird ein leeres Optional zurückgegeben
-                    List<File> otherFiles = (side == Side.LEFT) ? currentRightFiles : currentLeftFiles;
+                    List<File> otherFiles = (side == Side.LEFT) ? allRightFiles : allLeftFiles;
                     Optional<File> otherFile = otherFiles.stream().filter(f -> f.getName().equals(thisFile.getName())).findFirst();
 
                     deactivate();
@@ -509,17 +509,17 @@ public class SwingInterface {
                         protected Object doInBackground() {
                             if (side.equals(Side.LEFT)) {
                                 if (otherFile.isEmpty()) {
-                                    level3UI = new Level3UI(FileUtils.readFile(thisFile), null, null, false);
+                                    level3UI = new Level3UI(FileUtils.readFile(thisFile), null, null);
                                 } else {
                                     lr = FileUtils.compareFiles(thisFile, otherFile.get());
-                                    level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges(), false);
+                                    level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges());
                                 }
                             } else { // called from right side
                                 if (otherFile.isEmpty()) {
-                                    level3UI = new Level3UI(null, FileUtils.readFile(thisFile), null, false);
+                                    level3UI = new Level3UI(null, FileUtils.readFile(thisFile), null);
                                 } else {
                                     lr = FileUtils.compareFiles(thisFile, otherFile.get());
-                                    level3UI = new Level3UI(lr.right(), lr.left(), lr.specificLineChanges(), true);
+                                    level3UI = new Level3UI(lr.right(), lr.left(), lr.specificLineChanges());
                                 }
                             }
                             frame.add(level3UI, globalGbc);
@@ -562,19 +562,18 @@ public class SwingInterface {
         List<String> leftLines;
         List<String> rightLines;
         List<FileUtils.SpecificLineChange> lineChanges;
-        private final boolean swapLineChanges;
 
-        public Level3UI(List<String> leftInput, List<String> rightInput, List<FileUtils.SpecificLineChange> lcs, boolean swapLineChanges) {
+        public Level3UI(List<String> leftInput, List<String> rightInput, List<FileUtils.SpecificLineChange> lcs) {
             super(new GridBagLayout());
             setFocusable(false);
 
             leftLines = leftInput;
             rightLines = rightInput;
             lineChanges = lcs;
-            this.swapLineChanges = swapLineChanges;
 
             Level3UISide leftUISide = new Level3UISide(Side.LEFT);
             Level3UISide rightUISide = new Level3UISide(Side.RIGHT);
+            changeColor(leftUISide.textPane, rightUISide.textPane, lineChanges);
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftUISide, rightUISide);
             splitPane.setResizeWeight(0.5);
@@ -646,10 +645,12 @@ public class SwingInterface {
         }
 
         private class Level3UISide extends JScrollPane {
+
+            private final JTextPane textPane = new JTextPane();
+
             private Level3UISide(Side side) {
                 super();
 
-                JTextPane textPane = new JTextPane();
                 textPane.setEditable(false);
                 textPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
@@ -657,9 +658,8 @@ public class SwingInterface {
 
                 if (thisSideLines != null) {
                     StringBuilder sb = new StringBuilder();
-                    thisSideLines.forEach(s -> sb.append(s).append("\n"));
+                    thisSideLines.forEach(s -> sb.append(s).append(System.lineSeparator()));
                     textPane.setText(sb.toString());
-                    changeColor(textPane, lineChanges, side);
                 }
 
                 textPane.setCaretPosition(0); // cursor jump to top
@@ -676,43 +676,71 @@ public class SwingInterface {
             }
         }
 
-        private void changeColor(JTextPane textPane, List<FileUtils.SpecificLineChange> lineChanges, Side side) {
-            MutableAttributeSet attrs = textPane.getInputAttributes();
-            StyledDocument doc = textPane.getStyledDocument();
+        private void changeColor(JTextPane leftTextPane, JTextPane rightTextPane, List<FileUtils.SpecificLineChange> lineChanges) {
+            MutableAttributeSet leftAttrs = leftTextPane.getInputAttributes();
+            StyledDocument leftDoc = leftTextPane.getStyledDocument();
+            MutableAttributeSet rightAttrs = rightTextPane.getInputAttributes();
+            StyledDocument rightDoc = rightTextPane.getStyledDocument();
 
-            String[] lines = textPane.getText().split("\n");
-            int offset = 0;
+            String[] leftLines = leftTextPane.getText().split(System.lineSeparator());
+            int leftOffset = 0;
+            String[] rightLines = rightTextPane.getText().split(System.lineSeparator());
+            int rightOffset = 0;
 
-            for (int i = 0; i < lines.length; i++) {
-                String line = lines[i];
-                int indexOfSymbol = String.valueOf(i).length() + 2;
-                char symbol = line.charAt(indexOfSymbol);
-                if (symbol == '+' || symbol == '-' || symbol == '!') { // make + green, - red, ! orange
-                    Color colorOfSymbol = (symbol == '+') ? Color.GREEN : (symbol == '-') ? Color.RED : Color.ORANGE;
-                    StyleConstants.setBackground(attrs, colorOfSymbol);
-                    StyleConstants.setForeground(attrs, Color.BLACK);
-                    doc.setCharacterAttributes(offset + indexOfSymbol, 1, attrs, false);
+            int lineNumber = 1;
+            for (int i = 0; i < Math.max(leftLines.length, rightLines.length); i++) {
+                int indexOfSymbol = String.valueOf(lineNumber).length() + 2;
+
+                String leftLine = (i < leftLines.length) ? leftLines[i] : null;
+                String rightLine = (i < rightLines.length) ? rightLines[i] : null;
+
+                char leftSymbol = '#';
+                if (leftLine != null) {
+                    leftSymbol = leftLine.charAt(indexOfSymbol);
+                    if (leftSymbol == '+' || leftSymbol == '-' || leftSymbol == '!') { // make + green, - red, ! orange
+                        Color colorOfSymbol = (leftSymbol == '+') ? Color.GREEN : (leftSymbol == '-') ? Color.RED : Color.ORANGE;
+                        StyleConstants.setBackground(leftAttrs, colorOfSymbol);
+                        StyleConstants.setForeground(leftAttrs, Color.BLACK);
+                        leftDoc.setCharacterAttributes(leftOffset + indexOfSymbol, 1, leftAttrs, false);
+                    }
+                    leftOffset += leftLine.length() + 1;
                 }
-                offset += line.length() + 1;
+
+                char rightSymbol = '#';
+                if (rightLine != null) {
+                    rightSymbol = rightLine.charAt(indexOfSymbol);
+                    if (rightSymbol == '+' || rightSymbol == '-' || rightSymbol == '!') { // make + green, - red, ! orange
+                        Color colorOfSymbol = (rightSymbol == '+') ? Color.GREEN : (rightSymbol == '-') ? Color.RED : Color.ORANGE;
+                        StyleConstants.setBackground(rightAttrs, colorOfSymbol);
+                        StyleConstants.setForeground(rightAttrs, Color.BLACK);
+                        rightDoc.setCharacterAttributes(rightOffset + indexOfSymbol, 1, rightAttrs, false);
+                    }
+                    rightOffset += rightLine.length() + 1;
+                }
+
+                if (leftSymbol != '-' && rightSymbol != '-') lineNumber++;
             }
 
+            // specific line changes
             if (lineChanges != null) {
                 for (FileUtils.SpecificLineChange change : lineChanges) {
-                    if (!swapLineChanges && side == change.displaySide() || swapLineChanges && side != change.displaySide()) {
-                        offset = 0;
+                    String[] changSideLines = (change.displaySide() == Side.LEFT) ? leftLines : rightLines;
+                    MutableAttributeSet changSideAttrs = (change.displaySide() == Side.LEFT) ? leftAttrs : rightAttrs;
+                    StyledDocument changSideDoc = (change.displaySide() == Side.LEFT) ? leftDoc : rightDoc;
 
-                        for (int i = 0; i < change.lineNumber() - 1; i++) {
-                            offset += lines[i].length() + 1;
-                        }
-
-                        StyleConstants.setBackground(attrs, Color.ORANGE);
-                        StyleConstants.setForeground(attrs, Color.BLACK);
-                        doc.setCharacterAttributes(offset + change.index(), 1, attrs, false);
+                    int offset = 0;
+                    for (int i = 0; i < change.lineNumber() - 1; i++) {
+                        //noinspection DataFlowIssue
+                        offset += changSideLines[i].length() + 1;
                     }
+                    StyleConstants.setBackground(changSideAttrs, Color.ORANGE);
+                    StyleConstants.setForeground(changSideAttrs, Color.BLACK);
+                    changSideDoc.setCharacterAttributes(offset + change.index(), 1, changSideAttrs, false);
                 }
             }
         }
     }
+
 
     private void initializeEscFocus() {
         level1UI.setFocusable(false);
