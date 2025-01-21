@@ -199,6 +199,10 @@ public class FileUtils {
         if (lineResult != null || (firstFile != null && secondFile != null)) {
             FileUtils.LineResult result = (lineResult == null) ? FileUtils.compareFiles(firstFile, secondFile) : lineResult;
 
+            if(lineResult != null && (lineResult.left() == null || lineResult.right() == null)) {
+                return false;
+            }
+
             if (saveFile != null) {
                 saveFile = new File(saveFile.getAbsolutePath() + ".txt");
                 if (saveFile.exists()) {
@@ -222,6 +226,10 @@ public class FileUtils {
     public static boolean saveDiffAsHTML(File firstFile, File secondFile, File saveFile, LineResult lineResult) {
         if (lineResult != null || (firstFile != null && secondFile != null)) {
             FileUtils.LineResult result = (lineResult == null) ? FileUtils.compareFiles(firstFile, secondFile) : lineResult;
+
+            if(lineResult != null && (lineResult.left() == null || lineResult.right() == null)) {
+                return false;
+            }
 
             if (saveFile != null) {
                 saveFile = new File(saveFile.getAbsolutePath() + ".html");
