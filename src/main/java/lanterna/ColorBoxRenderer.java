@@ -22,7 +22,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
         ColoredTextBox coloredTextBox = (ColoredTextBox) textBox;
 
         String boxText = textBox.getText();
-        String[] lines = boxText.split("\n");
+        String[] lines = boxText.split("\\r?\\n|\\r");
 
         int xScrollOffset = getViewTopLeft().getColumn();
         int yScrollOffset = getViewTopLeft().getRow();
