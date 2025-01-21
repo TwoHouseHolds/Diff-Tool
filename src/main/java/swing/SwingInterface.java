@@ -186,6 +186,14 @@ public class SwingInterface {
                     - Um das Programm zu beenden, wählen Sie im Menü "Beenden" -> "Beende Programm.""", frame, "Hilfe");
             MenuItem aboutItem = new MenuItem("Über uns", "Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.\n" + "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "Über uns");
 
+            MenuItem legendenItem = new MenuItem("Legende", """
+                    - Das grüne Plus erscheint bei Zeilen welche hinzugefügt wurden.
+                    - Das rote Minus erscheint bei Zeilen welche entfernt wurden.
+                    - Das orangene Ausrufezeichen erscheint bei Zeilen welche veränderungen
+                      enthalten.
+                      -> die orange markierte Teile innerhalb der Zeilen sind die genauen änderungen.
+                    """,frame,"Legende");
+
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
             switchItem.addActionListener(e -> {
                 frame.dispose();
@@ -197,6 +205,7 @@ public class SwingInterface {
             });
 
             helpMenu.add(guideItem);
+            helpMenu.add(legendenItem);
             helpMenu.add(aboutItem);
             helpMenu.add(switchItem);
             return helpMenu;
