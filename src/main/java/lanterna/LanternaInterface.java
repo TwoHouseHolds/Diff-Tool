@@ -758,7 +758,7 @@ public class LanternaInterface {
 
         additionalMenu.add(new MenuItem("Blackjack", () -> new BlackjackMinigaming(textGUI)));
 
-        additionalMenu.add(new MenuItem("TicTacToe", () -> new LanternaTicTacToeMinigaming(textGUI)));
+        additionalMenu.add(new MenuItem("TicTacToe", () -> new LanternaTicTacToeMiniGaming(textGUI)));
 
         additionalMenu.add(new MenuItem("GUI-TicTacToe", () -> {
             if (GraphicsEnvironment.isHeadless()) {
