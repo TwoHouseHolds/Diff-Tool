@@ -27,7 +27,7 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import swing.SwingInterface;
-import swing.SwingTicTacToeMinigaming;
+import swing.SwingTicTacToeMiniGaming;
 import utils.Side;
 import utils.SortType;
 
@@ -766,7 +766,7 @@ public class LanternaInterface {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Das Spiel kann nicht in einer GUI-Umgebung ausgeführt werden.\nDas System läuft im Headless Modus", MessageDialogButton.OK);
                 return;
             }
-            SwingTicTacToeMinigaming swingTicTacToeMinigaming = new SwingTicTacToeMinigaming();
+            SwingTicTacToeMiniGaming swingTicTacToeMinigaming = new SwingTicTacToeMiniGaming();
             JFrame frame = new JFrame("GUI - TicTacToe");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.add(swingTicTacToeMinigaming);
