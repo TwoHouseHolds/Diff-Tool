@@ -93,9 +93,14 @@ public class SwingInterface {
                 ticTacToeGameUI = new SwingTicTacToeMinigaming();
                 ticTacToeGameUI.setParent(parent);
                 ticTacToeGameUI.setOldSize(frame.getSize());
-                frame.add(ticTacToeGameUI);
+                GridBagConstraints tictacttoeGbc = new GridBagConstraints();
+                tictacttoeGbc.weightx = 1;
+                tictacttoeGbc.weighty = 1;
+                tictacttoeGbc.fill = GridBagConstraints.BOTH;
+                tictacttoeGbc.anchor = GridBagConstraints.CENTER;
+                frame.add(ticTacToeGameUI, tictacttoeGbc);
                 frame.setResizable(false);
-                frame.setSize(600, 670);
+                frame.setSize(615, 640);
                 backButton.setVisible(false);
                 forwardButton.setVisible(false);
                 changeActivePanelFromTo(parent, ticTacToeGameUI);
