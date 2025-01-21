@@ -191,6 +191,9 @@ public class SwingInterface {
                     - Das orange Ausrufezeichen erscheint bei Zeilen, welche Veränderungen
                       enthalten.
                       -> Die orange markierten Teile innerhalb der Zeilen sind die genauen Änderungen.
+                      -> Wenn zu viele unterschiede innerhalb der Zeilen auftreten, wird die gesamte Zeile
+                         orange markiert.
+                    
                     """,frame,"Legende");
 
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
