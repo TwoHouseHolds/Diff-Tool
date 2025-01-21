@@ -36,9 +36,10 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
             int xPos = symbolLocation - xScrollOffset;
             char symbol = line.charAt(symbolLocation);
 
-            if(symbol != ' ') {
-                TextColor.ANSI colorOfSymbol = (symbol == '+') ? TextColor.ANSI.GREEN //
-                        : (symbol == '-') ? TextColor.ANSI.RED : (symbol == '!') ? TextColor.ANSI.YELLOW : TextColor.ANSI.DEFAULT;
+            if((symbol == '+' || symbol == '-' || symbol == '!')) {
+                //
+                TextColor.ANSI colorOfSymbol = symbol == '+' ? TextColor.ANSI.GREEN //
+                        : symbol == '-' ? TextColor.ANSI.RED : TextColor.ANSI.YELLOW;
                 graphics.setBackgroundColor(colorOfSymbol);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
                 graphics.putString(xPos, yPos, String.valueOf(symbol));
