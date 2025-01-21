@@ -189,9 +189,11 @@ public class SwingInterface {
             MenuItem legendenItem = new MenuItem("Legende", """
                     - Das grüne Plus erscheint bei Zeilen welche hinzugefügt wurden.
                     - Das rote Minus erscheint bei Zeilen welche entfernt wurden.
-                    - Das orangene Ausrufezeichen erscheint bei Zeilen welche veränderungen
+                    - Das orangene Ausrufezeichen erscheint bei Zeilen welche Veränderungen
                       enthalten.
-                      -> die orange markierte Teile innerhalb der Zeilen sind die genauen änderungen.
+                      -> Die orange markierte Teile innerhalb der Zeilen sind die genauen Änderungen.
+                      -> Wenn zu viele unterschiede innerhalb der Zeilen auftreten, wird die gesamte Zeile
+                         orange markiert.
                     """,frame,"Legende");
 
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
