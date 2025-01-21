@@ -664,8 +664,12 @@ public class SwingInterface {
 
                 textPane.setCaretPosition(0); // cursor jump to top
 
-                JPanel textArea = new JPanel();
-                textArea.add(textPane);
+                JPanel textArea = new JPanel(new GridBagLayout());
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.fill = GridBagConstraints.BOTH; // für linksbündig
+                gbc.weighty = 1; // für linksbündig
+                gbc.weightx = 1; // für linksbündig
+                textArea.add(textPane, gbc);
 
                 this.setViewportView(textArea);
                 this.getVerticalScrollBar().setUnitIncrement(20);
