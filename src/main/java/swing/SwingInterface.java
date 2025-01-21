@@ -345,21 +345,25 @@ public class SwingInterface {
         private FileUtils.LineResult lr;
         private JList<String> leftList;
         private JList<String> rightList;
-        private List<File> leftFiles;
-        private List<File> rightFiles;
+        private List<File> currentLeftFiles;
+        private List<File> currentRightFiles;
+        private final List<File> allLeftFiles;
+        private final List<File> allRightFiles;
 
         public Level2UI(List<File> leftInput, List<File> rightInput) {
             super(new GridBagLayout());
-            this.leftFiles = leftInput;
-            this.rightFiles = rightInput;
+            this.currentLeftFiles = leftInput;
+            this.currentRightFiles = rightInput;
+            allLeftFiles = leftInput;
+            allRightFiles = rightInput;
             setFocusable(false);
-            if (leftFiles == null || rightFiles == null) {
-                JOptionPane.showMessageDialog(frame, (leftFiles == null ? "Linkes" : "Rechtes") + " Verzeichnis ist leer!", "Fehler", JOptionPane.ERROR_MESSAGE);
+            if (currentLeftFiles == null || currentRightFiles == null) {
+                JOptionPane.showMessageDialog(frame, (currentLeftFiles == null ? "Linkes" : "Rechtes") + " Verzeichnis ist leer!", "Fehler", JOptionPane.ERROR_MESSAGE);
                 changeActivePanelFromTo(this, level1UI);
                 return;
             }
-            leftList = new JList<>(getFormatFileNames(leftFiles, rightFiles, Side.LEFT));
-            rightList = new JList<>(getFormatFileNames(rightFiles, leftFiles, Side.RIGHT));
+            leftList = new JList<>(getFormatFileNames(currentLeftFiles, currentRightFiles, Side.LEFT));
+            rightList = new JList<>(getFormatFileNames(currentRightFiles, currentLeftFiles, Side.RIGHT));
 
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
@@ -421,11 +425,11 @@ public class SwingInterface {
                     SwingWorker worker = new SwingWorker() {
                         @Override
                         protected Object doInBackground() {
-                            List<File> thisSideFiles = (side == Side.LEFT) ? leftFiles : rightFiles;
-                            List<File> filteredAndSorted = new ArrayList<>(thisSideFiles);
+                            List<File> thisSideFiles = (side == Side.LEFT) ? allLeftFiles : allRightFiles;
+                            List<File> toBeFilteredAndSorted = new ArrayList<>(thisSideFiles);
                             // search
                             if (!search.isEmpty()) {
-                                filteredAndSorted = filterFilesByName(filteredAndSorted, search);
+                                toBeFilteredAndSorted = filterFilesByName(toBeFilteredAndSorted, search);
                             }
                             // sort
                             Comparator<File> comp = switch (selectedSorting) {
@@ -436,17 +440,17 @@ public class SwingInterface {
                             };
                             if (comp != null) {
                                 if (isReversed) comp = comp.reversed();
-                                filteredAndSorted.sort(comp);
+                                toBeFilteredAndSorted.sort(comp);
                             }
 
                             if (side == Side.LEFT) {
-                                leftFiles = filteredAndSorted;
+                                currentLeftFiles = toBeFilteredAndSorted;
                             } else {
-                                rightFiles = filteredAndSorted;
+                                currentRightFiles = toBeFilteredAndSorted;
                             }
 
-                            List<File> otherSideFiles = (side == Side.LEFT) ? rightFiles : leftFiles;
-                            thisSideList.setListData(getFormatFileNames(filteredAndSorted, otherSideFiles, side));
+                            List<File> otherSideFiles = (side == Side.LEFT) ? currentRightFiles : currentLeftFiles;
+                            thisSideList.setListData(getFormatFileNames(toBeFilteredAndSorted, otherSideFiles, side));
                             return null;
                         }
 
@@ -488,12 +492,12 @@ public class SwingInterface {
         private void applyListSelectionListener(JList<String> thisList, Side side) {
             thisList.addListSelectionListener(select -> {
                 if (!select.getValueIsAdjusting() && thisList.getSelectedIndex() != -1) {
-                    List<File> thisFiles = (side == Side.LEFT) ? leftFiles : rightFiles;
+                    List<File> thisFiles = (side == Side.LEFT) ? currentLeftFiles : currentRightFiles;
                     File thisFile = thisFiles.get(thisList.getSelectedIndex());
                     thisList.clearSelection();
 
                     //Stream findet in den right Files die left File mit gleichem Namen, falls diese vorhanden ist, falls nicht, wird ein leeres Optional zurückgegeben
-                    List<File> otherFiles = (side == Side.LEFT) ? rightFiles : leftFiles;
+                    List<File> otherFiles = (side == Side.LEFT) ? currentRightFiles : currentLeftFiles;
                     Optional<File> otherFile = otherFiles.stream().filter(f -> f.getName().equals(thisFile.getName())).findFirst();
 
                     deactivate();
