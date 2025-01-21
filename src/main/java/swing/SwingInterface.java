@@ -116,7 +116,7 @@ public class SwingInterface {
             backButton.addActionListener(e -> {
                 if (level2UI != null && level2UI.isVisible()) {
                     changeActivePanelFromTo(level2UI, level1UI);
-                } else if (level3UI.isVisible()) {
+                } else if (level3UI != null && level3UI.isVisible()) {
                     changeActivePanelFromTo(level3UI, level2UI);
                 }
                 resizeAll();
