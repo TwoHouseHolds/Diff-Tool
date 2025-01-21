@@ -10,7 +10,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class LanternaTicTacToeMinigaming {
+public class LanternaTicTacToeMiniGaming {
 
     private final Window window;
     private final WindowBasedTextGUI textGUI;
@@ -32,7 +32,7 @@ public class LanternaTicTacToeMinigaming {
      *
      * @param textGUI TextGUI to add the window to
      */
-    public LanternaTicTacToeMinigaming(WindowBasedTextGUI textGUI) {
+    public LanternaTicTacToeMiniGaming(WindowBasedTextGUI textGUI) {
         this.textGUI = textGUI;
         this.random = new Random();
         window = new BasicWindow("Blackjack Minigame");
