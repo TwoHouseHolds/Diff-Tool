@@ -61,7 +61,6 @@ public class LanternaInterface {
     private WindowBasedTextGUI textGUI;
     private TerminalScreen screen;
     List<SpecificLineChange> lineChanges = new ArrayList<>();
-    AtomicBoolean listLock = new AtomicBoolean(false);
 
     /**
      * Start the Lanterna interface
@@ -354,9 +353,6 @@ public class LanternaInterface {
             SwingWorker worker = new SwingWorker() {
                 @Override
                 protected Object doInBackground() {
-                    if (listLock.get()) return null;
-                    listLock.set(true);
-
                     Comparator<File> comparator = switch (i) {
                         case 1 -> Comparator.comparing(File::getName);
                         case 2 -> Comparator.comparing(File::length);
@@ -379,14 +375,12 @@ public class LanternaInterface {
                     }
 
                     manageSortedList(comparator, listBox, firstFiles, secondFiles, side, searchBox);
-
                     return null;
                 }
 
                 @Override
                 protected void done() {
                     super.done();
-                    listLock.set(false);
                     tryScreenUpdate();
                     comboBox.setEnabled(true);
                     reverseBox.setEnabled(true);
