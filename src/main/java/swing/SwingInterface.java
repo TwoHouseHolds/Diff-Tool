@@ -163,15 +163,23 @@ public class SwingInterface {
                     - Wählen Sie die Verzeichnisse aus, die Sie vergleichen möchten.
                     - Die Anwendung zeigt die Unterschiede zwischen 2 Verzeichnissen an.
                       Zusätzlich können Sie die Unterschiede zwischen 2 Dateien anzeigen lassen.
-                      Hierfür wählen Sie die Dateien aus, die Sie vergleichen möchten, indem
-                      Sie den Pfad in der TextBox eingeben oder das Verzeichnis mit dem Button "Select" auswählen.
-                      Danach auf "Confirm" klicken.
-                    - Jederzeit können Sie mit der Escape-Taste zum vorherigen Menü zurückkehren.
+                      Hierfür wählen Sie die Dateien aus, die Sie vergleichen möchten, 
+                      indem Sie den Pfad in der TextBox eingeben oder das Verzeichnis 
+                      mit dem Button \uD83D\uDCC1 auswählen. Danach auf "Bestätigen" klicken.
+                    - Jederzeit können Sie mit der Escape-Taste zum vorherigen Menü zurückkehren,
+                      alternativ können sie auch die Pfeilbuttons in der oberen linken ecke nutzen 
+                      um zwischen den Menüs zu wechseln, sofern dies möglich ist.
+                    - Um die Differenz von 2 Dateien zu speichern, wählen sie den Button 
+                      "Differenz Exportieren", welcher sich unterhalb des Textes mit den 
+                       Differenzen befindet.
+                    - Um das Theme der Anwendung zu ändern, wählen Sie im Menü unter "Einstellungen"
+                      -> "Theme" das gewünschte Theme aus.
                     - Um diese Anleitung erneut anzuzeigen, wählen Sie im Menü "Hilfe" -> "Guide".
-                    - Um Informationen über die Entwickler zu erhalten, wählen Sie im Menü "Hilfe" -> "Über uns".
-                    - Um das Programm zu beenden, wählen Sie im Menü "Beenden" -> "Beende Programm".
-                    - Use the menu to view help or exit the application.""", frame, "Help");
-            MenuItem aboutItem = new MenuItem("Über uns", "Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.\n" + "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "About Us");
+                    - Um Informationen über die Entwickler zu erhalten, wählen Sie im Menü "Hilfe" 
+                      -> "Über uns".
+                    - Um ein TicTacToe-Minispiel zu starten, wählen Sie im Menü "Zusätzliches" -> "TicTacToe"
+                    - Um das Programm zu beenden, wählen Sie im Menü "Beenden" -> "Beende Programm.""", frame, "Hilfe");
+            MenuItem aboutItem = new MenuItem("Über uns", "Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.\n" + "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "Über uns");
 
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
             switchItem.addActionListener(e -> {
