@@ -93,9 +93,14 @@ public class SwingInterface {
                 ticTacToeGameUI = new SwingTicTacToeMinigaming();
                 ticTacToeGameUI.setParent(parent);
                 ticTacToeGameUI.setOldSize(frame.getSize());
-                frame.add(ticTacToeGameUI);
+                GridBagConstraints tictacttoeGbc = new GridBagConstraints();
+                tictacttoeGbc.weightx = 1;
+                tictacttoeGbc.weighty = 1;
+                tictacttoeGbc.fill = GridBagConstraints.BOTH;
+                tictacttoeGbc.anchor = GridBagConstraints.CENTER;
+                frame.add(ticTacToeGameUI, tictacttoeGbc);
                 frame.setResizable(false);
-                frame.setSize(600, 670);
+                frame.setSize(615, 640);
                 backButton.setVisible(false);
                 forwardButton.setVisible(false);
                 changeActivePanelFromTo(parent, ticTacToeGameUI);
@@ -163,19 +168,19 @@ public class SwingInterface {
                     - Wählen Sie die Verzeichnisse aus, die Sie vergleichen möchten.
                     - Die Anwendung zeigt die Unterschiede zwischen 2 Verzeichnissen an.
                       Zusätzlich können Sie die Unterschiede zwischen 2 Dateien anzeigen lassen.
-                      Hierfür wählen Sie die Dateien aus, die Sie vergleichen möchten, 
-                      indem Sie den Pfad in der TextBox eingeben oder das Verzeichnis 
+                      Hierfür wählen Sie die Dateien aus, die Sie vergleichen möchten,\s
+                      indem Sie den Pfad in der TextBox eingeben oder das Verzeichnis\s
                       mit dem Button \uD83D\uDCC1 auswählen. Danach auf "Bestätigen" klicken.
                     - Jederzeit können Sie mit der Escape-Taste zum vorherigen Menü zurückkehren,
-                      alternativ können sie auch die Pfeilbuttons in der oberen linken ecke nutzen 
+                      alternativ können sie auch die Pfeilbuttons in der oberen linken ecke nutzen\s
                       um zwischen den Menüs zu wechseln, sofern dies möglich ist.
-                    - Um die Differenz von 2 Dateien zu speichern, wählen sie den Button 
-                      "Differenz Exportieren", welcher sich unterhalb des Textes mit den 
+                    - Um die Differenz von 2 Dateien zu speichern, wählen sie den Button\s
+                      "Differenz Exportieren", welcher sich unterhalb des Textes mit den\s
                        Differenzen befindet.
                     - Um das Theme der Anwendung zu ändern, wählen Sie im Menü unter "Einstellungen"
                       -> "Theme" das gewünschte Theme aus.
                     - Um diese Anleitung erneut anzuzeigen, wählen Sie im Menü "Hilfe" -> "Guide".
-                    - Um Informationen über die Entwickler zu erhalten, wählen Sie im Menü "Hilfe" 
+                    - Um Informationen über die Entwickler zu erhalten, wählen Sie im Menü "Hilfe"\s
                       -> "Über uns".
                     - Um ein TicTacToe-Minispiel zu starten, wählen Sie im Menü "Zusätzliches" -> "TicTacToe"
                     - Um das Programm zu beenden, wählen Sie im Menü "Beenden" -> "Beende Programm.""", frame, "Hilfe");
