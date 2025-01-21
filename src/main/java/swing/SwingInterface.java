@@ -413,7 +413,7 @@ public class SwingInterface {
                             }
                             // sort
                             Comparator<File> comp = switch (selectedSorting) {
-                                case 1 -> Comparator.comparing(File::getName);
+                                case 1 -> Comparator.comparing(file -> file.getName().toLowerCase());
                                 case 2 -> Comparator.comparing(File::length);
                                 case 3 -> Comparator.comparing(File::lastModified);
                                 default -> null;
