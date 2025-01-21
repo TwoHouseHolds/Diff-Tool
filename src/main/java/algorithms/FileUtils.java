@@ -170,7 +170,7 @@ public class FileUtils {
             String diffString = HuntMcIlroy.compareString(longerString, shorterString);
             for (int i = 0; i < diffString.length(); i++) {
                 if (diffString.charAt(i) == '!') {
-                    newSpecificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineNumber).length() + 4, longerString.charAt(i), longerSide));
+                    newSpecificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, longerString.charAt(i), longerSide));
                 }
             }
         } else {
