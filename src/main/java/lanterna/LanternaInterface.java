@@ -2,21 +2,18 @@ package lanterna;
 
 import algorithms.FileUtils;
 import algorithms.FileUtils.SpecificLineChange;
-import com.googlecode.lanterna.TerminalPosition;
-import com.googlecode.lanterna.bundle.LanternaThemes;
-import com.googlecode.lanterna.graphics.Theme;
-import swing.SwingInterface;
-import swing.SwingTicTacToeMinigaming;
-
 import com.googlecode.lanterna.SGR;
+import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.SimpleTheme;
-import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.graphics.Theme;
 import com.googlecode.lanterna.gui2.Button;
 import com.googlecode.lanterna.gui2.Label;
 import com.googlecode.lanterna.gui2.Panel;
 import com.googlecode.lanterna.gui2.Window;
+import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.DirectoryDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.FileDialogBuilder;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
@@ -29,21 +26,22 @@ import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
+import swing.SwingInterface;
+import swing.SwingTicTacToeMinigaming;
+import utils.Side;
+import utils.SortType;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.prefs.Preferences;
-
-import utils.Side;
-import utils.SortType;
+import java.util.stream.Collectors;
 
 /**
  * Lanterna interface for comparing two directories
@@ -62,8 +60,6 @@ public class LanternaInterface {
     private BasicWindow window;
     private WindowBasedTextGUI textGUI;
     private TerminalScreen screen;
-
-
     List<SpecificLineChange> lineChanges = new ArrayList<>();
     AtomicBoolean listLock = new AtomicBoolean(false);
 
@@ -74,7 +70,7 @@ public class LanternaInterface {
      * @see DefaultTerminalFactory
      * @see MultiWindowTextGUI
      */
-     public void start() {
+    public void start() {
         try {
             DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
             terminalFactory.setInitialTerminalSize(new TerminalSize(150, 40));
@@ -96,7 +92,7 @@ public class LanternaInterface {
 
             TerminalSize screenSize = textGUI.getScreen().getTerminalSize();
             int x = (screenSize.getColumns() / 2);
-            int y = (screenSize.getRows() ) / 2;
+            int y = (screenSize.getRows()) / 2;
             window.setPosition(new TerminalPosition(x, y));
 
             textGUI.addWindowAndWait(window);
@@ -115,7 +111,7 @@ public class LanternaInterface {
      * @param consumer Consumer for the input
      */
     private void getInput(List<String> labels, Consumer<List<String>> consumer) {
-        if(interfaceState.getCurrentListener() != null) resetWindow(interfaceState.getCurrentListener());
+        if (interfaceState.getCurrentListener() != null) resetWindow(interfaceState.getCurrentListener());
         interfaceState.setState(LanternaState.DIRECTORYSELECT);
         Panel outterPanel = new Panel(new LinearLayout(Direction.HORIZONTAL));
         List<Panel> panels = new ArrayList<>();
@@ -125,11 +121,11 @@ public class LanternaInterface {
 
         for (String label : labels) {
             Panel panel = new Panel(new LinearLayout(Direction.VERTICAL));
-            if(isFirst) {
+            if (isFirst) {
                 addMenu(panel);
                 panel.addComponent(new EmptySpace(new TerminalSize(0, 2)));
             }
-            if(!isFirst) panel.addComponent(new EmptySpace(new TerminalSize(0, 3)));
+            if (!isFirst) panel.addComponent(new EmptySpace(new TerminalSize(0, 3)));
             panel.addComponent(new Label(label).addStyle(SGR.BOLD));
             TextBox textBox = new TextBox(new TerminalSize(30, 1));
             panel.addComponent(new Label("Gebe einen Pfad ein:"));
@@ -143,7 +139,7 @@ public class LanternaInterface {
             for (Panel panel : panels) {
                 Optional<Object> optBox = Arrays.stream(panel.getChildren().toArray()).filter(TextBox.class::isInstance).findFirst();
 
-                if(optBox.isPresent()) {
+                if (optBox.isPresent()) {
                     TextBox textBox = (TextBox) optBox.get();
                     output.add(textBox.getText());
                 }
@@ -152,7 +148,7 @@ public class LanternaInterface {
             consumer.accept(output);
         });
 
-        for(Panel panel : panels) {
+        for (Panel panel : panels) {
             panel.addComponent(new Label("Oder wähle ein Verzeichnis aus:"));
             panel.addComponent(new Button("Select", () -> {
                 File input = new DirectoryDialogBuilder()
@@ -164,7 +160,7 @@ public class LanternaInterface {
 
                 if (input != null) {
                     Optional<Object> optBox = Arrays.stream(panel.getChildren().toArray()).filter(TextBox.class::isInstance).findFirst();
-                    if(optBox.isPresent()) {
+                    if (optBox.isPresent()) {
                         TextBox textBox = (TextBox) optBox.get();
                         textBox.setText(input.getAbsolutePath());
                     }
@@ -211,7 +207,7 @@ public class LanternaInterface {
     private void compareDirectories(String... output) {
         interfaceState.setLeftDir(FileUtils.getFiles(output[0]));
         interfaceState.setRightDir(FileUtils.getFiles(output[1]));
-        
+
         if (interfaceState.getLeftDir() == null) {
             MessageDialog.showMessageDialog(textGUI, "Fehler", "Linkes Verzeichnis existiert nicht oder ist leer", MessageDialogButton.OK);
             if (interfaceState.getRightDir() == null) {
@@ -224,7 +220,7 @@ public class LanternaInterface {
         if (interfaceState.getRightDir() == null) {
             MessageDialog.showMessageDialog(textGUI, "Fehler", "Rechtes Verzeichnis existiert nicht oder ist leer", MessageDialogButton.OK);
 
-            if(interfaceState.getLeftDir() == null) {
+            if (interfaceState.getLeftDir() == null) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Linkes Verzeichnis existiert nicht oder ist leer", MessageDialogButton.OK);
                 return;
             }
@@ -246,12 +242,12 @@ public class LanternaInterface {
      * @see File
      */
     private void showFilesAsDirectory(List<File> leftFiles, List<File> rightFiles) {
-        if(interfaceState.getCurrentListener() != null) resetWindow(interfaceState.getCurrentListener());
+        if (interfaceState.getCurrentListener() != null) resetWindow(interfaceState.getCurrentListener());
         interfaceState.setLeftDir(leftFiles);
         interfaceState.setRightDir(rightFiles);
         interfaceState.setState(LanternaState.FILESELECT);
 
-        if((leftFiles == null || rightFiles == null) || (leftFiles.isEmpty() && rightFiles.isEmpty())) {
+        if ((leftFiles == null || rightFiles == null) || (leftFiles.isEmpty() && rightFiles.isEmpty())) {
             getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
             return;
         }
@@ -268,7 +264,7 @@ public class LanternaInterface {
         ActionListBox rightListBox = new ActionListBox();
 
         ComboBox<String> leftComboBox = new ComboBox<>();
-        leftComboBox.addItem( "Unsortiert");
+        leftComboBox.addItem("Unsortiert");
         leftComboBox.addItem("Alphabetisch");
         leftComboBox.addItem("Größe");
         leftComboBox.addItem("Datum");
@@ -300,20 +296,25 @@ public class LanternaInterface {
         rightPanel.addComponent(rightComboBox);
         rightPanel.addComponent(rightReverseBox);
         rightPanel.addComponent(rightSearchBox);
+
         leftPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         rightPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
         leftPanel.addComponent(leftListBox);
         rightPanel.addComponent(rightListBox);
         outterPanel.addComponent(leftPanel);
+
         outterPanel.addComponent(new EmptySpace(new TerminalSize(2, 0)));
+
         outterPanel.addComponent(rightPanel);
         addMenu(menuPanel);
+
         menuPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
         menuPanel.addComponent(outterPanel);
         window.setComponent(menuPanel);
 
         leftSearchBox.setTextChangeListener((s, s1) -> leftComboBox.setSelectedIndex(leftComboBox.getSelectedIndex()));
-
         rightSearchBox.setTextChangeListener((s, s1) -> rightComboBox.setSelectedIndex(rightComboBox.getSelectedIndex()));
 
         WindowListenerAdapter listener = new WindowListenerAdapter() {
@@ -322,7 +323,7 @@ public class LanternaInterface {
                 if (keyStroke.getKeyType() == KeyType.Escape || keyStroke.getKeyType() == KeyType.F1) {
                     handleBackwards(this);
                 }
-                if(keyStroke.getKeyType() == KeyType.F2) {
+                if (keyStroke.getKeyType() == KeyType.F2) {
                     handleForwards();
                 }
             }
@@ -345,14 +346,15 @@ public class LanternaInterface {
     private void manageSortingBox(ComboBox<String> comboBox, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side, CheckBox reverseBox, TextBox searchBox) {
         comboBox.addListener((i, i2, i3) -> {
             listBox.clearItems();
-            listBox.addItem("Lade Daten...", () -> {});
+            listBox.addItem("Lade Daten...", () -> {
+            });
             comboBox.setEnabled(false);
             reverseBox.setEnabled(false);
             //noinspection rawtypes
             SwingWorker worker = new SwingWorker() {
                 @Override
                 protected Object doInBackground() {
-                    if(listLock.get()) return null;
+                    if (listLock.get()) return null;
                     listLock.set(true);
 
                     Comparator<File> comparator = switch (i) {
@@ -369,11 +371,11 @@ public class LanternaInterface {
                         default -> SortType.UNSORTED;
                     };
 
-                    if(side == Side.LEFT) interfaceState.setSortTypeLeft(sortType);
+                    if (side == Side.LEFT) interfaceState.setSortTypeLeft(sortType);
                     else interfaceState.setSortTypeRight(sortType);
 
-                    if(comparator != null) {
-                        if(reverseBox.isChecked()) {
+                    if (comparator != null) {
+                        if (reverseBox.isChecked()) {
                             comparator = comparator.reversed();
                         }
 
@@ -397,14 +399,10 @@ public class LanternaInterface {
         });
     }
 
-    private void displayList(List<File> firstFiles, List<File> secondFiles, Side side, ActionListBox listBox, TextBox searchBox) {
+    private void displayList(List<File> firstFiles, List<File> secondFiles, Side side, ActionListBox listBox) {
         listBox.clearItems();
-        for(File file : firstFiles) {
+        for (File file : firstFiles) {
             String fileName = file.getName();
-            String search = searchBox.getText().toLowerCase();
-            if(!search.isEmpty() && !fileName.toLowerCase().contains(search)) {
-                continue;
-            }
             boolean inBoth = secondFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
             File rightFile = inBoth ? secondFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
             if (inBoth) {
@@ -419,17 +417,18 @@ public class LanternaInterface {
 
     private void manageSortedList(Comparator<File> comparing, ActionListBox listBox, List<File> firstFiles, List<File> secondFiles, Side side, TextBox searchBox) {
         List<File> sortedFiles = new ArrayList<>(firstFiles);
+        sortedFiles = sortedFiles.stream().filter(f -> f.getName().toLowerCase().contains(searchBox.getText().toLowerCase())).collect(Collectors.toList());
         sortedFiles.sort(comparing);
-        displayList(sortedFiles, secondFiles, side, listBox, searchBox);
+        displayList(sortedFiles, secondFiles, side, listBox);
     }
 
     private String getFormattedFileName(File leftFile, String fileName, File rightFile) {
         boolean identical = false;
         try {
             identical = Files.mismatch(leftFile.toPath(), rightFile.toPath()) == -1;
-        } catch(IOException ignored) {
+        } catch (IOException ignored) {
         }
-        if(!identical) {
+        if (!identical) {
             fileName += " (in L&R verschieden)";
         } else {
             fileName += " (in L&R identisch)";
@@ -441,12 +440,13 @@ public class LanternaInterface {
      * Show the contents of 2 files
      * The contents of the files are shown side by side with differences highlighted
      * If the user presses the escape key, return to the file list
+     *
      * @param leftFile  File to show on the left
      * @param rightFile File to show on the right
      * @see File
      */
     private void showFileContents(File leftFile, File rightFile, Side selectedSide) {
-        if(interfaceState.getCurrentListener() != null) resetWindow(interfaceState.getCurrentListener());
+        if (interfaceState.getCurrentListener() != null) resetWindow(interfaceState.getCurrentListener());
         interfaceState.setState(LanternaState.FILECOMPARE);
         interfaceState.setCurrentLeftFile(leftFile);
         interfaceState.setCurrentRightFile(rightFile);
@@ -493,7 +493,7 @@ public class LanternaInterface {
                     interfaceState.setCurrentLineResult(FileUtils.compareFiles(leftFile, rightFile));
                     FileUtils.LineResult result = interfaceState.getCurrentLineResult();
 
-                    if(selectedSide == Side.LEFT) {
+                    if (selectedSide == Side.LEFT) {
                         interfaceState.setLeftLines(result.left());
                         interfaceState.setRightLines(result.right());
                     } else {
@@ -541,7 +541,7 @@ public class LanternaInterface {
         CheckBox linkedCheckBox = new CheckBox("Verlinktes Scrolling");
 
         linkedCheckBox.addListener((b) -> {
-            if(linkedCheckBox.isChecked()) {
+            if (linkedCheckBox.isChecked()) {
                 leftTextBox.setScrollSlave(rightTextBox);
                 rightTextBox.setEnabled(false);
                 return;
@@ -576,20 +576,20 @@ public class LanternaInterface {
                         .build()
                         .showDialog(textGUI);
 
-                if(saveFile == null) {
+                if (saveFile == null) {
                     MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
                     saveWindow.close();
                     return;
                 }
 
                 boolean success;
-                if(interfaceState.getCurrentLineResult() == null) {
+                if (interfaceState.getCurrentLineResult() == null) {
                     success = FileUtils.saveDiffAsText(interfaceState.getCurrentLeftFile(), interfaceState.getCurrentRightFile(), saveFile, null);
                 } else {
                     success = FileUtils.saveDiffAsText(null, null, saveFile, interfaceState.getCurrentLineResult());
                 }
 
-                if(!success) {
+                if (!success) {
                     MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
                     saveWindow.close();
                     return;
@@ -606,20 +606,20 @@ public class LanternaInterface {
                         .build()
                         .showDialog(textGUI);
 
-                if(saveFile == null) {
+                if (saveFile == null) {
                     MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
                     saveWindow.close();
                     return;
                 }
 
                 boolean success;
-                if(interfaceState.getCurrentLineResult() == null) {
+                if (interfaceState.getCurrentLineResult() == null) {
                     success = FileUtils.saveDiffAsHTML(interfaceState.getCurrentLeftFile(), interfaceState.getCurrentRightFile(), saveFile, null);
                 } else {
                     success = FileUtils.saveDiffAsHTML(null, null, saveFile, interfaceState.getCurrentLineResult());
                 }
 
-                if(!success) {
+                if (!success) {
                     MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
                     saveWindow.close();
                     return;
@@ -653,6 +653,7 @@ public class LanternaInterface {
 
     /**
      * Reset the window
+     *
      * @param listener Listener to remove
      * @see WindowListenerAdapter
      */
@@ -663,9 +664,10 @@ public class LanternaInterface {
 
     /**
      * Update the screen
-     * @see MultiWindowTextGUI
+     *
      * @noinspection unused
-     * */
+     * @see MultiWindowTextGUI
+     */
     public void tryScreenUpdate() {
         try {
             window.invalidate();
@@ -677,9 +679,10 @@ public class LanternaInterface {
 
     /**
      * Generate a standard file
-     * @see File
+     *
      * @return empty file
      * @noinspection unused
+     * @see File
      */
     private File generateStandardFile() {
         return new File("placeholderNA");
@@ -687,6 +690,7 @@ public class LanternaInterface {
 
     /**
      * Adds a menu with help and exit options to the panel
+     *
      * @param panel Panel to add the menu to
      * @see MenuBar
      */
@@ -719,12 +723,12 @@ public class LanternaInterface {
 
         helpMenu.add(new MenuItem("Über uns", () -> MessageDialog.showMessageDialog(textGUI, "Über uns",
                 """
-                Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.
-                Beteiligte: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf
-                """, MessageDialogButton.OK)));
+                        Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.
+                        Beteiligte: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf
+                        """, MessageDialogButton.OK)));
 
         helpMenu.add(new MenuItem("In GUI wechseln", () -> {
-            if(GraphicsEnvironment.isHeadless()) {
+            if (GraphicsEnvironment.isHeadless()) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Das Programm kann nicht in einer GUI-Umgebung ausgeführt werden.\nDas System läuft im Headless Modus", MessageDialogButton.OK);
                 return;
             }
@@ -758,7 +762,7 @@ public class LanternaInterface {
         additionalMenu.add(new MenuItem("TicTacToe", () -> new LanternaTicTacToeMinigaming(textGUI)));
 
         additionalMenu.add(new MenuItem("GUI-TicTacToe", () -> {
-            if(GraphicsEnvironment.isHeadless()) {
+            if (GraphicsEnvironment.isHeadless()) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Das Spiel kann nicht in einer GUI-Umgebung ausgeführt werden.\nDas System läuft im Headless Modus", MessageDialogButton.OK);
                 return;
             }
@@ -778,6 +782,7 @@ public class LanternaInterface {
 
     /**
      * Show the settings window
+     *
      * @see BasicWindow
      * @see Panel
      */
@@ -796,7 +801,7 @@ public class LanternaInterface {
             Theme oldTheme = textGUI.getTheme();
 
             ComboBox<String> colorComboBox = new ComboBox<>();
-            for(String theme : LanternaThemes.getRegisteredThemes()) {
+            for (String theme : LanternaThemes.getRegisteredThemes()) {
                 colorComboBox.addItem(theme);
             }
 
@@ -842,6 +847,7 @@ public class LanternaInterface {
 
     /**
      * Let the user manually compare 2 files
+     *
      * @see FileDialogBuilder
      * @see MessageDialog
      * @see MessageDialogButton
@@ -871,6 +877,7 @@ public class LanternaInterface {
 
     /**
      * Let the User compare 2 files and save the differences as a text file
+     *
      * @see FileDialogBuilder
      * @see MessageDialog
      * @see MessageDialogButton
@@ -891,8 +898,8 @@ public class LanternaInterface {
                 .build()
                 .showDialog(textGUI);
 
-        if(file1 != null && file2 != null) {
-            File file =  new FileDialogBuilder()
+        if (file1 != null && file2 != null) {
+            File file = new FileDialogBuilder()
                     .setTitle("Speichere die Differenz")
                     .setDescription("Wähle einen Speicherort")
                     .setActionLabel("Speichern")
@@ -900,7 +907,7 @@ public class LanternaInterface {
                     .showDialog(textGUI);
 
             boolean saveSuccessful = FileUtils.saveDiffAsText(file1, file2, file, null);
-            if(!saveSuccessful) {
+            if (!saveSuccessful) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
                 return;
             }
@@ -913,6 +920,7 @@ public class LanternaInterface {
 
     /**
      * Let the user edit a file
+     *
      * @see FileDialogBuilder
      * @see MessageDialog
      * @see MessageDialogButton
@@ -955,7 +963,7 @@ public class LanternaInterface {
                 window.addWindowListener(new WindowListenerAdapter() {
                     @Override
                     public void onInput(Window window, KeyStroke keyStroke, AtomicBoolean atomicBoolean) {
-                        if(keyStroke.getKeyType() == KeyType.Escape) {
+                        if (keyStroke.getKeyType() == KeyType.Escape) {
                             resetWindow(this);
                             getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
                         }
@@ -983,8 +991,8 @@ public class LanternaInterface {
                 .build()
                 .showDialog(textGUI);
 
-        if(file1 != null && file2 != null) {
-            File file =  new FileDialogBuilder()
+        if (file1 != null && file2 != null) {
+            File file = new FileDialogBuilder()
                     .setTitle("Speichere die Differenz")
                     .setDescription("Wähle einen Speicherort")
                     .setActionLabel("Speichern")
@@ -992,7 +1000,7 @@ public class LanternaInterface {
                     .showDialog(textGUI);
 
             boolean saveSuccessful = FileUtils.saveDiffAsHTML(file1, file2, file, null);
-            if(!saveSuccessful) {
+            if (!saveSuccessful) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Die Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
                 return;
             }
@@ -1007,13 +1015,13 @@ public class LanternaInterface {
      * Handle the escape key and F1 key backward movement
      */
     private void handleBackwards() {
-        if(interfaceState.getState() == LanternaState.FILECOMPARE) {
-            if(interfaceState.getLeftDir() != null && interfaceState.getRightDir() != null) {
+        if (interfaceState.getState() == LanternaState.FILECOMPARE) {
+            if (interfaceState.getLeftDir() != null && interfaceState.getRightDir() != null) {
                 showFilesAsDirectory(interfaceState.getLeftDir(), interfaceState.getRightDir());
             }
             return;
         }
-        if(interfaceState.getState() == LanternaState.FILESELECT) {
+        if (interfaceState.getState() == LanternaState.FILESELECT) {
             getInput(List.of("Erstes Verzeichnis:", "Zweites Verzeichnis:"), LanternaInterface.this::compareDirectories);
         }
     }
@@ -1023,7 +1031,7 @@ public class LanternaInterface {
      */
     private void handleForwards() {
         if (interfaceState.getState() == LanternaState.DIRECTORYSELECT) {
-            if(interfaceState.getCurrentDirectorys() != null) {
+            if (interfaceState.getCurrentDirectorys() != null) {
                 compareDirectories(interfaceState.getCurrentDirectorys());
                 return;
             }
