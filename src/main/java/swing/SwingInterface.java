@@ -365,8 +365,8 @@ public class SwingInterface {
             gbc.fill = GridBagConstraints.BOTH;
             gbc.insets = new Insets(1, 1, 1, 1);
 
-            Level2UISide left = new Level2UISide(leftFiles, rightFiles, Side.LEFT);
-            Level2UISide right = new Level2UISide(rightFiles, leftFiles, Side.RIGHT);
+            Level2UISide left = new Level2UISide(Side.LEFT);
+            Level2UISide right = new Level2UISide(Side.RIGHT);
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
             splitPane.setResizeWeight(0.5);
@@ -381,12 +381,12 @@ public class SwingInterface {
 
         // variable names for left side, but the class can also be used for the right side
         private class Level2UISide extends JPanel {
-            private Level2UISide(List<File> firstFiles, List<File> secondFiles, Side side) {
+            private Level2UISide(Side side) {
                 super(new BorderLayout());
 
                 // scrollPane
                 JList<String> thisSideList = (side == Side.LEFT) ? leftList : rightList;
-                applyListSelectionListener(thisSideList, firstFiles, secondFiles, side);
+                applyListSelectionListener(thisSideList, side);
                 JScrollPane scrollPane = new JScrollPane(thisSideList);
                 add(scrollPane, BorderLayout.CENTER);
 
@@ -421,7 +421,8 @@ public class SwingInterface {
                     SwingWorker worker = new SwingWorker() {
                         @Override
                         protected Object doInBackground() {
-                            List<File> filteredAndSorted = new ArrayList<>(firstFiles);
+                            List<File> thisSideFiles = (side == Side.LEFT) ? leftFiles : rightFiles;
+                            List<File> filteredAndSorted = new ArrayList<>(thisSideFiles);
                             // search
                             if (!search.isEmpty()) {
                                 filteredAndSorted = filterFilesByName(filteredAndSorted, search);
@@ -438,13 +439,14 @@ public class SwingInterface {
                                 filteredAndSorted.sort(comp);
                             }
 
-                            if(side == Side.LEFT) {
+                            if (side == Side.LEFT) {
                                 leftFiles = filteredAndSorted;
                             } else {
                                 rightFiles = filteredAndSorted;
                             }
 
-                            thisSideList.setListData(getFormatFileNames(filteredAndSorted, secondFiles, side));
+                            List<File> otherSideFiles = (side == Side.LEFT) ? rightFiles : leftFiles;
+                            thisSideList.setListData(getFormatFileNames(filteredAndSorted, otherSideFiles, side));
                             return null;
                         }
 
@@ -483,13 +485,15 @@ public class SwingInterface {
         }
 
         // variable names for left side, method can still be used for right side
-        private void applyListSelectionListener(JList<String> thisList, List<File> thisFiles, List<File> otherFiles, Side sideInformation) {
+        private void applyListSelectionListener(JList<String> thisList, Side side) {
             thisList.addListSelectionListener(select -> {
                 if (!select.getValueIsAdjusting() && thisList.getSelectedIndex() != -1) {
+                    List<File> thisFiles = (side == Side.LEFT) ? leftFiles : rightFiles;
                     File thisFile = thisFiles.get(thisList.getSelectedIndex());
                     thisList.clearSelection();
 
                     //Stream findet in den right Files die left File mit gleichem Namen, falls diese vorhanden ist, falls nicht, wird ein leeres Optional zurückgegeben
+                    List<File> otherFiles = (side == Side.LEFT) ? rightFiles : leftFiles;
                     Optional<File> otherFile = otherFiles.stream().filter(f -> f.getName().equals(thisFile.getName())).findFirst();
 
                     deactivate();
@@ -499,7 +503,7 @@ public class SwingInterface {
                     SwingWorker worker = new SwingWorker() {
                         @Override
                         protected Object doInBackground() {
-                            if (sideInformation.equals(Side.LEFT)) {
+                            if (side.equals(Side.LEFT)) {
                                 if (otherFile.isEmpty()) {
                                     level3UI = new Level3UI(FileUtils.readFile(thisFile), null, null, false);
                                 } else {
