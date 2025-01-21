@@ -396,13 +396,19 @@ public class LanternaInterface {
         for (File file : firstFiles) {
             String fileName = file.getName();
             boolean inBoth = secondFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
-            File rightFile = inBoth ? secondFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : null;
+            File otherFile = inBoth ? secondFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : null;
             if (inBoth) {
-                fileName = getFormattedFileName(file, fileName, rightFile);
+                fileName = getFormattedFileName(file, fileName, otherFile);
             } else {
                 fileName += side == Side.LEFT ? " (in L)" : " (in R)";
             }
-            listBox.addItem(fileName, () -> showFileContents(file, rightFile, side));
+            if(side == Side.RIGHT && otherFile == null) {
+                listBox.addItem(fileName, () -> showFileContents(null, file, side));
+            } else if(side == Side.LEFT && otherFile == null) {
+                listBox.addItem(fileName, () -> showFileContents(file, null, side));
+            } else {
+                listBox.addItem(fileName, () -> showFileContents(file, otherFile, side));
+            }
         }
         tryScreenUpdate();
     }
@@ -450,8 +456,8 @@ public class LanternaInterface {
         Panel leftPanel = new Panel(new LinearLayout(Direction.VERTICAL));
         Panel rightPanel = new Panel(new LinearLayout(Direction.VERTICAL));
 
-        leftPanel.addComponent(new Label("Datei im linken Verzeichnis " + (leftFile == null ? "Nicht vorhanden" : leftFile.getName()) + " :").addStyle(SGR.BOLD));
-        rightPanel.addComponent(new Label("Datei im rechten Verzeichnis " + (rightFile == null ? "Nicht vorhanden" : rightFile.getName()) + " :").addStyle(SGR.BOLD));
+        leftPanel.addComponent(new Label("Datei im linken Verzeichnis " + (leftFile == null ? "nicht vorhanden" : leftFile.getName()) + " :").addStyle(SGR.BOLD));
+        rightPanel.addComponent(new Label("Datei im rechten Verzeichnis " + (rightFile == null ? "nicht vorhanden" : rightFile.getName())   + " :").addStyle(SGR.BOLD));
 
         interfaceState.setLeftLines(new ArrayList<>());
         interfaceState.setRightLines(new ArrayList<>());
@@ -471,12 +477,12 @@ public class LanternaInterface {
         SwingWorker worker = new SwingWorker() {
             @Override
             protected Object doInBackground() {
-                if (rightFile == null && selectedSide == Side.LEFT) {
+                if (rightFile == null) {
                     interfaceState.setRightLines(List.of("Nur links vorhanden"));
                     interfaceState.setLeftLines(FileUtils.readFile(leftFile));
-                } else if(rightFile == null && selectedSide == Side.RIGHT) {
+                } else if(leftFile == null) {
                     interfaceState.setLeftLines(List.of("Nur rechts vorhanden"));
-                    interfaceState.setRightLines(FileUtils.readFile(leftFile));
+                    interfaceState.setRightLines(FileUtils.readFile(rightFile));
                 } else if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
                     interfaceState.setLeftLines(FileUtils.readFile(leftFile));
                     interfaceState.setRightLines(interfaceState.getLeftLines());
