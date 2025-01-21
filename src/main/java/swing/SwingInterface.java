@@ -559,44 +559,24 @@ public class SwingInterface {
 
     private static final class Level3UI extends JPanel {
 
+        List<String> leftLines;
+        List<String> rightLines;
+        List<FileUtils.SpecificLineChange> lineChanges;
         private final boolean swapLineChanges;
 
-        public Level3UI(List<String> leftLines, List<String> rightLines, List<FileUtils.SpecificLineChange> lineChanges, boolean swapLineChanges) {
+        public Level3UI(List<String> leftInput, List<String> rightInput, List<FileUtils.SpecificLineChange> lcs, boolean swapLineChanges) {
             super(new GridBagLayout());
             setFocusable(false);
 
+            leftLines = leftInput;
+            rightLines = rightInput;
+            lineChanges = lcs;
             this.swapLineChanges = swapLineChanges;
 
-            JTextPane leftTextPane = new JTextPane();
-            leftTextPane.setEditable(false);
-            leftTextPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-            JTextPane rightTextPane = new JTextPane();
-            rightTextPane.setEditable(false);
-            rightTextPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+            Level3UISide leftUISide = new Level3UISide(Side.LEFT);
+            Level3UISide rightUISide = new Level3UISide(Side.RIGHT);
 
-            if (leftLines != null) leftLines.forEach(s -> leftTextPane.setText(leftTextPane.getText() + s + "\n"));
-            if (rightLines != null) rightLines.forEach(s -> rightTextPane.setText(rightTextPane.getText() + s + "\n"));
-
-            if (rightLines != null && leftLines != null) {
-                changeColor(leftTextPane, lineChanges, Side.LEFT);
-                changeColor(rightTextPane, lineChanges, Side.RIGHT);
-            }
-
-            leftTextPane.setCaretPosition(0);
-            rightTextPane.setCaretPosition(0);
-
-            JPanel leftTextArea = new JPanel();
-            leftTextArea.add(leftTextPane);
-            JPanel rightTextArea = new JPanel();
-            rightTextArea.add(rightTextPane);
-
-            JScrollPane leftJSP = new JScrollPane(leftTextArea);
-            leftJSP.getVerticalScrollBar().setUnitIncrement(20);
-            JScrollPane rightJSP = new JScrollPane(rightTextArea);
-            rightJSP.getVerticalScrollBar().setUnitIncrement(20);
-
-
-            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftJSP, rightJSP);
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftUISide, rightUISide);
             splitPane.setResizeWeight(0.5);
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.fill = GridBagConstraints.BOTH;
@@ -616,17 +596,17 @@ public class SwingInterface {
 
             synchronizedScrolling.addActionListener(e -> {
                 if (synchronizedScrolling.isSelected()) {
-                    rightJSP.getHorizontalScrollBar().setEnabled(false);
-                    rightJSP.getVerticalScrollBar().setEnabled(false);
-                    leftJSP.getVerticalScrollBar().addAdjustmentListener(e1 -> //
-                            rightJSP.getVerticalScrollBar().setValue(leftJSP.getVerticalScrollBar().getValue()));
-                    leftJSP.getHorizontalScrollBar().addAdjustmentListener(e2 -> //
-                            rightJSP.getHorizontalScrollBar().setValue(leftJSP.getHorizontalScrollBar().getValue()));
+                    rightUISide.getHorizontalScrollBar().setEnabled(false);
+                    rightUISide.getVerticalScrollBar().setEnabled(false);
+                    leftUISide.getVerticalScrollBar().addAdjustmentListener(e1 -> //
+                            rightUISide.getVerticalScrollBar().setValue(leftUISide.getVerticalScrollBar().getValue()));
+                    leftUISide.getHorizontalScrollBar().addAdjustmentListener(e2 -> //
+                            rightUISide.getHorizontalScrollBar().setValue(leftUISide.getHorizontalScrollBar().getValue()));
                 } else {
-                    rightJSP.getHorizontalScrollBar().setEnabled(true);
-                    rightJSP.getVerticalScrollBar().setEnabled(true);
-                    Arrays.stream(leftJSP.getVerticalScrollBar().getAdjustmentListeners()).forEach(leftJSP.getVerticalScrollBar()::removeAdjustmentListener);
-                    Arrays.stream(leftJSP.getHorizontalScrollBar().getAdjustmentListeners()).forEach(leftJSP.getHorizontalScrollBar()::removeAdjustmentListener);
+                    rightUISide.getHorizontalScrollBar().setEnabled(true);
+                    rightUISide.getVerticalScrollBar().setEnabled(true);
+                    Arrays.stream(leftUISide.getVerticalScrollBar().getAdjustmentListeners()).forEach(leftUISide.getVerticalScrollBar()::removeAdjustmentListener);
+                    Arrays.stream(leftUISide.getHorizontalScrollBar().getAdjustmentListeners()).forEach(leftUISide.getHorizontalScrollBar()::removeAdjustmentListener);
                 }
             });
 
@@ -665,6 +645,33 @@ public class SwingInterface {
             });
         }
 
+        private class Level3UISide extends JScrollPane {
+            private Level3UISide(Side side) {
+                super();
+
+                JTextPane textPane = new JTextPane();
+                textPane.setEditable(false);
+                textPane.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+
+                List<String> thisSideLines = (side == Side.LEFT) ? leftLines : rightLines;
+
+                if (thisSideLines != null) {
+                    StringBuilder sb = new StringBuilder();
+                    thisSideLines.forEach(s -> sb.append(s).append("\n"));
+                    textPane.setText(sb.toString());
+                    changeColor(textPane, lineChanges, side);
+                }
+
+                textPane.setCaretPosition(0); // cursor jump to top
+
+                JPanel textArea = new JPanel();
+                textArea.add(textPane);
+
+                this.setViewportView(textArea);
+                this.getVerticalScrollBar().setUnitIncrement(20);
+            }
+        }
+
         private void changeColor(JTextPane textPane, List<FileUtils.SpecificLineChange> lineChanges, Side side) {
             MutableAttributeSet attrs = textPane.getInputAttributes();
             StyledDocument doc = textPane.getStyledDocument();
@@ -676,7 +683,7 @@ public class SwingInterface {
                 String line = lines[i];
                 int indexOfSymbol = String.valueOf(i).length() + 2;
                 char symbol = line.charAt(indexOfSymbol);
-                if (symbol != ' ') { // make + green, - red, ! orange
+                if (symbol == '+' || symbol == '-' || symbol == '!') { // make + green, - red, ! orange
                     Color colorOfSymbol = (symbol == '+') ? Color.GREEN : (symbol == '-') ? Color.RED : Color.ORANGE;
                     StyleConstants.setBackground(attrs, colorOfSymbol);
                     StyleConstants.setForeground(attrs, Color.BLACK);
