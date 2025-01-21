@@ -761,6 +761,7 @@ public class LanternaInterface {
             JFrame frame = new JFrame("GUI - TicTacToe");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.add(swingTicTacToeMinigaming);
+            frame.setResizable(false);
             frame.pack();
             frame.setVisible(true);
         }));
