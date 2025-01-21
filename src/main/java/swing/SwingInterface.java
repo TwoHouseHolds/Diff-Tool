@@ -26,7 +26,7 @@ public class SwingInterface {
     private final Level1UI level1UI = new Level1UI();
     private Level2UI level2UI = null;
     private Level3UI level3UI = null;
-    private SwingTicTacToeMinigaming ticTacToeGameUI = null;
+    private SwingTicTacToeMiniGaming ticTacToeGameUI = null;
     private final GridBagConstraints globalGbc = new GridBagConstraints();
 
     public void start() {
@@ -90,15 +90,15 @@ public class SwingInterface {
             ticTacToe.addActionListener(e -> {
                 ticTacToe.setEnabled(false);
                 JPanel parent = level1UI.isVisible() ? level1UI : level2UI != null && level2UI.isVisible() ? level2UI : level3UI;
-                ticTacToeGameUI = new SwingTicTacToeMinigaming();
+                ticTacToeGameUI = new SwingTicTacToeMiniGaming();
                 ticTacToeGameUI.setParent(parent);
                 ticTacToeGameUI.setOldSize(frame.getSize());
-                GridBagConstraints tictacttoeGbc = new GridBagConstraints();
-                tictacttoeGbc.weightx = 1;
-                tictacttoeGbc.weighty = 1;
-                tictacttoeGbc.fill = GridBagConstraints.BOTH;
-                tictacttoeGbc.anchor = GridBagConstraints.CENTER;
-                frame.add(ticTacToeGameUI, tictacttoeGbc);
+                GridBagConstraints ticTacToeGbc = new GridBagConstraints();
+                ticTacToeGbc.weightx = 1;
+                ticTacToeGbc.weighty = 1;
+                ticTacToeGbc.fill = GridBagConstraints.BOTH;
+                ticTacToeGbc.anchor = GridBagConstraints.CENTER;
+                frame.add(ticTacToeGameUI, ticTacToeGbc);
                 frame.setResizable(false);
                 frame.setSize(615, 640);
                 backButton.setVisible(false);
@@ -422,7 +422,7 @@ public class SwingInterface {
                             }
                             // sort
                             Comparator<File> comp = switch (selectedSorting) {
-                                case 1 -> Comparator.comparing(File::getName);
+                                case 1 -> Comparator.comparing(file -> file.getName().toLowerCase());
                                 case 2 -> Comparator.comparing(File::length);
                                 case 3 -> Comparator.comparing(File::lastModified);
                                 default -> null;

@@ -27,7 +27,7 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import swing.SwingInterface;
-import swing.SwingTicTacToeMinigaming;
+import swing.SwingTicTacToeMiniGaming;
 import utils.Side;
 import utils.SortType;
 
@@ -61,7 +61,6 @@ public class LanternaInterface {
     private WindowBasedTextGUI textGUI;
     private TerminalScreen screen;
     List<SpecificLineChange> lineChanges = new ArrayList<>();
-    AtomicBoolean listLock = new AtomicBoolean(false);
 
     /**
      * Start the Lanterna interface
@@ -354,9 +353,6 @@ public class LanternaInterface {
             SwingWorker worker = new SwingWorker() {
                 @Override
                 protected Object doInBackground() {
-                    if (listLock.get()) return null;
-                    listLock.set(true);
-
                     Comparator<File> comparator = switch (i) {
                         case 1 -> Comparator.comparing(File::getName);
                         case 2 -> Comparator.comparing(File::length);
@@ -374,21 +370,17 @@ public class LanternaInterface {
                     if (side == Side.LEFT) interfaceState.setSortTypeLeft(sortType);
                     else interfaceState.setSortTypeRight(sortType);
 
-                    if (comparator != null) {
-                        if (reverseBox.isChecked()) {
-                            comparator = comparator.reversed();
-                        }
-
-                        manageSortedList(comparator, listBox, firstFiles, secondFiles, side, searchBox);
+                    if (reverseBox.isChecked()) {
+                        comparator = comparator.reversed();
                     }
 
+                    manageSortedList(comparator, listBox, firstFiles, secondFiles, side, searchBox);
                     return null;
                 }
 
                 @Override
                 protected void done() {
                     super.done();
-                    listLock.set(false);
                     tryScreenUpdate();
                     comboBox.setEnabled(true);
                     reverseBox.setEnabled(true);
@@ -569,12 +561,7 @@ public class LanternaInterface {
             savePanel.addComponent(cancelButton);
 
             saveLeftButton.addListener((b) -> {
-                File saveFile = new FileDialogBuilder()
-                        .setTitle("Speichern")
-                        .setDescription("Speichern der Differenz")
-                        .setActionLabel("Speichern")
-                        .build()
-                        .showDialog(textGUI);
+                File saveFile = getSaveFile();
 
                 if (saveFile == null) {
                     MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
@@ -599,12 +586,7 @@ public class LanternaInterface {
             });
 
             saveRightButton.addListener((b) -> {
-                File saveFile = new FileDialogBuilder()
-                        .setTitle("Speichern")
-                        .setDescription("Speichern der Differenz")
-                        .setActionLabel("Speichern")
-                        .build()
-                        .showDialog(textGUI);
+                File saveFile = getSaveFile();
 
                 if (saveFile == null) {
                     MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
@@ -649,6 +631,15 @@ public class LanternaInterface {
 
         interfaceState.setCurrentListener(listener);
         window.addWindowListener(listener);
+    }
+
+    private File getSaveFile() {
+        return new FileDialogBuilder()
+                .setTitle("Speichern")
+                .setDescription("Speichern der Differenz")
+                .setActionLabel("Speichern")
+                .build()
+                .showDialog(textGUI);
     }
 
     /**
@@ -759,14 +750,14 @@ public class LanternaInterface {
 
         additionalMenu.add(new MenuItem("Blackjack", () -> new BlackjackMinigaming(textGUI)));
 
-        additionalMenu.add(new MenuItem("TicTacToe", () -> new LanternaTicTacToeMinigaming(textGUI)));
+        additionalMenu.add(new MenuItem("TicTacToe", () -> new LanternaTicTacToeMiniGaming(textGUI)));
 
         additionalMenu.add(new MenuItem("GUI-TicTacToe", () -> {
             if (GraphicsEnvironment.isHeadless()) {
                 MessageDialog.showMessageDialog(textGUI, "Fehler", "Das Spiel kann nicht in einer GUI-Umgebung ausgeführt werden.\nDas System läuft im Headless Modus", MessageDialogButton.OK);
                 return;
             }
-            SwingTicTacToeMinigaming swingTicTacToeMinigaming = new SwingTicTacToeMinigaming();
+            SwingTicTacToeMiniGaming swingTicTacToeMinigaming = new SwingTicTacToeMiniGaming();
             JFrame frame = new JFrame("GUI - TicTacToe");
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.add(swingTicTacToeMinigaming);
