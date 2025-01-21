@@ -78,7 +78,6 @@ public class SwingInterface {
         }
     }
 
-    //TODO translate to german and correct the information in menu
     private final class Menu extends JMenuBar {
         JButton back = new JButton("⬅");
         JMenuItem ticTacToe = new JMenuItem("TicTacToe Minispiel");
@@ -334,9 +333,13 @@ public class SwingInterface {
         private FileUtils.LineResult lr;
         private JList<String> leftList;
         private JList<String> rightList;
+        private List<File> leftFiles;
+        private List<File> rightFiles;
 
-        public Level2UI(List<File> leftFiles, List<File> rightFiles) {
+        public Level2UI(List<File> leftInput, List<File> rightInput) {
             super(new GridBagLayout());
+            this.leftFiles = leftInput;
+            this.rightFiles = rightInput;
             setFocusable(false);
             if (leftFiles == null || rightFiles == null) {
                 JOptionPane.showMessageDialog(frame, (leftFiles == null ? "Linkes" : "Rechtes") + " Verzeichnis ist leer!", "Fehler", JOptionPane.ERROR_MESSAGE);
@@ -377,7 +380,7 @@ public class SwingInterface {
 
                 // level2Menu
                 JPanel level2Menu = new JPanel(new FlowLayout(FlowLayout.LEFT));
-                JComboBox<String> sortingSelection = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe", "Datum"});
+                JComboBox<String> sortingSelection = new JComboBox<>(new String[]{"Unsortiert", "Alphabetisch", "Größe (aufsteigend)", "Datum (aufsteigend)"});
                 JCheckBox reverseCheckBox = new JCheckBox("Umgekehrte Sortierung");
                 JTextField searchTextField = new JTextField();
                 searchTextField.setPreferredSize(new Dimension(300, 25));
@@ -421,6 +424,12 @@ public class SwingInterface {
                             if (comp != null) {
                                 if (isReversed) comp = comp.reversed();
                                 filteredAndSorted.sort(comp);
+                            }
+
+                            if(side == Side.LEFT) {
+                                leftFiles = filteredAndSorted;
+                            } else {
+                                rightFiles = filteredAndSorted;
                             }
 
                             thisSideList.setListData(getFormatFileNames(filteredAndSorted, secondFiles, side));
