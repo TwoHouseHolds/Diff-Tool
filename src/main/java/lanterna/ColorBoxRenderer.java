@@ -55,7 +55,12 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                         if(c.lineNumber() == i) {
                             graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
                             graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                            graphics.putString(xPos, yPos, String.valueOf(c.character()));
+                            try {
+                                graphics.putString(xPos, yPos, String.valueOf(c.character()));
+                            } catch (Exception e) {
+                                //Not a valid character
+                                graphics.putString(xPos, yPos, "?");
+                            }
                             graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                             graphics.setForegroundColor(TextColor.ANSI.WHITE);
                         }

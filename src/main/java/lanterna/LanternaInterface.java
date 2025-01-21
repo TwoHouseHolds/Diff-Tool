@@ -396,7 +396,7 @@ public class LanternaInterface {
         for (File file : firstFiles) {
             String fileName = file.getName();
             boolean inBoth = secondFiles.stream().anyMatch(f -> f.getName().equals(file.getName()));
-            File rightFile = inBoth ? secondFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : file;
+            File rightFile = inBoth ? secondFiles.stream().filter(f -> f.getName().equals(file.getName())).findFirst().orElseThrow() : null;
             if (inBoth) {
                 fileName = getFormattedFileName(file, fileName, rightFile);
             } else {
@@ -450,8 +450,8 @@ public class LanternaInterface {
         Panel leftPanel = new Panel(new LinearLayout(Direction.VERTICAL));
         Panel rightPanel = new Panel(new LinearLayout(Direction.VERTICAL));
 
-        leftPanel.addComponent(new Label("Datei im linken Verzeichnis " + leftFile.getName() + " :").addStyle(SGR.BOLD));
-        rightPanel.addComponent(new Label("Datei im rechten Verzeichnis " + rightFile.getName() + " :").addStyle(SGR.BOLD));
+        leftPanel.addComponent(new Label("Datei im linken Verzeichnis " + (leftFile == null ? "Nicht vorhanden" : leftFile.getName()) + " :").addStyle(SGR.BOLD));
+        rightPanel.addComponent(new Label("Datei im rechten Verzeichnis " + (rightFile == null ? "Nicht vorhanden" : rightFile.getName()) + " :").addStyle(SGR.BOLD));
 
         interfaceState.setLeftLines(new ArrayList<>());
         interfaceState.setRightLines(new ArrayList<>());
@@ -471,17 +471,19 @@ public class LanternaInterface {
         SwingWorker worker = new SwingWorker() {
             @Override
             protected Object doInBackground() {
-                if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
-                    interfaceState.setLeftLines(FileUtils.readFile(leftFile));
+                if (rightFile == null && selectedSide == Side.LEFT) {
                     interfaceState.setRightLines(List.of("Nur links vorhanden"));
-                }
-
-                if (leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
+                    interfaceState.setLeftLines(FileUtils.readFile(leftFile));
+                } else if(rightFile == null && selectedSide == Side.RIGHT) {
+                    interfaceState.setLeftLines(List.of("Nur rechts vorhanden"));
                     interfaceState.setRightLines(FileUtils.readFile(leftFile));
-                    interfaceState.setLeftLines(List.of("Nur links vorhanden"));
-                }
-
-                if (!leftFile.equals(rightFile)) {
+                } else if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
+                    interfaceState.setLeftLines(FileUtils.readFile(leftFile));
+                    interfaceState.setRightLines(interfaceState.getLeftLines());
+                } else if (leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
+                    interfaceState.setRightLines(FileUtils.readFile(leftFile));
+                    interfaceState.setLeftLines(interfaceState.getRightLines());
+                } else if (!leftFile.equals(rightFile)) {
                     interfaceState.setCurrentLineResult(FileUtils.compareFiles(leftFile, rightFile));
                     FileUtils.LineResult result = interfaceState.getCurrentLineResult();
 
