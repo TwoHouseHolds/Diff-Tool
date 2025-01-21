@@ -374,13 +374,11 @@ public class LanternaInterface {
                     if (side == Side.LEFT) interfaceState.setSortTypeLeft(sortType);
                     else interfaceState.setSortTypeRight(sortType);
 
-                    if (comparator != null) {
-                        if (reverseBox.isChecked()) {
-                            comparator = comparator.reversed();
-                        }
-
-                        manageSortedList(comparator, listBox, firstFiles, secondFiles, side, searchBox);
+                    if (reverseBox.isChecked()) {
+                        comparator = comparator.reversed();
                     }
+
+                    manageSortedList(comparator, listBox, firstFiles, secondFiles, side, searchBox);
 
                     return null;
                 }
