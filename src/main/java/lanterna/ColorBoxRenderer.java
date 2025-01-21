@@ -5,8 +5,6 @@ import algorithms.FileUtils.SpecificLineChange;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
 
-import java.awt.*;
-
 /**
  * A custom renderer for {@link TextBox} that colorizes the text based on the characters in it
  * (e.g. '+' will be green, '-' will be red)

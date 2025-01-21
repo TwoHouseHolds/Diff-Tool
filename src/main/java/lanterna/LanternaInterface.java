@@ -569,12 +569,7 @@ public class LanternaInterface {
             savePanel.addComponent(cancelButton);
 
             saveLeftButton.addListener((b) -> {
-                File saveFile = new FileDialogBuilder()
-                        .setTitle("Speichern")
-                        .setDescription("Speichern der Differenz")
-                        .setActionLabel("Speichern")
-                        .build()
-                        .showDialog(textGUI);
+                File saveFile = getSaveFile();
 
                 if (saveFile == null) {
                     MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
@@ -599,12 +594,7 @@ public class LanternaInterface {
             });
 
             saveRightButton.addListener((b) -> {
-                File saveFile = new FileDialogBuilder()
-                        .setTitle("Speichern")
-                        .setDescription("Speichern der Differenz")
-                        .setActionLabel("Speichern")
-                        .build()
-                        .showDialog(textGUI);
+                File saveFile = getSaveFile();
 
                 if (saveFile == null) {
                     MessageDialog.showMessageDialog(textGUI, "Fehler", "Datei konnte nicht gespeichert werden", MessageDialogButton.OK);
@@ -649,6 +639,15 @@ public class LanternaInterface {
 
         interfaceState.setCurrentListener(listener);
         window.addWindowListener(listener);
+    }
+
+    private File getSaveFile() {
+        return new FileDialogBuilder()
+                .setTitle("Speichern")
+                .setDescription("Speichern der Differenz")
+                .setActionLabel("Speichern")
+                .build()
+                .showDialog(textGUI);
     }
 
     /**
