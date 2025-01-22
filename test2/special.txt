@@ -1,0 +1,3 @@
+Normal line.
+Line with emoji: 😂
+Line with accented characters: cafe, résumé

@@ -1,0 +1,6 @@
+Line with spaces at the end
+Another line.
+
+    Line with trailing spaces
+Line with inconsistent    spacing.
+Line with a tab character at the end.

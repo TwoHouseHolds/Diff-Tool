@@ -1,0 +1,7 @@
+Start of file.
+
+This is a large block of text.
+It spans multiple lines.
+It’s important to catch this addition.
+
+End of file.

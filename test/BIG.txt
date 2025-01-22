@@ -1,0 +1,42 @@
+# Identical Section
+This section is the same in both files.
+Line 2 of the identical section.
+
+# Section with Small Differences
+This line is unchanged.
+This line has been modified.
+Another unchanged line.
+
+# Whitespace Differences
+Line with trailing spaces
+Line with inconsistent    spacing.
+Line with a tab character at the end.
+
+# Line Order Differences
+This line appears first in File 1.
+This line appears second in File 1.
+
+# Added/Removed Block
+This block exists only in File 1:
+Line A
+Line B
+Line C
+
+# Special Characters and Encoding
+Emoji line: 😊
+Accented characters: naïve, façade, résumé
+
+# Structured Data
+{
+  "name": "example",
+  "version": "1.0",
+  "description": "File 1 structured data"
+}
+
+# Repeated Patterns
+Pattern line: Repeat me.
+Pattern line: Repeat me.
+Pattern line: Repeat me.
+
+# End of File
+This is the end of File 1.
