@@ -60,8 +60,8 @@ public class HuntMcIlroy {
         // fill hmiMatrix
         for (int row = 0; row < leftLines.size(); row++) {
             for (int col = 0; col < rightLines.size(); col++) {
-                String leftLine = leftLines.get(row).replaceFirst("^\\s+", ""); // ignore leading whitespaces
-                String rightLine = rightLines.get(col).replaceFirst("^\\s+", ""); // ignore leading whitespaces
+                String leftLine = leftLines.get(row).replaceFirst("^\\s+", ""); // ignore leading whitespaces (^ means at the start of string)
+                String rightLine = rightLines.get(col).replaceFirst("^\\s+", ""); // ignore leading whitespaces (^ means at the start of string)
                 hmiMatrix[row][col] = leftLine.equals(rightLine) ? // lines are equal?
                         getMatrixData(hmiMatrix, row - 1, col - 1) + 1 :// ggZ wächst um 1
                         max( // ggz bleibt bei einseitigem Anhängen eines Buchstaben gleich (→ größtmöglicher Wert)
