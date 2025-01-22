@@ -20,21 +20,28 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
         super.drawComponent(graphics, textBox);
 
         ColoredTextBox coloredTextBox = (ColoredTextBox) textBox;
+        ColoredTextBox otherTextBox = coloredTextBox.getOtherBox();
 
         String boxText = textBox.getText();
         String[] lines = boxText.split("\\r?\\n|\\r");
 
+        String otherBoxText = otherTextBox.getText();
+        String[] otherLines = otherBoxText.split("\\r?\\n|\\r");
+
         int xScrollOffset = getViewTopLeft().getColumn();
         int yScrollOffset = getViewTopLeft().getRow();
 
+        int lineNumber = 1 + yScrollOffset;
         for (int i = yScrollOffset; i < yScrollOffset + textBox.getSize().getRows() - 1; i++) {
             if (i >= lines.length) break;
             String line = lines[i];
+            String otherLine = otherLines[i];
             if(line.isEmpty()) continue;
             int yPos = i - yScrollOffset;
-            int symbolLocation = String.valueOf(i).length() + 2;
+            int symbolLocation = String.valueOf(lineNumber).length() + 2;
             int xPos = symbolLocation - xScrollOffset;
             char symbol = line.charAt(symbolLocation);
+            char otherSymbol = otherLine.charAt(symbolLocation);
 
             if((symbol == '+' || symbol == '-' || symbol == '!')) {
                 //
@@ -47,6 +54,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                 graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
             }
+            if(symbol != '-' && otherSymbol != '-') lineNumber++;
 
             if(coloredTextBox.getSpecificLineChanges() != null) {
                 for(SpecificLineChange c : coloredTextBox.getSpecificLineChanges()) {

@@ -19,6 +19,7 @@ import utils.Side;
 public class ColoredTextBox extends TextBox {
     private final Side side;
     private List<FileUtils.SpecificLineChange> specificLineChanges = new ArrayList<>();
+    ColoredTextBox otherBox = null;
     ColoredTextBox scrollSlave = null;
 
     public ColoredTextBox(TerminalSize initialSize, Side side) {
@@ -41,6 +42,14 @@ public class ColoredTextBox extends TextBox {
 
     public void setScrollSlave(ColoredTextBox slave) {
         this.scrollSlave = slave;
+    }
+
+    public void setOtherBox(ColoredTextBox otherBox) {
+        this.otherBox = otherBox;
+    }
+
+    public ColoredTextBox getOtherBox() {
+        return this.otherBox;
     }
 
     @Override

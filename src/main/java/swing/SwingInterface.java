@@ -688,35 +688,31 @@ public class SwingInterface {
             int rightOffset = 0;
 
             int lineNumber = 1;
-            for (int i = 0; i < Math.max(leftLines.length, rightLines.length); i++) {
+            // we know that leftLines.length == rightLines.length
+            for (int i = 0; i < leftLines.length; i++) {
                 int indexOfSymbol = String.valueOf(lineNumber).length() + 2;
 
-                String leftLine = (i < leftLines.length) ? leftLines[i] : null;
-                String rightLine = (i < rightLines.length) ? rightLines[i] : null;
+                String leftLine = leftLines[i];
+                String rightLine = rightLines[i];
 
-                char leftSymbol = '#';
-                if (leftLine != null) {
-                    leftSymbol = leftLine.charAt(indexOfSymbol);
-                    if (leftSymbol == '+' || leftSymbol == '-' || leftSymbol == '!') { // make + green, - red, ! orange
-                        Color colorOfSymbol = (leftSymbol == '+') ? Color.GREEN : (leftSymbol == '-') ? Color.RED : Color.ORANGE;
-                        StyleConstants.setBackground(leftAttrs, colorOfSymbol);
-                        StyleConstants.setForeground(leftAttrs, Color.BLACK);
-                        leftDoc.setCharacterAttributes(leftOffset + indexOfSymbol, 1, leftAttrs, false);
-                    }
-                    leftOffset += leftLine.length() + 1;
-                }
 
-                char rightSymbol = '#';
-                if (rightLine != null) {
-                    rightSymbol = rightLine.charAt(indexOfSymbol);
-                    if (rightSymbol == '+' || rightSymbol == '-' || rightSymbol == '!') { // make + green, - red, ! orange
-                        Color colorOfSymbol = (rightSymbol == '+') ? Color.GREEN : (rightSymbol == '-') ? Color.RED : Color.ORANGE;
-                        StyleConstants.setBackground(rightAttrs, colorOfSymbol);
-                        StyleConstants.setForeground(rightAttrs, Color.BLACK);
-                        rightDoc.setCharacterAttributes(rightOffset + indexOfSymbol, 1, rightAttrs, false);
-                    }
-                    rightOffset += rightLine.length() + 1;
+                char leftSymbol = leftLine.charAt(indexOfSymbol);
+                if (leftSymbol == '+' || leftSymbol == '-' || leftSymbol == '!') { // make + green, - red, ! orange
+                    Color colorOfSymbol = (leftSymbol == '+') ? Color.GREEN : (leftSymbol == '-') ? Color.RED : Color.ORANGE;
+                    StyleConstants.setBackground(leftAttrs, colorOfSymbol);
+                    StyleConstants.setForeground(leftAttrs, Color.BLACK);
+                    leftDoc.setCharacterAttributes(leftOffset + indexOfSymbol, 1, leftAttrs, false);
                 }
+                leftOffset += leftLine.length() + 1;
+
+                char rightSymbol = rightLine.charAt(indexOfSymbol);
+                if (rightSymbol == '+' || rightSymbol == '-' || rightSymbol == '!') { // make + green, - red, ! orange
+                    Color colorOfSymbol = (rightSymbol == '+') ? Color.GREEN : (rightSymbol == '-') ? Color.RED : Color.ORANGE;
+                    StyleConstants.setBackground(rightAttrs, colorOfSymbol);
+                    StyleConstants.setForeground(rightAttrs, Color.BLACK);
+                    rightDoc.setCharacterAttributes(rightOffset + indexOfSymbol, 1, rightAttrs, false);
+                }
+                rightOffset += rightLine.length() + 1;
 
                 if (leftSymbol != '-' && rightSymbol != '-') lineNumber++;
             }
@@ -729,10 +725,8 @@ public class SwingInterface {
                     StyledDocument changSideDoc = (change.displaySide() == Side.LEFT) ? leftDoc : rightDoc;
 
                     int offset = 0;
-                    for (int i = 0; i < change.lineNumber() - 1; i++) {
-                        //noinspection DataFlowIssue
-                        offset += changSideLines[i].length() + 1;
-                    }
+                    for (int i = 0; i < change.lineNumber() - 1; i++) offset += changSideLines[i].length() + 1;
+
                     StyleConstants.setBackground(changSideAttrs, Color.ORANGE);
                     StyleConstants.setForeground(changSideAttrs, Color.BLACK);
                     changSideDoc.setCharacterAttributes(offset + change.index(), 1, changSideAttrs, false);

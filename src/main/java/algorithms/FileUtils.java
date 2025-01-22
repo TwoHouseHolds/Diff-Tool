@@ -128,33 +128,33 @@ public class FileUtils {
         List<String> rightLines = new ArrayList<>();
         List<SpecificLineChange> specificLineChanges = new ArrayList<>();
 
-        int lineNumber = 1;
-        int leftLineCounter = 1;
+        int actualLineNumber = 1;
+        int displayedLineNumber = 1;
         for (HuntMcIlroy.StringTuple tuple : stringTuples) {
             if (tuple.leftLine() == null) { // line removed => -
-                String emptySpaces = " ".repeat(String.valueOf(leftLineCounter).length());
+                String emptySpaces = " ".repeat(String.valueOf(displayedLineNumber).length());
                 leftLines.add(emptySpaces + "  - ");
                 rightLines.add(emptySpaces + "    " + tuple.rightLine());
             } else if (tuple.rightLine() == null) { // line added => +
-                leftLines.add(leftLineCounter + ": + " + tuple.leftLine());
-                rightLines.add(leftLineCounter + ":   ");
-                leftLineCounter++;
+                leftLines.add(displayedLineNumber + ": + " + tuple.leftLine());
+                rightLines.add(displayedLineNumber + ":   ");
+                displayedLineNumber++;
             } else if (!tuple.sameLine()) { // lines differ => !
-                specificLineChanges.addAll(getSpecificLineChanges(tuple, lineNumber, leftLineCounter));
-                leftLines.add(leftLineCounter + ": ! " + tuple.leftLine());
-                rightLines.add(leftLineCounter + ": ! " + tuple.rightLine());
-                leftLineCounter++;
+                specificLineChanges.addAll(getSpecificLineChanges(tuple, actualLineNumber, displayedLineNumber));
+                leftLines.add(displayedLineNumber + ": ! " + tuple.leftLine());
+                rightLines.add(displayedLineNumber + ": ! " + tuple.rightLine());
+                displayedLineNumber++;
             } else { // same line => " "
-                leftLines.add(leftLineCounter + ":   " + tuple.leftLine());
-                rightLines.add(leftLineCounter + ":   " + tuple.rightLine());
-                leftLineCounter++;
+                leftLines.add(displayedLineNumber + ":   " + tuple.leftLine());
+                rightLines.add(displayedLineNumber + ":   " + tuple.rightLine());
+                displayedLineNumber++;
             }
-            lineNumber++;
+            actualLineNumber++;
         }
         return new LineResult(leftLines, rightLines, specificLineChanges);
     }
 
-    private static List<SpecificLineChange> getSpecificLineChanges(HuntMcIlroy.StringTuple tuple, int lineNumber, int lineCounterLeft) {
+    private static List<SpecificLineChange> getSpecificLineChanges(HuntMcIlroy.StringTuple tuple, int actualLineNumber, int displayedLineNumber) {
         List<SpecificLineChange> newSpecificLineChanges = new ArrayList<>();
         String leftString = tuple.leftLine();
         String rightString = tuple.rightLine();
@@ -170,15 +170,15 @@ public class FileUtils {
             String diffString = HuntMcIlroy.compareString(longerString, shorterString);
             for (int i = 0; i < diffString.length(); i++) {
                 if (diffString.charAt(i) == '!') {
-                    newSpecificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, longerString.charAt(i), longerSide));
+                    newSpecificLineChanges.add(new SpecificLineChange(actualLineNumber, i + String.valueOf(displayedLineNumber).length() + 4, longerString.charAt(i), longerSide));
                 }
             }
         } else {
             for (int i = 0; i < leftString.length(); i++) {
-                newSpecificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, leftString.charAt(i), Side.LEFT));
+                newSpecificLineChanges.add(new SpecificLineChange(actualLineNumber, i + String.valueOf(displayedLineNumber).length() + 4, leftString.charAt(i), Side.LEFT));
             }
             for (int i = 0; i < rightString.length(); i++) {
-                newSpecificLineChanges.add(new SpecificLineChange(lineNumber, i + String.valueOf(lineCounterLeft).length() + 4, rightString.charAt(i), Side.RIGHT));
+                newSpecificLineChanges.add(new SpecificLineChange(actualLineNumber, i + String.valueOf(displayedLineNumber).length() + 4, rightString.charAt(i), Side.RIGHT));
             }
         }
         return newSpecificLineChanges;
