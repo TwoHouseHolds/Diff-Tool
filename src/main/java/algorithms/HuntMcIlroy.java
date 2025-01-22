@@ -118,25 +118,27 @@ public class HuntMcIlroy {
      * Compare two strings and return a string with differences marked with '!' and matches marked with 'O'
      * Using the Longest Common Subsequence algorithm / Hunt-McIlroy algorithm
      *
-     * @param s1 First string to compare
-     * @param s2 Second string to compare
+     * @param longerString  First string to compare
+     * @param shorterString Second string to compare
      */
-    public static String compareString(String s1, String s2) {
-        int[][] hmiMatrix = HuntMcIlroy.huntMcIlroyMatrixString(s1, s2);
+    public static String compareString(String longerString, String shorterString) {
+        int[][] hmiMatrix = HuntMcIlroy.huntMcIlroyMatrixString(longerString, shorterString);
 
         int row = hmiMatrix.length - 1;
         int col = hmiMatrix[0].length - 1;
-        StringBuilder result = new StringBuilder(s1.length());
+        StringBuilder result = new StringBuilder(longerString.length());
 
         while (row > 0 && col > 0) {
-            if (s1.charAt(row - 1) == s2.charAt(col - 1)) {
+            if (longerString.charAt(row - 1) == shorterString.charAt(col - 1)) {
                 result.insert(0, "O");
                 row--;
                 col--;
             } else {
-                if (hmiMatrix[row - 1][col] > hmiMatrix[row][col - 1]) row--;
-                else col--;
-                result.insert(0, "!");
+                while (hmiMatrix[row - 1][col] == hmiMatrix[row][col]) {
+                    row--;
+                    result.insert(0, "!");
+                }
+                while (hmiMatrix[row][col-1] == hmiMatrix[row][col]) col--;
             }
         }
         return result.toString();

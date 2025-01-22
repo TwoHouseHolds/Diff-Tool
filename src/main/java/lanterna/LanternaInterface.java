@@ -466,6 +466,9 @@ public class LanternaInterface {
         ColoredTextBox leftTextBox = new ColoredTextBox(new TerminalSize(100, 100), selectedSide == Side.LEFT ? Side.LEFT : Side.RIGHT);
         ColoredTextBox rightTextBox = new ColoredTextBox(new TerminalSize(100, 100), selectedSide == Side.LEFT ? Side.RIGHT : Side.LEFT);
 
+        leftTextBox.setOtherBox(rightTextBox);
+        rightTextBox.setOtherBox(leftTextBox);
+
         leftTextBox.setReadOnly(true);
         rightTextBox.setReadOnly(true);
 
