@@ -37,8 +37,10 @@ build/
 .DS_Store
 out/artifacts/SWP1_Final_Project_jar/SWP1_Final_Project.jar
 /out/
+/test/
+/test/pom.xml
 .idea/uiDesigner.xml
 xd/Main.java
 src/main/java/algorithms/Test.java
+../test2/test
 .idea/artifacts/SWP1_Final_Project_jar.xml
-.idea/misc.xml

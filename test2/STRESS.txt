@@ -1,0 +1,50 @@
+# Identical Section
+This is an identical section.
+It contains lines that are exactly the same.
+
+# Overlapping Changes
+This line is nearly identical but changes a key word.
+The quick brown fox leaps over the sleepy dog.
+
+# Whitespace and Formatting Challenges
+Line with mixed spaces and tabs.
+Line with excessive spaces at the end:
+	Indented line with inconsistent tabs and spaces.
+
+# Nested Structures
+{
+  "level1": {
+    "level2": {
+      "level3": {
+        "value1": "unchanged",
+        "value3": "only in File 2"
+      }
+    }
+  }
+}
+
+# Repeated Patterns with Subtle Differences
+Pattern line 1: ABC123.
+Pattern line 2: ABC124.
+Pattern line 3: ABC126.
+
+# Mixed Content
+Plain text followed by binary-like data:
+This is plain text.
+10101010 11001100 11110001 00001111
+
+# Special Characters
+Line with emojis: 😅😂🤣
+Line with accents: naive, résumé, facade
+
+# Large Block of Text
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Nulla facilisi. Fusce vel sapien elit.
+Vestibulum auctor dapibus neque. Nunc dignissim risus id metus.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+Nulla facilisi. Fusce vel sapien elit.
+Vestibulum auctor dapibus neque. Nam vulputate metus.
+
+# End of File
+This is the end of File 2.
