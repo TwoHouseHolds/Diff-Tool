@@ -509,17 +509,17 @@ public class SwingInterface {
                         protected Object doInBackground() {
                             if (side.equals(Side.LEFT)) {
                                 if (otherFile.isEmpty()) {
-                                    level3UI = new Level3UI(FileUtils.readFile(thisFile), null, null);
+                                    level3UI = new Level3UI(FileUtils.readFile(thisFile), null, null, false);
                                 } else {
                                     lr = FileUtils.compareFiles(thisFile, otherFile.get());
-                                    level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges());
+                                    level3UI = new Level3UI(lr.left(), lr.right(), lr.specificLineChanges(), false);
                                 }
                             } else { // called from right side
                                 if (otherFile.isEmpty()) {
-                                    level3UI = new Level3UI(null, FileUtils.readFile(thisFile), null);
+                                    level3UI = new Level3UI(null, FileUtils.readFile(thisFile), null, false);
                                 } else {
                                     lr = FileUtils.compareFiles(thisFile, otherFile.get());
-                                    level3UI = new Level3UI(lr.right(), lr.left(), lr.specificLineChanges());
+                                    level3UI = new Level3UI(lr.right(), lr.left(), lr.specificLineChanges(), true);
                                 }
                             }
                             frame.add(level3UI, globalGbc);
@@ -559,17 +559,19 @@ public class SwingInterface {
 
     private static final class Level3UI extends JPanel {
 
-        List<String> leftLines;
-        List<String> rightLines;
-        List<FileUtils.SpecificLineChange> lineChanges;
+        private final List<String> leftLines;
+        private final List<String> rightLines;
+        private final List<FileUtils.SpecificLineChange> lineChanges;
+        private final boolean switchSpecificLineChanges;
 
-        public Level3UI(List<String> leftInput, List<String> rightInput, List<FileUtils.SpecificLineChange> lcs) {
+        public Level3UI(List<String> leftInput, List<String> rightInput, List<FileUtils.SpecificLineChange> lcs, boolean switchLcs) {
             super(new GridBagLayout());
             setFocusable(false);
 
             leftLines = leftInput;
             rightLines = rightInput;
             lineChanges = lcs;
+            switchSpecificLineChanges = switchLcs;
 
             Level3UISide leftUISide = new Level3UISide(Side.LEFT);
             Level3UISide rightUISide = new Level3UISide(Side.RIGHT);
@@ -699,8 +701,8 @@ public class SwingInterface {
                 char leftSymbol = leftLine.charAt(indexOfSymbol);
                 if (leftSymbol == '+' || leftSymbol == '-' || leftSymbol == '!') { // make + green, - red, ! orange
                     Color colorOfSymbol = (leftSymbol == '+') ? Color.GREEN : (leftSymbol == '-') ? Color.RED : Color.ORANGE;
-                    StyleConstants.setBackground(leftAttrs, colorOfSymbol);
                     StyleConstants.setForeground(leftAttrs, Color.BLACK);
+                    StyleConstants.setBackground(leftAttrs, colorOfSymbol);
                     leftDoc.setCharacterAttributes(leftOffset + indexOfSymbol, 1, leftAttrs, false);
                 }
                 leftOffset += leftLine.length() + 1;
@@ -720,16 +722,18 @@ public class SwingInterface {
             // specific line changes
             if (lineChanges != null) {
                 for (FileUtils.SpecificLineChange change : lineChanges) {
-                    String[] changSideLines = (change.displaySide() == Side.LEFT) ? leftLines : rightLines;
-                    MutableAttributeSet changSideAttrs = (change.displaySide() == Side.LEFT) ? leftAttrs : rightAttrs;
-                    StyledDocument changSideDoc = (change.displaySide() == Side.LEFT) ? leftDoc : rightDoc;
+                    boolean currentSideIsActuallyLeft = (!switchSpecificLineChanges && change.displaySide() == Side.LEFT)
+                            || (switchSpecificLineChanges && change.displaySide() == Side.RIGHT);
+                    String[] changeSideLines = (currentSideIsActuallyLeft) ? leftLines : rightLines;
+                    MutableAttributeSet changeSideAttrs = (currentSideIsActuallyLeft) ? leftAttrs : rightAttrs;
+                    StyledDocument changeSideDoc = (currentSideIsActuallyLeft) ? leftDoc : rightDoc;
 
                     int offset = 0;
-                    for (int i = 0; i < change.lineNumber() - 1; i++) offset += changSideLines[i].length() + 1;
+                    for (int i = 0; i < change.lineNumber() - 1; i++) offset += changeSideLines[i].length() + 1;
 
-                    StyleConstants.setBackground(changSideAttrs, Color.ORANGE);
-                    StyleConstants.setForeground(changSideAttrs, Color.BLACK);
-                    changSideDoc.setCharacterAttributes(offset + change.index(), 1, changSideAttrs, false);
+                    StyleConstants.setBackground(changeSideAttrs, Color.ORANGE);
+                    StyleConstants.setForeground(changeSideAttrs, Color.BLACK);
+                    changeSideDoc.setCharacterAttributes(offset + change.index(), 1, changeSideAttrs, false);
                 }
             }
         }
