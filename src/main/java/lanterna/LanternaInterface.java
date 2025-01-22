@@ -483,15 +483,23 @@ public class LanternaInterface {
                 if (rightFile == null) {
                     interfaceState.setRightLines(List.of("Nur links vorhanden"));
                     interfaceState.setLeftLines(FileUtils.readFile(leftFile));
+                    leftTextBox.setRenderer(new TextBox.DefaultTextBoxRenderer());
+                    rightTextBox.setRenderer(new TextBox.DefaultTextBoxRenderer());
                 } else if(leftFile == null) {
                     interfaceState.setLeftLines(List.of("Nur rechts vorhanden"));
                     interfaceState.setRightLines(FileUtils.readFile(rightFile));
+                    leftTextBox.setRenderer(new TextBox.DefaultTextBoxRenderer());
+                    rightTextBox.setRenderer(new TextBox.DefaultTextBoxRenderer());
                 } else if (leftFile.equals(rightFile) && selectedSide == Side.LEFT) {
                     interfaceState.setLeftLines(FileUtils.readFile(leftFile));
                     interfaceState.setRightLines(interfaceState.getLeftLines());
+                    leftTextBox.setRenderer(new TextBox.DefaultTextBoxRenderer());
+                    rightTextBox.setRenderer(new TextBox.DefaultTextBoxRenderer());
                 } else if (leftFile.equals(rightFile) && selectedSide == Side.RIGHT) {
                     interfaceState.setRightLines(FileUtils.readFile(leftFile));
                     interfaceState.setLeftLines(interfaceState.getRightLines());
+                    leftTextBox.setRenderer(new TextBox.DefaultTextBoxRenderer());
+                    rightTextBox.setRenderer(new TextBox.DefaultTextBoxRenderer());
                 } else if (!leftFile.equals(rightFile)) {
                     interfaceState.setCurrentLineResult(FileUtils.compareFiles(leftFile, rightFile));
                     FileUtils.LineResult result = interfaceState.getCurrentLineResult();
