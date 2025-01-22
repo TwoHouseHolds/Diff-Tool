@@ -668,11 +668,17 @@ public class SwingInterface {
 
                 List<String> thisSideLines = (side == Side.LEFT) ? leftLines : rightLines;
 
+                Document doc = new DefaultStyledDocument();
+
                 if (thisSideLines != null) {
-                    StringBuilder sb = new StringBuilder();
-                    thisSideLines.forEach(s -> sb.append(s).append(System.lineSeparator()));
-                    textPane.setText(sb.toString());
+                    try {
+                        doc.insertString(0, String.join(System.lineSeparator(), thisSideLines), null);
+                    } catch (BadLocationException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
+
+                textPane.setDocument(doc);
 
                 textPane.setCaretPosition(0); // cursor jump to top
 
