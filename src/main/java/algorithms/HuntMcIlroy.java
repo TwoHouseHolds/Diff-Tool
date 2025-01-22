@@ -1,6 +1,5 @@
 package algorithms;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -53,11 +52,8 @@ public class HuntMcIlroy {
     }
 
     private static int[][] huntMcIlroyMatrix(File leftFile, File rightFile) throws IOException {
-        //UTF 8
-        BufferedReader leftReader = Files.newBufferedReader(leftFile.toPath(), StandardCharsets.UTF_8);
-        BufferedReader rightReader = Files.newBufferedReader(rightFile.toPath(), StandardCharsets.UTF_8);
-        leftLines = leftReader.lines().toList();
-        rightLines = rightReader.lines().toList();
+        leftLines = Files.readAllLines(leftFile.toPath(), StandardCharsets.UTF_8);
+        rightLines = Files.readAllLines(rightFile.toPath(), StandardCharsets.UTF_8);
 
         int[][] hmiMatrix = new int[leftLines.size()][rightLines.size()];
 
