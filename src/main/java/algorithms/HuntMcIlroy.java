@@ -58,12 +58,15 @@ public class HuntMcIlroy {
         BufferedReader rightReader = Files.newBufferedReader(rightFile.toPath(), StandardCharsets.UTF_8);
         leftLines = leftReader.lines().toList();
         rightLines = rightReader.lines().toList();
+
         int[][] hmiMatrix = new int[leftLines.size()][rightLines.size()];
 
         // fill hmiMatrix
         for (int row = 0; row < leftLines.size(); row++) {
             for (int col = 0; col < rightLines.size(); col++) {
-                hmiMatrix[row][col] = leftLines.get(row).equals(rightLines.get(col)) ? // lines are equal?
+                String leftLine = leftLines.get(row).trim();
+                String rightLine = rightLines.get(col).trim();
+                hmiMatrix[row][col] = leftLine.equals(rightLine) ? // lines are equal?
                         getMatrixData(hmiMatrix, row - 1, col - 1) + 1 :// ggZ wächst um 1
                         max( // ggz bleibt bei einseitigem Anhängen eines Buchstaben gleich (→ größtmöglicher Wert)
                                 getMatrixData(hmiMatrix, row - 1, col), //

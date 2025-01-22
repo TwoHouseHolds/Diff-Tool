@@ -169,8 +169,10 @@ public class FileUtils {
         if (LevenshteinDistance.of(leftString, rightString) < longerString.length() * 0.3) {
             String diffString = HuntMcIlroy.compareString(longerString, shorterString);
             for (int i = 0; i < diffString.length(); i++) {
+                char firstNonWhiteSpaceChar = longerString.trim().charAt(0);
+                int offset = longerString.indexOf(firstNonWhiteSpaceChar) - shorterString.indexOf(firstNonWhiteSpaceChar);
                 if (diffString.charAt(i) == '!') {
-                    newSpecificLineChanges.add(new SpecificLineChange(actualLineNumber, i + String.valueOf(displayedLineNumber).length() + 4, longerString.charAt(i), longerSide));
+                    newSpecificLineChanges.add(new SpecificLineChange(actualLineNumber, i + String.valueOf(displayedLineNumber).length() + 4 + offset, longerString.charAt(i), longerSide));
                 }
             }
         } else {
