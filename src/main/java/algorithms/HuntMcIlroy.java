@@ -60,8 +60,8 @@ public class HuntMcIlroy {
         // fill hmiMatrix
         for (int row = 0; row < leftLines.size(); row++) {
             for (int col = 0; col < rightLines.size(); col++) {
-                String leftLine = leftLines.get(row).trim();
-                String rightLine = rightLines.get(col).trim();
+                String leftLine = leftLines.get(row).replaceFirst("^\\s+", ""); // ignore leading whitespaces
+                String rightLine = rightLines.get(col).replaceFirst("^\\s+", ""); // ignore leading whitespaces
                 hmiMatrix[row][col] = leftLine.equals(rightLine) ? // lines are equal?
                         getMatrixData(hmiMatrix, row - 1, col - 1) + 1 :// ggZ wächst um 1
                         max( // ggz bleibt bei einseitigem Anhängen eines Buchstaben gleich (→ größtmöglicher Wert)
@@ -120,27 +120,37 @@ public class HuntMcIlroy {
      * @param longerString  First string to compare
      * @param shorterString Second string to compare
      */
-    public static String compareString(String longerString, String shorterString) {
+    public static DoubleSidedDiffString compareString(String longerString, String shorterString) {
         int[][] hmiMatrix = HuntMcIlroy.huntMcIlroyMatrixString(longerString, shorterString);
 
         int row = hmiMatrix.length - 1;
         int col = hmiMatrix[0].length - 1;
-        StringBuilder result = new StringBuilder(longerString.length());
+        StringBuilder longerDiffString = new StringBuilder(longerString.length());
+        StringBuilder shorterDiffString = new StringBuilder(shorterString.length());
 
-        while (row > 0 && col > 0) {
-            if (longerString.charAt(row - 1) == shorterString.charAt(col - 1)) {
-                result.insert(0, "O");
+
+        while (row >= 0 && col >= 0) {
+            if (row > 0 && col > 0 && longerString.charAt(row - 1) == shorterString.charAt(col - 1)) {
+                longerDiffString.insert(0, "O");
+                shorterDiffString.insert(0, "O");
                 row--;
                 col--;
             } else {
-                while (hmiMatrix[row - 1][col] == hmiMatrix[row][col]) {
+                while (row > 0 && hmiMatrix[row - 1][col] == hmiMatrix[row][col]) {
                     row--;
-                    result.insert(0, "!");
+                    longerDiffString.insert(0, "!");
                 }
-                while (hmiMatrix[row][col-1] == hmiMatrix[row][col]) col--;
+                while (col > 0 && hmiMatrix[row][col-1] == hmiMatrix[row][col]) {
+                    col--;
+                    shorterDiffString.insert(0, "!");
+                }
             }
+            if(row == 0 && col == 0) break;
         }
-        return result.toString();
+        return new DoubleSidedDiffString(longerDiffString.toString(), shorterDiffString.toString());
+    }
+
+    public record DoubleSidedDiffString(String longerDiffString, String shorterDiffString) {
     }
 
     /**

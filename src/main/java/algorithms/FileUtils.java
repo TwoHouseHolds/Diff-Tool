@@ -162,17 +162,21 @@ public class FileUtils {
         String[] rightArray = rightString.split("");
 
         Side longerSide = leftArray.length > rightArray.length ? Side.LEFT : Side.RIGHT;
+        Side shorterSide = leftArray.length > rightArray.length ? Side.RIGHT : Side.LEFT;
         String longerString = longerSide == Side.LEFT ? leftString : rightString;
         String shorterString = longerSide == Side.LEFT ? rightString : leftString;
 
         // check if Strings should be compared character by character (LevenshteinDistance)
-        if (LevenshteinDistance.of(leftString, rightString) < longerString.length() * 0.3) {
-            String diffString = HuntMcIlroy.compareString(longerString, shorterString);
-            for (int i = 0; i < diffString.length(); i++) {
-                char firstNonWhiteSpaceChar = longerString.trim().charAt(0);
-                int offset = longerString.indexOf(firstNonWhiteSpaceChar) - shorterString.indexOf(firstNonWhiteSpaceChar);
-                if (diffString.charAt(i) == '!') {
-                    newSpecificLineChanges.add(new SpecificLineChange(actualLineNumber, i + String.valueOf(displayedLineNumber).length() + 4 + offset, longerString.charAt(i + offset), longerSide));
+        if (LevenshteinDistance.of(leftString, rightString) < longerString.length() * 0.3) { // compare inline
+            HuntMcIlroy.DoubleSidedDiffString dsds = HuntMcIlroy.compareString(longerString, shorterString);
+            for (int i = 0; i < dsds.longerDiffString().length(); i++) {
+                if (dsds.longerDiffString().charAt(i) == '!') {
+                    newSpecificLineChanges.add(new SpecificLineChange(actualLineNumber, i + String.valueOf(displayedLineNumber).length() + 4, longerString.charAt(i), longerSide));
+                }
+            }
+            for (int i = 0; i < dsds.shorterDiffString().length(); i++) {
+                if (dsds.shorterDiffString().charAt(i) == '!') {
+                    newSpecificLineChanges.add(new SpecificLineChange(actualLineNumber, i + String.valueOf(displayedLineNumber).length() + 4, shorterString.charAt(i), shorterSide));
                 }
             }
         } else {

@@ -140,10 +140,6 @@ public class SwingInterface {
             JMenu helpMenu = getHelpMenu(frame);
             add(helpMenu);
 
-            JMenu additionalStuff = new JMenu("Zusätzliches");
-            additionalStuff.add(ticTacToe);
-            add(additionalStuff);
-
             JMenu settingsMenu = new JMenu("Einstellungen");
             JMenu themeItem = new JMenu("Theme");
             for (SwingTheme theme : SwingTheme.values()) {
@@ -154,6 +150,10 @@ public class SwingInterface {
             settingsMenu.add(themeItem);
             add(settingsMenu);
 
+            JMenu additionalStuff = new JMenu("Zusätzliches");
+            additionalStuff.add(ticTacToe);
+            add(additionalStuff);
+
             JMenu exitMenu = new JMenu("Beenden");
             JMenuItem exitItem = new JMenuItem("Programm beenden");
             exitItem.addActionListener(e -> System.exit(0));
@@ -163,38 +163,47 @@ public class SwingInterface {
 
         private static JMenu getHelpMenu(JFrame frame) {
             JMenu helpMenu = new JMenu("Hilfe");
-            MenuItem guideItem = new MenuItem("Guide", """
-                    - Wählen Sie die Verzeichnisse aus, die Sie vergleichen möchten.
-                    - Die Anwendung zeigt die Unterschiede zwischen 2 Verzeichnissen an.
-                      Zusätzlich können Sie die Unterschiede zwischen 2 Dateien anzeigen lassen.
-                      Hierfür wählen Sie die Dateien aus, die Sie vergleichen möchten,\s
-                      indem Sie den Pfad in der Textbox eingeben oder das Verzeichnis\s
-                      mit dem Button \uD83D\uDCC1 auswählen. Danach auf "Bestätigen" klicken.
-                    - Jederzeit können Sie mit der Escape-Taste zum vorherigen Menü zurückkehren,
-                      alternativ können Sie auch die Pfeilbuttons in der oberen linken Ecke nutzen\s
-                      um zwischen den Menüs zu wechseln, sofern dies möglich ist.
-                    - Um die Differenz von 2 Dateien zu speichern, wählen Sie den Button\s
-                      "Differenz Exportieren", welcher sich unterhalb des Textes mit den\s
-                       Differenzen befindet.
-                    - Um das Theme der Anwendung zu ändern, wählen Sie im Menü unter "Einstellungen"
-                      -> "Theme" das gewünschte Theme aus.
-                    - Um diese Anleitung erneut anzuzeigen, wählen Sie im Menü "Hilfe" -> "Guide".
-                    - Um Informationen über die Entwickler zu erhalten, wählen Sie im Menü "Hilfe"\s
-                      -> "Über uns".
-                    - Um ein TicTacToe-Minispiel zu starten, wählen Sie im Menü "Zusätzliches" -> "TicTacToe"
-                    - Um das Programm zu beenden, wählen Sie im Menü "Beenden" -> "Beende Programm.""", frame, "Hilfe");
-            MenuItem aboutItem = new MenuItem("Über uns", "Entwickelt im Rahmen der SoftwareProjekt 1 Vorlesung der Hochschule für Technik Stuttgart.\n" + "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "Über uns");
-
-            MenuItem legendenItem = new MenuItem("Legende", """
-                    - Das grüne Plus erscheint bei Zeilen, welche hinzugefügt wurden.
-                    - Das rote Minus erscheint bei Zeilen, welche entfernt wurden.
-                    - Das orange Ausrufezeichen erscheint bei Zeilen, welche Veränderungen
-                      enthalten.
-                      -> Die orange markierten Teile innerhalb der Zeilen sind die genauen Änderungen.
-                      -> Wenn zu viele Unterschiede innerhalb der Zeilen auftreten, wird die gesamte Zeile
-                         orange markiert.
+            JMenu guideItem = new JMenu("Guide");
+            MenuItem compareDirectoryItem = new MenuItem("Verzeichnisse vergleichen", """
+                    1. Verzeichnisse wählen (Ordner auswählen oder Pfad eingeben)
+                    2. "Bestätigen" klicken
+                    3. Anwendung zeigt Vergleich der Verzeichnisse an
                     
-                    """, frame, "Legende");
+                    * in L&R: Datei in beiden Verzeichnissen
+                    * in L: Datei nur links
+                    * in R: Datei nur rechts
+                    
+                    * identisch: Dateien in Verzeichnissen haben gleichen Inhalt
+                    * verschieden: nicht identisch
+                    """, frame, "Hilfe");
+            MenuItem compareFileItem = new MenuItem("Dateien vergleichen", """
+                    1. Datei ausfindig machen (hierbei sind Such- und Sortieroptionen hilfreich)
+                    2. Gewünschte Datei aus einer der Listen durch Anklicken auswählen
+                    3. Anwendung zeigt Vergleich der Dateien an
+                    
+                    + (grün): Zeile existiert nur in AUSGEWÄHLTER Datei
+                    - (rot): Zeile existiert nur in NICHT ausgewählter Datei
+                    ! (gelb): Zeile existiert in BEIDEN Dateien aber in unterschiedlicher Form
+                       -> ggfs. geänderte Zeichen angezeigt (bei >=70% Übereinstimmung)
+
+                    * Zeilennummern in der ausgewählten Datei stimmen mit tatsächlichen Zeilennummern überein
+                    * Zeilen, die sich nur durch Whitespaces am Anfang unterscheiden, werden als gleich angesehen
+                    * Differenz kann als Textdatei oder als HTML exportiert werden (Button unter Vergleich)
+                    """, frame, "Hilfe");
+            MenuItem menuHelpItem = new MenuItem("Menü", """
+                    * Navigation: ⬅️-Button, ➡️-Button & ESC
+                    * Guide: "Hilfe -> Guide"
+                    * Informationen über Entwickler: "Hilfe -> Über uns"
+                    * CUI öffnen: "Hilfe -> In CUI wechseln"
+                    * Theme ändern: "Einstellungen -> Theme"
+                    * TicTacToe-Minispiel: "Zusätzliches -> TicTacToe"
+                    * Programm beenden: "Beenden -> Beende Programm"
+                    """, frame, "Hilfe");
+            guideItem.add(compareDirectoryItem);
+            guideItem.add(compareFileItem);
+            guideItem.add(menuHelpItem);
+
+            MenuItem aboutItem = new MenuItem("Über uns", "Entwickelt im Rahmen der Software Projekt 1 Vorlesung der Hochschule für Technik Stuttgart.\n" + "Contributors: Benedikt Belschner, Colin Traub, Daniel Rodean, Finn Wolf", frame, "Über uns");
 
             JMenuItem switchItem = new JMenuItem("In CUI wechseln");
             switchItem.addActionListener(e -> {
@@ -207,7 +216,6 @@ public class SwingInterface {
             });
 
             helpMenu.add(guideItem);
-            helpMenu.add(legendenItem);
             helpMenu.add(aboutItem);
             helpMenu.add(switchItem);
             return helpMenu;
@@ -575,7 +583,9 @@ public class SwingInterface {
 
             Level3UISide leftUISide = new Level3UISide(Side.LEFT);
             Level3UISide rightUISide = new Level3UISide(Side.RIGHT);
-            changeColor(leftUISide.textPane, rightUISide.textPane, lineChanges);
+            if (leftLines != null && rightLines != null) {
+                changeColor(leftUISide.textPane, rightUISide.textPane, lineChanges);
+            }
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftUISide, rightUISide);
             splitPane.setResizeWeight(0.5);
@@ -588,7 +598,7 @@ public class SwingInterface {
             gbc.gridwidth = 3;
             add(splitPane, gbc);
 
-            JCheckBox synchronizedScrolling = new JCheckBox("Synchrones Scrollen");
+            JCheckBox synchronizedScrolling = new JCheckBox("Synchrones Scrollen (links)");
             gbc.gridy = 0;
             gbc.weighty = 0;
             gbc.fill = GridBagConstraints.NONE;
