@@ -43,10 +43,12 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
             char symbol = line.charAt(symbolLocation);
             char otherSymbol = otherLine.charAt(symbolLocation);
             if(symbol != '-' && otherSymbol != '-') {
-                lineNumber--;
                 lineNumber2++;
+            } else {
+                lineNumber--;
             }
         }
+
 
         for (int i = yScrollOffset; i < yScrollOffset + textBox.getSize().getRows() - 1; i++) {
             if (i >= lines.length) break;
