@@ -35,7 +35,7 @@ public class LanternaTicTacToeMiniGaming {
     public LanternaTicTacToeMiniGaming(WindowBasedTextGUI textGUI) {
         this.textGUI = textGUI;
         this.random = new Random();
-        window = new BasicWindow("Blackjack Minigame");
+        window = new BasicWindow("TicTacToe Minigame");
         window.setHints(Set.of(Window.Hint.CENTERED));
         panel = new Panel(new LinearLayout(Direction.VERTICAL));
         window.addWindowListener(new WindowListenerAdapter() {
