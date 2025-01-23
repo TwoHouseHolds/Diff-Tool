@@ -33,8 +33,8 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
 
         int lineNumber = 1 + yScrollOffset;
         // to factor in previously read "-" signs into the calculation as yScrollOffset does not contain that information
-        for(int lineNumber2 = 1; lineNumber2 <= yScrollOffset; lineNumber2++) {
-            int i = lineNumber2 -1;
+        int lineNumber2 = 1;
+        for(int i = 0; i < yScrollOffset; i++) {
             if (i >= lines.length) break;
             String line = lines[i];
             String otherLine = otherLines[i];
