@@ -33,6 +33,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
 
         int lineNumber = 1;
 
+        // only do necessary calculations for non-displayed lines
         for(int i = 0; i < yScrollOffset; i++) {
             if (i >= lines.length) break;
             String line = lines[i];
@@ -44,6 +45,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
             if(symbol != '-' && otherSymbol != '-') lineNumber++;
         }
 
+        // calculations for displayed lines
         for (int i = yScrollOffset; i < yScrollOffset + textBox.getSize().getRows() - 1; i++) {
             if (i >= lines.length) break;
             String line = lines[i];
@@ -61,8 +63,9 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                         : symbol == '-' ? TextColor.ANSI.RED : TextColor.ANSI.YELLOW;
                 graphics.setBackgroundColor(colorOfSymbol);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                graphics.putString(xPos, yPos, String.valueOf(symbol));
-
+                if(xPos < textBox.getSize().getColumns()) {
+                    graphics.putString(xPos, yPos, String.valueOf(symbol));
+                }
                 graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
             }
