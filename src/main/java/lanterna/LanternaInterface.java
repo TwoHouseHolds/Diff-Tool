@@ -536,6 +536,10 @@ public class LanternaInterface {
 
             @Override
             protected void done() {
+                leftTextBox.setDoneFilling(true);
+                rightTextBox.setDoneFilling(true);
+                //Redraw the screen
+                tryScreenUpdate();
                 super.done();
             }
         };

@@ -22,6 +22,8 @@ public class ColoredTextBox extends TextBox {
     ColoredTextBox otherBox = null;
     ColoredTextBox scrollSlave = null;
 
+    boolean doneFilling = false;
+
     public ColoredTextBox(TerminalSize initialSize, Side side) {
         super(initialSize, Style.MULTI_LINE);
         this.side = side;
@@ -58,5 +60,13 @@ public class ColoredTextBox extends TextBox {
             this.scrollSlave.handleKeyStroke(keyStroke);
         }
         return super.handleKeyStroke(keyStroke);
+    }
+
+    public void setDoneFilling(boolean doneFilling) {
+        this.doneFilling = doneFilling;
+    }
+
+    public boolean isDoneFilling() {
+        return doneFilling;
     }
 }

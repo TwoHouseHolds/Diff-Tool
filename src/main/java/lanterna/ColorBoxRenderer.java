@@ -22,6 +22,9 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
         ColoredTextBox coloredTextBox = (ColoredTextBox) textBox;
         ColoredTextBox otherTextBox = coloredTextBox.getOtherBox();
 
+        if(!coloredTextBox.isDoneFilling()) return;
+        if(!otherTextBox.isDoneFilling()) return;
+
         String boxText = textBox.getText();
         String[] lines = boxText.split("\\r?\\n|\\r");
 
