@@ -33,7 +33,18 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
 
         int lineNumber = 1;
 
-        for (int i = 0; i < yScrollOffset + textBox.getSize().getRows() - 1; i++) {
+        for(int i = 0; i < yScrollOffset; i++) {
+            if (i >= lines.length) break;
+            String line = lines[i];
+            String otherLine = otherLines[i];
+            if(line.isEmpty()) continue;
+            int symbolLocation = String.valueOf(lineNumber).length() + 2;
+            char symbol = line.charAt(symbolLocation);
+            char otherSymbol = otherLine.charAt(symbolLocation);
+            if(symbol != '-' && otherSymbol != '-') lineNumber++;
+        }
+
+        for (int i = yScrollOffset; i < yScrollOffset + textBox.getSize().getRows() - 1; i++) {
             if (i >= lines.length) break;
             String line = lines[i];
             String otherLine = otherLines[i];
