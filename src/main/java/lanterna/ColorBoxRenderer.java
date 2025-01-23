@@ -31,7 +31,21 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
         int xScrollOffset = getViewTopLeft().getColumn();
         int yScrollOffset = getViewTopLeft().getRow();
 
-        int lineNumber = 1 + yScrollOffset;
+        int lineNumber = 1;
+
+        // only do necessary calculations for non-displayed lines
+        for(int i = 0; i < yScrollOffset; i++) {
+            if (i >= lines.length) break;
+            String line = lines[i];
+            String otherLine = otherLines[i];
+            if(line.isEmpty()) continue;
+            int symbolLocation = String.valueOf(lineNumber).length() + 2;
+            char symbol = line.charAt(symbolLocation);
+            char otherSymbol = otherLine.charAt(symbolLocation);
+            if(symbol != '-' && otherSymbol != '-') lineNumber++;
+        }
+
+        // calculations for displayed lines
         for (int i = yScrollOffset; i < yScrollOffset + textBox.getSize().getRows() - 1; i++) {
             if (i >= lines.length) break;
             String line = lines[i];
@@ -49,8 +63,9 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                         : symbol == '-' ? TextColor.ANSI.RED : TextColor.ANSI.YELLOW;
                 graphics.setBackgroundColor(colorOfSymbol);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                graphics.putString(xPos, yPos, String.valueOf(symbol));
-
+                if(xPos < textBox.getSize().getColumns() - 1) {
+                    graphics.putString(xPos, yPos, String.valueOf(symbol));
+                }
                 graphics.setBackgroundColor(TextColor.ANSI.BLUE);
                 graphics.setForegroundColor(TextColor.ANSI.WHITE);
             }
@@ -64,7 +79,9 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                             graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
                             graphics.setForegroundColor(TextColor.ANSI.BLACK);
                             try {
-                                graphics.putString(xPos, yPos, String.valueOf(c.character()));
+                                if(xPos < textBox.getSize().getColumns() - 1) {
+                                    graphics.putString(xPos, yPos, String.valueOf(c.character()));
+                                }
                             } catch (Exception e) {
                                 //Not a valid character
                                 graphics.putString(xPos, yPos, "?");
