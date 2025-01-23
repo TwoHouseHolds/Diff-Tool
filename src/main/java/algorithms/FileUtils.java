@@ -104,8 +104,10 @@ public class FileUtils {
             if (leftFileType == FileType.ERROR) leftLines.add("Fehler beim Lesen der Datei");
             else if (rightFileType == FileType.ERROR) rightLines.add("Fehler beim Lesen der Datei");
             else {
-                leftLines.add((leftFileType == FileType.BINARY ? "Binäre " : leftFileType) + " Dateien können (noch) nicht verglichen werden.");
-                rightLines.add((rightFileType == FileType.BINARY ? "Binäre " : rightFileType) + " Dateien können (noch) nicht verglichen werden.");
+                if (leftFileType != FileType.TEXT) leftLines.add((leftFileType == FileType.BINARY ? "Binäre " : leftFileType) + " Dateien können (noch) nicht verglichen werden.");
+                else leftLines.add((rightFileType == FileType.BINARY ? "Binäre" : rightFileType) + " Dateien (andere Datei) können (noch) nicht verglichen werden.");
+                if (rightFileType != FileType.TEXT) rightLines.add((rightFileType == FileType.BINARY ? "Binäre " : rightFileType) + " Dateien können (noch) nicht verglichen werden.");
+                else rightLines.add((leftFileType == FileType.BINARY ? "Binäre" : leftFileType) + " Dateien (andere Datei) können (noch) nicht verglichen werden.");
             }
             return new LineResult(leftLines, rightLines, null);
         }
