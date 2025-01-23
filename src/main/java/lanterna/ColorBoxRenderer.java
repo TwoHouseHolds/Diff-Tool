@@ -63,7 +63,7 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                         : symbol == '-' ? TextColor.ANSI.RED : TextColor.ANSI.YELLOW;
                 graphics.setBackgroundColor(colorOfSymbol);
                 graphics.setForegroundColor(TextColor.ANSI.BLACK);
-                if(xPos < textBox.getSize().getColumns()) {
+                if(xPos < textBox.getSize().getColumns() - 1) {
                     graphics.putString(xPos, yPos, String.valueOf(symbol));
                 }
                 graphics.setBackgroundColor(TextColor.ANSI.BLUE);
@@ -79,7 +79,9 @@ public class ColorBoxRenderer extends TextBox.DefaultTextBoxRenderer {
                             graphics.setBackgroundColor(TextColor.ANSI.YELLOW);
                             graphics.setForegroundColor(TextColor.ANSI.BLACK);
                             try {
-                                graphics.putString(xPos, yPos, String.valueOf(c.character()));
+                                if(xPos < textBox.getSize().getColumns() - 1) {
+                                    graphics.putString(xPos, yPos, String.valueOf(c.character()));
+                                }
                             } catch (Exception e) {
                                 //Not a valid character
                                 graphics.putString(xPos, yPos, "?");
