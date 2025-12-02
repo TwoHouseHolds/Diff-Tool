@@ -41,6 +41,55 @@ A Java application for comparing directories and files, featuring both a Graphic
     ![3.png](z_readme%20images/3.png)   
     ![4.png](z_readme%20images/4.png)
 
+## Installation \& Build
+
+### Prerequisites
+
+* Java Development Kit (JDK) \>= 16
+* Maven (`mvn`)
+* Git (to clone the repository)
+
+
+Check the Versions of your installed Software
+```bash
+java -version
+mvn -version
+```
+
+Clone the repository
+```bash
+git clone https://github.com/TwoHouseHolds/Diff-Tool.git
+cd Diff-Tool
+```
+
+Build the project
+```bash
+mvn clean package
+```
+Alternatively use the Tools provided by an IDE such as IntelliJ to build the project
+
+Run the Project via Maven
+```bash
+mvn exec:java
+```
+Run via Jar-File
+```bash
+java -jar target/SWP1_Final_Project-1.0-SNAPSHOT-shaded.jar
+```
+
+The tool automatically detects whether to start in CUI or GUI mode.
+However, the .jar file can also be started manually with \-w for the GUI and \-W for the CUI.
+```bash
+java -jar target/SWP1_Final_Project-1.0-SNAPSHOT-shaded.jar -W
+java -jar target/SWP1_Final_Project-1.0-SNAPSHOT-shaded.jar -w
+```
+
+These arguments can also be passed when running with Maven.
+```bash
+mvn exec:java -Dexec.args="-W"
+mvn exec:java -Dexec.args="-w"
+```
+
 ## License/Copyright
 © 2025 Benedikt Belschner, Daniel Rodean, Colin Traub, Finn Wolf
 All Rights Reserved.
